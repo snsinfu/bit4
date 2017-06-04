@@ -18,6 +18,7 @@ exec c++                                                            \
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
 #include <clang/AST/Expr.h>
+#include <clang/AST/ExprCXX.h>
 #include <clang/AST/Stmt.h>
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/TargetInfo.h>
@@ -89,10 +90,47 @@ void buildAST(clang::ASTContext& context)
 
     // Build the function body
     clang::CompoundStmt* body = new(context) clang::CompoundStmt{clang::SourceLocation{}};
+
+    auto sumVarDecl = clang::VarDecl::Create(
+        context, functionDecl, clang::SourceLocation{}, clang::SourceLocation{},
+        &identifiers.get("sum"), context.DoubleTy, nullptr, clang::SC_None
+    );
+    sumVarDecl->setInit(
+        new(context) clang::BinaryOperator{
+            new(context) clang::DeclRefExpr{
+                parameters[0], false, parameterTypes[0], clang::VK_LValue, clang::SourceLocation{}
+            },
+            new(context) clang::DeclRefExpr{
+                parameters[1], false, parameterTypes[1], clang::VK_LValue, clang::SourceLocation{}
+            },
+            clang::BO_Add, // BinaryOperatorKind in <clang/AST/OperationKinds.h>
+            context.DoubleTy,
+            clang::VK_RValue,
+            clang::OK_Ordinary,
+            clang::SourceLocation{},
+            /*fpContractable*/false
+        }
+    );
+
+    auto resultExpr = clang::CXXStaticCastExpr::Create(
+        context, resultType, clang::VK_RValue, clang::CK_FloatingToIntegral,
+        new(context) clang::DeclRefExpr{
+            sumVarDecl, false, sumVarDecl->getType(), clang::VK_LValue, clang::SourceLocation{}
+        },
+        static_cast<clang::CXXCastPath*>(nullptr),
+        context.CreateTypeSourceInfo(resultType),
+        clang::SourceLocation{}, clang::SourceLocation{}, clang::SourceRange{}
+    );
+
     std::vector<clang::Stmt*> statements = {
+        new(context) clang::DeclStmt{
+            clang::DeclGroupRef{sumVarDecl},
+            clang::SourceLocation{},
+            clang::SourceLocation{}
+        },
         new(context) clang::ReturnStmt{
             clang::SourceLocation{},
-            clang::IntegerLiteral::Create(context, llvm::APInt{32u, 42u}, context.IntTy, clang::SourceLocation{}),
+            resultExpr,
             nullptr
         },
     };
