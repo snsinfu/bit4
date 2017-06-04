@@ -17,6 +17,8 @@ exec c++                                                            \
 
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
+#include <clang/AST/Expr.h>
+#include <clang/AST/Stmt.h>
 #include <clang/Basic/IdentifierTable.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Frontend/ASTConsumers.h>
@@ -84,6 +86,18 @@ void buildAST(clang::ASTContext& context)
         ),
     };
     functionDecl->setParams(parameters);
+
+    // Build the function body
+    clang::CompoundStmt* body = new(context) clang::CompoundStmt{clang::SourceLocation{}};
+    std::vector<clang::Stmt*> statements = {
+        new(context) clang::ReturnStmt{
+            clang::SourceLocation{},
+            clang::IntegerLiteral::Create(context, llvm::APInt{32u, 42u}, context.IntTy, clang::SourceLocation{}),
+            nullptr
+        },
+    };
+    body->setStmts(context, statements);
+    functionDecl->setBody(body);
 
     declarations->addDecl(functionDecl);
 }
