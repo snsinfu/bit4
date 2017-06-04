@@ -61,22 +61,24 @@ void buildAST(clang::ASTContext& context)
     clang::TranslationUnitDecl* declarations = context.getTranslationUnitDecl();
 
     // Build the function type
-    std::vector<clang::QualType> parameterTypes = {
+    std::vector<clang::QualType> const parameterTypes = {
         context.DoubleTy,
         context.DoubleTy,
     };
-    clang::QualType resultType = context.IntTy;
-    clang::QualType functionType = context.getFunctionType(
+    clang::QualType const resultType = context.IntTy;
+    clang::QualType const functionType = context.getFunctionType(
         resultType,
         parameterTypes,
         clang::FunctionProtoType::ExtProtoInfo{}
     );
 
     // Build the declaration
-    clang::FunctionDecl* functionDecl = clang::FunctionDecl::Create(
-            context, declarations, clang::SourceLocation{}, clang::SourceLocation{},
-            clang::DeclarationName{&identifiers.get("myFunction")}, functionType, nullptr, clang::SC_None);
-    std::vector<clang::ParmVarDecl*> parameters = {
+    clang::FunctionDecl* const functionDecl = clang::FunctionDecl::Create(
+        context, declarations, clang::SourceLocation{}, clang::SourceLocation{},
+        clang::DeclarationName{&identifiers.get("myFunction")}, functionType,
+        nullptr, clang::SC_None
+    );
+    std::vector<clang::ParmVarDecl*> const parameters = {
         clang::ParmVarDecl::Create(
             context, functionDecl, clang::SourceLocation{}, clang::SourceLocation{},
             &identifiers.get("x"), parameterTypes[0], nullptr, clang::SC_None, nullptr
@@ -89,9 +91,9 @@ void buildAST(clang::ASTContext& context)
     functionDecl->setParams(parameters);
 
     // Build the function body
-    clang::CompoundStmt* body = new(context) clang::CompoundStmt{clang::SourceLocation{}};
+    clang::CompoundStmt* const body = new(context) clang::CompoundStmt{clang::SourceLocation{}};
 
-    auto sumVarDecl = clang::VarDecl::Create(
+    clang::VarDecl* const sumVarDecl = clang::VarDecl::Create(
         context, functionDecl, clang::SourceLocation{}, clang::SourceLocation{},
         &identifiers.get("sum"), context.DoubleTy, nullptr, clang::SC_None
     );
@@ -104,25 +106,21 @@ void buildAST(clang::ASTContext& context)
                 parameters[1], false, parameterTypes[1], clang::VK_LValue, clang::SourceLocation{}
             },
             clang::BO_Add, // BinaryOperatorKind in <clang/AST/OperationKinds.h>
-            context.DoubleTy,
-            clang::VK_RValue,
-            clang::OK_Ordinary,
-            clang::SourceLocation{},
+            context.DoubleTy, clang::VK_RValue, clang::OK_Ordinary, clang::SourceLocation{},
             /*fpContractable*/false
         }
     );
 
-    auto resultExpr = clang::CXXStaticCastExpr::Create(
+    clang::CXXStaticCastExpr* const resultExpr = clang::CXXStaticCastExpr::Create(
         context, resultType, clang::VK_RValue, clang::CK_FloatingToIntegral,
         new(context) clang::DeclRefExpr{
             sumVarDecl, false, sumVarDecl->getType(), clang::VK_LValue, clang::SourceLocation{}
         },
-        static_cast<clang::CXXCastPath*>(nullptr),
-        context.CreateTypeSourceInfo(resultType),
+        nullptr, context.CreateTypeSourceInfo(resultType),
         clang::SourceLocation{}, clang::SourceLocation{}, clang::SourceRange{}
     );
 
-    std::vector<clang::Stmt*> statements = {
+    std::vector<clang::Stmt*> const statements = {
         new(context) clang::DeclStmt{
             clang::DeclGroupRef{sumVarDecl},
             clang::SourceLocation{},
