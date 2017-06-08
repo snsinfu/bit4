@@ -97,9 +97,8 @@ int main()
 
     auto tree = Eigen::MatrixXd{10, 10}.setZero();
     compute_mst(graph, [&](int i, int j) {
-        tree(i, j) = graph(i, j);
+        tree(i, j) = tree(j, i) = graph(i, j);
     });
-    tree += tree.transpose().eval();
 
     std::cout << tree << '\n';
 }
