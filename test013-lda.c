@@ -58,22 +58,69 @@ void print_matrix(int rows, int cols, const double matrix[rows][cols]) {
 // Compute approximate digamma function.
 static double digamma(
     double x
-);
+) {
+    if (x < 1e-6) {
+        const double EULER = 0.5772156649015328606;
+        return -EULER - 1 / x;
+    }
+
+    double result = 0;
+
+    // psi(x + 1) = psi(x) + 1/x
+    while (x < 6) {
+        result -= 1 / x;
+        x += 1;
+    }
+
+    // psi(x) = log(x) - 1/(2x) - 1/(12x^2) + 1/(120x^4) - 1/(252x^6) + ...
+    double r = 1 / x;
+    result += log(x) - 5 * r;
+    r *= r;
+    result -= r * (1./12 - r * (1./120 - r * (1./252)));
+
+    return result;
+}
 
 // Randomize matrix elements with numbers in [lo,hi].
 static void randomize_matrix(
     int rows, int cols, double matrix[rows][cols], double lo, double hi
-);
+) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            matrix[i][j] = lo + (hi - lo) * rand() / RAND_MAX;
+        }
+    }
+}
 
 // Compute E[log X] for Dirichlet variable X.
 static void exp_dirichlet_expect(
     int n, const double distr[n], double result[n]
-);
+) {
+    double sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += distr[i];
+    }
+
+    const double digamma_sum = digamma(sum);
+    for (int i = 0; i < n; i++) {
+        result[i] = exp(digamma(distr[i]) - digamma_sum);
+    }
+}
 
 // Normalize probability distribution.
 static void normalize_distribution(
     int n, double distr[n]
-);
+) {
+    double sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += distr[i];
+    }
+
+    const double norm = 1 / sum;
+    for (int i = 0; i < n; i++) {
+        distr[i] *= norm;
+    }
+}
 
 void latent_dirichlet_allocation(
     int n_docs, int n_words, int n_topics,
@@ -156,60 +203,5 @@ void latent_dirichlet_allocation(
     }
     for (int k = 0; k < n_topics; k++) {
         normalize_distribution(n_words, topic_word_distr[k]);
-    }
-}
-
-double digamma(double x) {
-    if (x < 1e-6) {
-        const double EULER = 0.5772156649015328606;
-        return -EULER - 1 / x;
-    }
-
-    double result = 0;
-
-    // psi(x + 1) = psi(x) + 1/x
-    while (x < 6) {
-        result -= 1 / x;
-        x += 1;
-    }
-
-    // psi(x) = log(x) - 1/(2x) - 1/(12x^2) + 1/(120x^4) - 1/(252x^6) + ...
-    double r = 1 / x;
-    result += log(x) - 5 * r;
-    r *= r;
-    result -= r * (1./12 - r * (1./120 - r * (1./252)));
-
-    return result;
-}
-
-void randomize_matrix(int rows, int cols, double matrix[rows][cols], double lo, double hi) {
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            matrix[i][j] = lo + (hi - lo) * rand() / RAND_MAX;
-        }
-    }
-}
-
-void exp_dirichlet_expect(int n, const double distr[n], double result[n]) {
-    double sum = 0;
-    for (int i = 0; i < n; i++) {
-        sum += distr[i];
-    }
-
-    const double digamma_sum = digamma(sum);
-    for (int i = 0; i < n; i++) {
-        result[i] = exp(digamma(distr[i]) - digamma_sum);
-    }
-}
-
-void normalize_distribution(int n, double distr[n]) {
-    double sum = 0;
-    for (int i = 0; i < n; i++) {
-        sum += distr[i];
-    }
-
-    const double norm = 1 / sum;
-    for (int i = 0; i < n; i++) {
-        distr[i] *= norm;
     }
 }
