@@ -16,9 +16,11 @@ void latent_dirichlet_allocation(
 );
 
 int main(void) {
-    const int n_docs = 7;
-    const int n_words = 5;
-    const int n_topics = 2;
+    enum {
+        n_docs = 7,
+        n_words = 5,
+        n_topics = 2,
+    };
 
     const double word_freq[n_docs][n_words] = {
         {10, 5, 0,  0, 0},
