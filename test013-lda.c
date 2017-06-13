@@ -58,9 +58,7 @@ void print_matrix(int rows, int cols, const double matrix[rows][cols]) {
 }
 
 // Compute approximate digamma function.
-static double digamma(
-    double x
-) {
+static double digamma(double x) {
     if (x < 1e-6) {
         const double EULER = 0.5772156649015328606;
         return -EULER - 1 / x;
@@ -84,9 +82,7 @@ static double digamma(
 }
 
 // Randomize matrix elements with numbers in [lo,hi].
-static void randomize_matrix(
-    int rows, int cols, double matrix[rows][cols], double lo, double hi
-) {
+static void randomize_matrix(int rows, int cols, double matrix[rows][cols], double lo, double hi) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             matrix[i][j] = lo + (hi - lo) * rand() / RAND_MAX;
@@ -95,9 +91,7 @@ static void randomize_matrix(
 }
 
 // Compute E[log X] for Dirichlet variable X.
-static void exp_dirichlet_expect(
-    int n, const double distr[n], double result[n]
-) {
+static void exp_dirichlet_expect(int n, const double distr[n], double result[n]) {
     double sum = 0;
     for (int i = 0; i < n; i++) {
         sum += distr[i];
@@ -110,9 +104,7 @@ static void exp_dirichlet_expect(
 }
 
 // Normalize probability distribution.
-static void normalize_distribution(
-    int n, double distr[n]
-) {
+static void normalize_distribution(int n, double distr[n]) {
     double sum = 0;
     for (int i = 0; i < n; i++) {
         sum += distr[i];
