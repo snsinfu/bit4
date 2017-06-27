@@ -34,3 +34,7 @@
 [submodule "deps/frickiericker/cxx14_range_algorithms"]
 	path = deps/frickiericker/cxx14_range_algorithms
 	url = https://github.com/frickiericker/cxx14_range_algorithms
+[submodule "deps/g-truc/glm"]
+	path = deps/g-truc/glm
+	url = https://github.com/g-truc/glm.git
+	branch = 0.9.8
