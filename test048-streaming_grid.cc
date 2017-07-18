@@ -275,7 +275,7 @@ CollisionHash spatial_hashing(std::vector<glm::dvec2> const& points, double radi
         double const x = std::round(bin_freq * point.x) + offset;
         double const y = std::round(bin_freq * point.y) + offset;
         double const coord = x * stride + y;
-        std::size_t const map_index = static_cast<std::size_t>(coord) % hash_map_size;
+        std::size_t const map_index = (static_cast<std::size_t>(coord) + hash_map_size / 2) % hash_map_size;
 
         hash_map[map_index].indices.push_back(i);
     }
