@@ -263,7 +263,7 @@ CollisionHash spatial_hashing(std::vector<glm::dvec2> const& points, double radi
     double const dcut2 = dcut * dcut;
     double const bin_freq = 1 / dcut;
 
-    std::size_t const hash_map_size = 256;
+    std::size_t const hash_map_size = 512;
     double const offset = 1 << 25;
     double const stride = static_cast<double>(hash_map_size);
 
