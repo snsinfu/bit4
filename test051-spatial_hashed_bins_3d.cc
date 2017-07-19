@@ -249,11 +249,13 @@ namespace
 
             for (std::size_t index = 0; index < points.size(); ++index) {
                 Point const point = points[index];
-                bins_[locate(point)].members.push_back(index);
+                bins_[locate_bin(point)].members.push_back(Bin::Member{
+                    index, point
+                });
             }
         }
 
-        CollisionHash detect_collisions(std::vector<Point> const& points) const
+        CollisionHash detect_collisions(std::vector<Point> const&) const
         {
             CollisionHash hash;
 
@@ -295,15 +297,20 @@ namespace
                 +1 + (+1 +  0 * ny_) * nx_ + nbins,
                 +1 + (+1 + +1 * ny_) * nx_ + nbins,
             };
+
             double const dcut2 = dcut_ * dcut_;
 
             for (std::size_t center = 0; center < nbins; ++center) {
+                View<Bin::Member const> center_members = bins_[center].members;
+
                 for (std::size_t delta : deltas) {
                     std::size_t const other = (center + delta) % nbins;
-                    for (std::size_t i : bins_[center].members) {
-                        for (std::size_t j : bins_[other].members) {
-                            if (i < j && glm::distance2(points[i], points[j]) < dcut2) {
-                                hash.feed(i, j);
+                    View<Bin::Member const> other_members = bins_[other].members;
+
+                    for (Bin::Member member_i : center_members) {
+                        for (Bin::Member member_j : other_members) {
+                            if (member_i.index < member_j.index && glm::distance2(member_i.point, member_j.point) < dcut2) {
+                                hash.feed(member_i.index, member_j.index);
                             }
                         }
                     }
@@ -313,11 +320,16 @@ namespace
             return hash;
         }
 
-        std::size_t locate(Point point)
+        inline
+        std::size_t locate_bin(Point point) const
         {
-            std::size_t const x = static_cast<std::size_t>(freq_ * (point.x - min_point_.x));
-            std::size_t const y = static_cast<std::size_t>(freq_ * (point.y - min_point_.y));
-            std::size_t const z = static_cast<std::size_t>(freq_ * (point.z - min_point_.z));
+            auto const to_size_t = [](double x) {
+                return static_cast<std::size_t>(static_cast<std::ptrdiff_t>(x));
+            };
+
+            std::size_t const x = to_size_t(freq_ * (point.x - min_point_.x));
+            std::size_t const y = to_size_t(freq_ * (point.y - min_point_.y));
+            std::size_t const z = to_size_t(freq_ * (point.z - min_point_.z));
 
             return x + (y + z * ny_) * nx_;
         }
@@ -325,7 +337,12 @@ namespace
       private:
         struct Bin
         {
-            boost::container::small_vector<std::size_t, 4> members;
+            struct Member
+            {
+                std::size_t index;
+                Point       point;
+            };
+            boost::container::small_vector<Member, 4> members;
         };
 
         std::vector<Bin> bins_;
