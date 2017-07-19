@@ -19,7 +19,7 @@ namespace
         y *= p2;
         z *= p3;
 
-        return (x * y + y * z + z * x) % n;
+        return (x + y + z) % n;
     }
 }
 
