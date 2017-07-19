@@ -150,9 +150,10 @@ namespace
         }
 
       private:
-        static std::size_t const x_stride = 33554393; // prev prime of 2^25
-        static std::size_t const y_stride = 33554467; // next prime of 2^25
-        static std::size_t const z_stride = 33554473; // next
+        // Big prime numbers
+        static std::size_t const x_stride = 73856093;
+        static std::size_t const y_stride = 19349669;
+        static std::size_t const z_stride = 83492791;
 
         std::size_t locate_bin(Point point) const
         {
@@ -166,13 +167,13 @@ namespace
             std::size_t const y = to_size_t(std::nearbyint(freq_ * point.y) + offset);
             std::size_t const z = to_size_t(std::nearbyint(freq_ * point.z) + offset);
 
-            return hash(x, y, z) % bins_.size();
+            return hash(x, y, z);
         }
 
         inline
         std::size_t hash(std::size_t x, std::size_t y, std::size_t z) const
         {
-            return x * x_stride + y * y_stride + z * z_stride;
+            return (x * x_stride + y * y_stride + z * z_stride) % bins_.size();
         }
 
       private:
@@ -362,7 +363,7 @@ namespace
 
     CollisionHash spatial_hashing(std::vector<Point> const& points, double radius)
     {
-        std::size_t const nbins_heuristic = 5000;
+        std::size_t const nbins_heuristic = 16384;
         return HashedBins{nbins_heuristic, 2 * radius}.collision_hash(points);
     }
 }
