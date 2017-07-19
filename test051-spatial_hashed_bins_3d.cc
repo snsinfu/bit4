@@ -54,6 +54,36 @@ namespace
 
 namespace
 {
+    template<typename T>
+    struct View
+    {
+        template<typename Container>
+        inline
+        View(Container&& c)
+            : begin_{c.data()}, end_{c.data() + c.size()}
+        {
+        }
+
+        inline
+        T* begin() const noexcept
+        {
+            return begin_;
+        }
+
+        inline
+        T* end() const noexcept
+        {
+            return end_;
+        }
+
+      private:
+        T* begin_ = nullptr;
+        T* end_   = nullptr;
+    };
+}
+
+namespace
+{
     using Point = glm::dvec3;
     using Vector = glm::dvec3;
 
@@ -82,27 +112,27 @@ namespace
             }
 
             for (std::size_t index = 0; index < points.size(); ++index) {
-                bins_[locate_bin(points[index])].members.push_back(index);
+                bins_[locate_bin(points[index])].members.push_back(Bin::Member{
+                    index, points[index]
+                });
             }
 
             CollisionHash hash;
 
             double const dcut2 = dcut_ * dcut_;
+            std::size_t const nbins = bins_.size();
 
-            for (std::size_t center = 0; center < bins_.size(); ++center) {
-                std::vector<std::size_t> const& center_members = bins_[center].members;
+            for (std::size_t center = 0; center < nbins; ++center) {
+                View<Bin::Member const> center_members = bins_[center].members;
 
                 for (std::size_t delta : deltas_) {
-                    std::size_t const other = (center + delta) % bins_.size();
-                    std::vector<std::size_t> const& other_members = bins_[other].members;
+                    std::size_t const other = (center + delta) % nbins;
+                    View<Bin::Member const> other_members = bins_[other].members;
 
-                    for (std::size_t j : center_members) {
-                        Point const point_j = points[j];
-                        for (std::size_t i : other_members) {
-                            Point const point_i = points[i];
-
-                            if (i < j && glm::distance2(point_i, point_j) < dcut2) {
-                                hash.feed(i, j);
+                    for (Bin::Member member_i : other_members) {
+                        for (Bin::Member member_j : center_members) {
+                            if (member_i.index < member_j.index && glm::distance2(member_i.point, member_j.point) < dcut2) {
+                                hash.feed(member_i.index, member_j.index);
                             }
                         }
                     }
@@ -148,7 +178,12 @@ namespace
       private:
         struct Bin
         {
-            std::vector<std::size_t> members;
+            struct Member
+            {
+                std::size_t index;
+                Point       point;
+            };
+            boost::container::small_vector<Member, 8> members;
         };
 
         std::vector<Bin>         bins_;
