@@ -113,9 +113,9 @@ namespace
             }
 
             for (std::size_t index = 0; index < points.size(); ++index) {
-                bins_[locate_bin(points[index])].members.push_back(Bin::Member{
-                    index, points[index]
-                });
+                Point const point = points[index];
+                Bin& bin = bins_[locate_bin(point)];
+                bin.members.push_back(Bin::Member{index, point});
             }
 
             CollisionHash hash;
