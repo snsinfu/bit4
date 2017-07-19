@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -122,11 +123,13 @@ namespace
             double const dcut2 = dcut_ * dcut_;
             std::size_t const nbins = bins_.size();
 
+            assert((nbins & (nbins - 1)) == 0); // power of two
+
             for (std::size_t center = 0; center < nbins; ++center) {
                 View<Bin::Member const> center_members = bins_[center].members;
 
                 for (std::size_t delta : deltas_) {
-                    std::size_t const other = (center + delta) % nbins;
+                    std::size_t const other = (center + delta) & (nbins - 1);
                     View<Bin::Member const> other_members = bins_[other].members;
 
                     for (Bin::Member member_i : other_members) {
