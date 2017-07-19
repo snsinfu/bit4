@@ -90,12 +90,18 @@ namespace
             double const dcut2 = dcut_ * dcut_;
 
             for (std::size_t center = 0; center < bins_.size(); ++center) {
+                std::vector<std::size_t> const& center_members = bins_[center].members;
+
                 for (std::size_t delta : deltas_) {
                     std::size_t const other = (center + delta) % bins_.size();
+                    std::vector<std::size_t> const& other_members = bins_[other].members;
 
-                    for (std::size_t i : bins_[other].members) {
-                        for (std::size_t j : bins_[center].members) {
-                            if (i < j && glm::distance2(points[i], points[j]) < dcut2) {
+                    for (std::size_t j : center_members) {
+                        Point const point_j = points[j];
+                        for (std::size_t i : other_members) {
+                            Point const point_i = points[i];
+
+                            if (i < j && glm::distance2(point_i, point_j) < dcut2) {
                                 hash.feed(i, j);
                             }
                         }
@@ -122,13 +128,18 @@ namespace
         {
             double const offset = static_cast<double>(1LL << (52 / 3));
 
-            std::size_t const x = static_cast<std::size_t>(std::round(freq_ * point.x) + offset);
-            std::size_t const y = static_cast<std::size_t>(std::round(freq_ * point.y) + offset);
-            std::size_t const z = static_cast<std::size_t>(std::round(freq_ * point.z) + offset);
+            auto const to_size_t = [](double x) {
+                return static_cast<std::size_t>(static_cast<std::ptrdiff_t>(x));
+            };
+
+            std::size_t const x = to_size_t(std::nearbyint(freq_ * point.x) + offset);
+            std::size_t const y = to_size_t(std::nearbyint(freq_ * point.y) + offset);
+            std::size_t const z = to_size_t(std::nearbyint(freq_ * point.z) + offset);
 
             return hash(x, y, z) % bins_.size();
         }
 
+        inline
         std::size_t hash(std::size_t x, std::size_t y, std::size_t z) const
         {
             return x * x_stride + y * y_stride + z * z_stride;
@@ -252,11 +263,7 @@ namespace
                     std::size_t const other = (center + delta) % nbins;
                     for (std::size_t i : bins_[center].members) {
                         for (std::size_t j : bins_[other].members) {
-                            if (i >= j) {
-                                continue;
-                            }
-
-                            if (glm::distance2(points[i], points[j]) < dcut2) {
+                            if (i < j && glm::distance2(points[i], points[j]) < dcut2) {
                                 hash.feed(i, j);
                             }
                         }
