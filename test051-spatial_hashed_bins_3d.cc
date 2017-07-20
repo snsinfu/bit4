@@ -153,11 +153,6 @@ namespace
         }
 
       private:
-        // Big prime numbers
-        static std::size_t const x_stride = 73856093;
-        static std::size_t const y_stride = 19349669;
-        static std::size_t const z_stride = 83492791;
-
         std::size_t locate_bin(Point point) const
         {
             double const offset = static_cast<double>(1LL << (52 / 3));
@@ -176,6 +171,11 @@ namespace
         inline
         std::size_t hash(std::size_t x, std::size_t y, std::size_t z) const
         {
+            // Big prime numbers
+            std::size_t const x_stride = 73856093;
+            std::size_t const y_stride = 19349669;
+            std::size_t const z_stride = 83492791;
+
             return (x * x_stride + y * y_stride + z * z_stride) % bins_.size();
         }
 
