@@ -37,7 +37,7 @@ double examine_hash_distribution(std::vector<Point> const& points, double sigma,
     std::size_t const p = 73856093;
     std::size_t const q = 19349669;
     std::size_t const r = 83492791;
-    std::size_t const m = 100;
+    std::size_t const m = points.size() / 20;
 
     auto const hash = [&](std::size_t x, std::size_t y) {
         if (prime_modulo) {
@@ -50,8 +50,8 @@ double examine_hash_distribution(std::vector<Point> const& points, double sigma,
     double const bin_freq = 1 / sigma;
 
     auto const to_bin = [&](double u) {
-        int const offset = 1000000;
-        return static_cast<std::size_t>(static_cast<int>(std::nearbyint(bin_freq * u)) + offset);
+        double const offset = 1000000;
+        return static_cast<std::size_t>(static_cast<long>(bin_freq * u + offset));
     };
 
     std::vector<int> histogram(m);
