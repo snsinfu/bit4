@@ -41,3 +41,6 @@
 [submodule "deps/orlp/pdqsort"]
 	path = deps/orlp/pdqsort
 	url = https://github.com/orlp/pdqsort.git
+[submodule "deps/ridiculousfish/libdivide"]
+	path = deps/ridiculousfish/libdivide
+	url = https://github.com/ridiculousfish/libdivide.git
