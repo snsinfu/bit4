@@ -25,7 +25,7 @@ long __declspec(naked) greatest_common_divisor(long m, long n)
     }
 }
 
-int main()
+int main(void)
 {
     printf("%ld\n", greatest_common_divisor(1029, 1071));
     return 0;

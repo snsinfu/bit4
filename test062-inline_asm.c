@@ -33,7 +33,7 @@ int greatest_common_divisor(int m, int n)
     return result;
 }
 
-int main()
+int main(void)
 {
     printf("%d\n", greatest_common_divisor(1029, 1071));
     return 0;
