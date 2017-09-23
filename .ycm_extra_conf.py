@@ -41,6 +41,7 @@ def MakeCustomFlags( data ):
     '-Wextra',
     '-Wconversion', '-Wno-sign-conversion',
     '-Werror',
+    '-fms-extensions',
     '-isystem', '/usr/include',
     '-isystem', '/usr/local/include',
     '-isystem', './include',
