@@ -1,0 +1,12 @@
+TEMPLATE = app
+TARGET = hello
+
+DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
+CONFIG += c++14
+
+QT = qml quick widgets
+
+SOURCES += main.cpp
+RESOURCES += hello.qrc
+OTHER_FILES += hello.qml
