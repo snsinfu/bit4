@@ -39,6 +39,7 @@ class ConnectionNotify is TCPConnectionNotify
 
   fun ref received(conn: TCPConnection ref, data: Array[U8] iso, times: USize): Bool =>
     _log.print("Received " + data.size().string() + " bytes / " + times.string())
+    conn.write(consume data)
     true
 
   fun ref closed(conn: TCPConnection ref) =>
