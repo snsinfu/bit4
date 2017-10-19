@@ -1,0 +1,25 @@
+---
+Language:                         Cpp
+BasedOnStyle:                     WebKit
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakTemplateDeclarations:  true
+SpaceAfterTemplateKeyword:        false
+BreakBeforeBraces:                Custom
+BraceWrapping:
+  AfterClass:                     true
+  AfterStruct:                    true
+  AfterUnion:                     true
+  AfterEnum:                      true
+  AfterNamespace:                 true
+  AfterFunction:                  true
+  AfterControlStatement:          false
+  BeforeCatch:                    false
+  BeforeElse:                     false
+  IndentBraces:                   false
+NamespaceIndentation:             All
+AccessModifierOffset:             -2
+IndentCaseLabels:                 false
+ColumnLimit:                      100
+Cpp11BracedListStyle:             true
+Standard:                         Auto
+...
