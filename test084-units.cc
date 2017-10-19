@@ -110,10 +110,17 @@ namespace units
         using value_holder::value_;
 
       public:
-        using value_type = T;
-        using dimension = D;
-
         using value_holder::value_holder;
+
+        /*
+         * The underlying numeric type T.
+         */
+        using value_type = T;
+
+        /*
+         * The dimension type D.
+         */
+        using dimension = D;
 
         /*
          * Returns the numerical value without dimension.
@@ -237,7 +244,7 @@ namespace units
     }
 
     //----------------------------------------------------------------
-    // Dimension-correct arithmetics
+    // Dimension-converting arithmetic operators
     //----------------------------------------------------------------
 
     template<typename T, typename DX, typename DY, typename RD = product_dimension_t<DX, DY>>
@@ -259,7 +266,7 @@ namespace units
     }
 
     //----------------------------------------------------------------
-    // Math operations
+    // Algebraic math operations
     //----------------------------------------------------------------
 
     /*
@@ -308,7 +315,7 @@ namespace units
     }
 
     //----------------------------------------------------------------
-    // Standard dimension
+    // The mechanical_dimension class
     //----------------------------------------------------------------
 
     /*
@@ -387,7 +394,7 @@ namespace units
 #include <doctest.h>
 
 //------------------------------------------------------------------------------
-// units::mechanical_dimension
+// mechanical_dimension
 //------------------------------------------------------------------------------
 
 TEST_CASE("mechanical_dimension: different dimensions have different types")
@@ -492,7 +499,7 @@ TEST_CASE("mechanical_dimension: predefined dimensions")
 }
 
 //------------------------------------------------------------------------------
-// units::scalar
+// scalar
 //------------------------------------------------------------------------------
 
 TEST_CASE("scalar: is trivial type")
@@ -553,6 +560,7 @@ TEST_CASE("scalar: equality comparison")
     CHECK(a != length{456});
     CHECK(b == length{456});
 
+    // Swap the sides
     CHECK(length{123} == a);
     CHECK(length{456} != a);
     CHECK(length{456} == b);
@@ -579,7 +587,6 @@ TEST_CASE("scalar: unary + operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
-    // Identity
     length var{123};
     CHECK(+var == length{123});
 
@@ -592,7 +599,6 @@ TEST_CASE("scalar: unary - operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
-    // Identity
     length var{123};
     CHECK(-var == length{-123});
 }
@@ -601,9 +607,13 @@ TEST_CASE("scalar: += operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Dimension-checked addition
     length var{123};
-    length& result = (var += length{456});
+    var += length{456};
     CHECK(var == length{579});
+
+    // Must return *this
+    length& result = (var += length{789});
     CHECK(&result == &var);
 }
 
@@ -611,9 +621,13 @@ TEST_CASE("scalar: -= operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Dimension-checked subtraction
     length var{123};
-    length& result = (var -= length{456});
+    var -= length{456};
     CHECK(var == length{-333});
+
+    // Must return *this
+    length& result = (var -= length{789});
     CHECK(&result == &var);
 }
 
@@ -621,9 +635,13 @@ TEST_CASE("scalar: *= operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Scale by dimensionless number
     length var{123};
-    length& result = (var *= 2);
+    var *= 2;
     CHECK(var == length{246});
+
+    // Must return *this
+    length& result = (var *= 3);
     CHECK(&result == &var);
 }
 
@@ -631,9 +649,13 @@ TEST_CASE("scalar: /= operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Scale by dimensionless number
     length var{246};
-    length& result = (var /= 2);
+    var /= 2;
     CHECK(var == length{123});
+
+    // Must return *this
+    length& result = (var /= 3);
     CHECK(&result == &var);
 }
 
@@ -641,6 +663,7 @@ TEST_CASE("scalar: binary + operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Dimension-checked addition
     length const a{123};
     length const b{456};
     CHECK(a + b == length{579});
@@ -650,6 +673,7 @@ TEST_CASE("scalar: binary - operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Dimension-checked subtraction
     length const a{123};
     length const b{456};
     CHECK(a - b == length{-333});
@@ -659,6 +683,7 @@ TEST_CASE("scalar: binary * operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Scale by dimensionless number
     length const a{123};
     CHECK(a * 2 == length{246});
     CHECK(3 * a == length{369});
@@ -668,6 +693,7 @@ TEST_CASE("scalar: binary / operator")
 {
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
 
+    // Scale by dimensionless number
     length const a{246};
     CHECK(a / 2 == length{123});
 }
@@ -678,6 +704,7 @@ TEST_CASE("scalar: binary * operator with conversion")
     using rate = units::scalar<double, units::mechanical_dimension<0, 0, -1>>;
     using speed = units::scalar<double, units::mechanical_dimension<1, 0, -1>>;
 
+    // Product has different dimension
     length const a{3};
     rate const b{5};
     CHECK(a * b == speed{15});
@@ -691,6 +718,7 @@ TEST_CASE("scalar: binary / operator with conversion")
     using time = units::scalar<double, units::mechanical_dimension<0, 0, 1>>;
     using speed = units::scalar<double, units::mechanical_dimension<1, 0, -1>>;
 
+    // Quotient has different dimension
     speed const a{8};
     length const b{4};
     CHECK(a / b == rate{2});
@@ -705,10 +733,14 @@ TEST_CASE("scalar: pow")
     using density = units::scalar<double, units::mechanical_dimension<-3, 0, 0>>;
 
     length const a{2};
-    CHECK(units::pow<0>(a) == 1);
     CHECK(units::pow<1>(a) == length{2});
     CHECK(units::pow<2>(a) == area{4});
     CHECK(units::pow<3>(a) == volume{8});
+
+    // 0-th power gives dimensionless number
+    CHECK(units::pow<0>(a) == 1);
+
+    // Negative power
     CHECK(units::pow<-3>(a) == density{0.125});
 }
 
@@ -754,9 +786,11 @@ TEST_CASE("scalar: dimensional analysis")
     using length = units::scalar<double, units::mechanical_dimension<1, 0, 0>>;
     using time = units::scalar<double, units::mechanical_dimension<0, 0, 1>>;
 
+    // No conversion
     CHECK_FALSE((std::is_convertible<length, time>::value));
     CHECK_FALSE((std::is_convertible<time, length>::value));
 
+    // No assignment
     CHECK((std::is_assignable<length, length>::value));
     CHECK((std::is_assignable<time, time>::value));
     CHECK_FALSE((std::is_assignable<length, time>::value));
@@ -773,7 +807,7 @@ TEST_CASE("scalar: implicit conversion of dimensionless quantity")
     double b = a;
     (void) b;
 
-    // no other conversion
+    // No conversion or assignment to/from dimensioned numbers
     CHECK_FALSE((std::is_convertible<number, length>::value));
     CHECK_FALSE((std::is_convertible<length, number>::value));
     CHECK_FALSE((std::is_assignable<number, length>::value));
@@ -782,6 +816,7 @@ TEST_CASE("scalar: implicit conversion of dimensionless quantity")
 
 TEST_CASE("scalar: predefined scalars")
 {
+    // Check dimensions
     CHECK((std::is_same<units::number::dimension, units::dimensions::number>::value));
     CHECK((std::is_same<units::length::dimension, units::dimensions::length>::value));
     CHECK((std::is_same<units::area::dimension, units::dimensions::area>::value));
@@ -797,10 +832,12 @@ TEST_CASE("scalar: predefined scalars")
 
 TEST_CASE("scalar: example dimensional analyses")
 {
+    // Scalars with fundamental dimensions
     units::length length{1};
     units::mass mass{2};
     units::time time{3};
 
+    // Compose other quantities
     units::area area = length * length;
     units::volume volume = area * length;
     units::speed speed = length / time;
@@ -809,6 +846,7 @@ TEST_CASE("scalar: example dimensional analyses")
     units::force force = mass * acceleration;
     units::energy energy = force * length;
 
+    // More cross checks
     force += momentum / time;
     length += units::cbrt(volume);
     momentum += units::sqrt(energy * mass);
