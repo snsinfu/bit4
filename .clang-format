@@ -4,6 +4,7 @@ BasedOnStyle:                     WebKit
 AllowShortFunctionsOnASingleLine: None
 AlwaysBreakTemplateDeclarations:  true
 SpaceAfterTemplateKeyword:        false
+SpaceAfterCStyleCast:             true
 BreakBeforeBraces:                Custom
 BraceWrapping:
   AfterClass:                     true
