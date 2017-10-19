@@ -315,6 +315,107 @@ namespace units
     }
 
     //----------------------------------------------------------------
+    // The vector class
+    //----------------------------------------------------------------
+
+    template<typename T, typename D, unsigned N>
+    class vector
+    {
+      public:
+        using value_type = T;
+        using scalar_type = scalar<T, D>;
+        using iterator = scalar_type*;
+        using const_iterator = scalar_type const*;
+
+        vector() = default;
+
+        // Indexing
+
+        scalar_type& operator[](unsigned index)
+        {
+            return elements_[index];
+        }
+
+        scalar_type const& operator[](unsigned index) const
+        {
+            return elements_[index];
+        }
+
+        // Range interface
+
+        iterator begin() noexcept
+        {
+            return elements_;
+        }
+
+        iterator end() noexcept
+        {
+            return elements_ + N;
+        }
+
+        const_iterator begin() const noexcept
+        {
+            return elements_;
+        }
+
+        const_iterator end() const noexcept
+        {
+            return elements_ + N;
+        }
+
+        //----------------------------------------------------------------
+
+        vector operator+() const noexcept
+        {
+            return *this;
+        }
+
+        vector operator-() const noexcept
+        {
+            vector negated;
+            for (unsigned i = 0; i < N; ++i) {
+                negated[i] = -elements_[i];
+            }
+            return negated;
+        }
+
+        vector& operator+=(vector const& rhs) noexcept
+        {
+            for (unsigned i = 0; i < N; ++i) {
+                elements_[i] += rhs.elements_[i];
+            }
+            return *this;
+        }
+
+        vector& operator-=(vector const& rhs) noexcept
+        {
+            for (unsigned i = 0; i < N; ++i) {
+                elements_[i] -= rhs.elements_[i];
+            }
+            return *this;
+        }
+
+        vector& operator*=(value_type scale) noexcept
+        {
+            for (unsigned i = 0; i < N; ++i) {
+                elements_[i] *= scale;
+            }
+            return *this;
+        }
+
+        vector& operator/=(value_type scale)
+        {
+            for (unsigned i = 0; i < N; ++i) {
+                elements_[i] /= scale;
+            }
+            return *this;
+        }
+
+      private:
+        scalar<T, D> elements_[N] = {};
+    };
+
+    //----------------------------------------------------------------
     // The mechanical_dimension class
     //----------------------------------------------------------------
 
@@ -850,4 +951,19 @@ TEST_CASE("scalar: example dimensional analyses")
     force += momentum / time;
     length += units::cbrt(volume);
     momentum += units::sqrt(energy * mass);
+}
+
+//------------------------------------------------------------------------------
+// vector
+//------------------------------------------------------------------------------
+
+TEST_CASE("vector")
+{
+    using length_vec = units::vector<double, units::dimensions::length, 3>;
+
+    length_vec r;
+    r += +r;
+    r -= -r;
+    r *= 2;
+    r /= 2;
 }
