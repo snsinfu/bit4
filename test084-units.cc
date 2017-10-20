@@ -326,6 +326,7 @@ namespace units
         using scalar_type = scalar<T, D>;
         using iterator = scalar_type*;
         using const_iterator = scalar_type const*;
+        static constexpr unsigned dimension = N;
 
         vector() = default;
 
@@ -412,8 +413,60 @@ namespace units
         }
 
       private:
-        scalar<T, D> elements_[N] = {};
+        scalar<T, D> elements_[N];
     };
+
+    //----------------------------------------------------------------
+    // Equality comparison
+    //----------------------------------------------------------------
+
+    template<typename T, typename D, unsigned N>
+    bool operator==(vector<T, D, N> const& v, vector<T, D, N> const& w) noexcept
+    {
+        for (unsigned i = 0; i < N; ++i) {
+            if (v[i] != w[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T, typename D, unsigned N>
+    bool operator!=(vector<T, D, N> const& v, vector<T, D, N> const& w) noexcept
+    {
+        return !(v == w);
+    }
+
+    //----------------------------------------------------------------
+    // Linear operations
+    //----------------------------------------------------------------
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator+(vector<T, D, N> const& v, vector<T, D, N> const& w) noexcept;
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator-(vector<T, D, N> const& v, vector<T, D, N> const& w) noexcept;
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator*(vector<T, D, N> const& v, typename vector<T, D, N>::value_type a) noexcept;
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator*(typename vector<T, D, N>::value_type a, vector<T, D, N> const& v) noexcept;
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator/(vector<T, D, N> const& v, typename vector<T, D, N>::value_type a) noexcept;
+
+    template<typename T, typename D1, typename D2, unsigned N,
+             typename RD = product_dimension_t<D1, D2>>
+    vector<T, RD, N> operator*(vector<T, D1, N> const& v, scalar<T, D2> const& a) noexcept;
+
+    template<typename T, typename D1, typename D2, unsigned N,
+             typename RD = product_dimension_t<D1, D2>>
+    vector<T, RD, N> operator*(scalar<T, D1> const& a, vector<T, D2, N> const& v) noexcept;
+
+    template<typename T, typename D1, typename D2, unsigned N,
+             typename RD = product_dimension_t<D1, D2>>
+    vector<T, RD, N> operator/(vector<T, D1, N> const& v, scalar<T, D2> const& a) noexcept;
 
     //----------------------------------------------------------------
     // The mechanical_dimension class
@@ -957,13 +1010,92 @@ TEST_CASE("scalar: example dimensional analyses")
 // vector
 //------------------------------------------------------------------------------
 
-TEST_CASE("vector")
+TEST_CASE("vector: is trivial type")
 {
     using length_vec = units::vector<double, units::dimensions::length, 3>;
+    CHECK((std::is_trivial<length_vec>::value));
+}
 
+TEST_CASE("vector: is default constructible")
+{
+    using length_vec = units::vector<double, units::dimensions::length, 3>;
     length_vec r;
-    r += +r;
-    r -= -r;
-    r *= 2;
-    r /= 2;
+}
+
+TEST_CASE("vector: dimension access")
+{
+    using A = units::vector<double, units::dimensions::length, 1>;
+    using B = units::vector<double, units::dimensions::length, 2>;
+    using C = units::vector<double, units::dimensions::length, 3>;
+    CHECK(A::dimension == 1);
+    CHECK(B::dimension == 2);
+    CHECK(C::dimension == 3);
+}
+
+TEST_CASE("vector: element access")
+{
+}
+
+TEST_CASE("vector: equality comparison")
+{
+}
+
+TEST_CASE("vector: unary + operator")
+{
+}
+
+TEST_CASE("vector: unary - operator")
+{
+}
+
+TEST_CASE("vector: += operator")
+{
+}
+
+TEST_CASE("vector: -= operator")
+{
+}
+
+TEST_CASE("vector: *= operator")
+{
+}
+
+TEST_CASE("vector: /= operator")
+{
+}
+
+TEST_CASE("vector: binary + operator")
+{
+}
+
+TEST_CASE("vector: binary - operator")
+{
+}
+
+TEST_CASE("vector: binary * operator")
+{
+}
+
+TEST_CASE("vector: binary / operator")
+{
+}
+
+TEST_CASE("vector: binary * operator with conversion")
+{
+}
+
+TEST_CASE("vector: binary / operator with conversion")
+{
+}
+
+TEST_CASE("vector: dot product")
+{
+}
+
+TEST_CASE("vector: length")
+{
+}
+
+TEST_CASE("vector: squared_length")
+{
 }
