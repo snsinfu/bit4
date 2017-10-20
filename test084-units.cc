@@ -469,6 +469,20 @@ namespace units
     vector<T, RD, N> operator/(vector<T, D1, N> const& v, scalar<T, D2> const& a) noexcept;
 
     //----------------------------------------------------------------
+    // vector operations
+    //----------------------------------------------------------------
+
+    template<typename T, typename D1, typename D2, unsigned N,
+             typename RD = product_dimension_t<D1, D2>>
+    scalar<T, RD> dot(vector<T, D1, N> const& v, vector<T, D2, N> const& w) noexcept;
+
+    template<typename T, typename D, unsigned N, typename RD = power_dimension_t<D, 2>>
+    scalar<T, RD> squared_norm(vector<T, D, N> const& v) noexcept;
+
+    template<typename T, typename D, unsigned N>
+    scalar<T, D> norm(vector<T, D, N> const& v) noexcept;
+
+    //----------------------------------------------------------------
     // The mechanical_dimension class
     //----------------------------------------------------------------
 
@@ -1092,10 +1106,10 @@ TEST_CASE("vector: dot product")
 {
 }
 
-TEST_CASE("vector: length")
+TEST_CASE("vector: norm")
 {
 }
 
-TEST_CASE("vector: squared_length")
+TEST_CASE("vector: squared_norm")
 {
 }
