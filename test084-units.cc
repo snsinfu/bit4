@@ -318,6 +318,13 @@ namespace units
     // The vector class
     //----------------------------------------------------------------
 
+    namespace detail
+    {
+        struct zero_vector_t
+        {
+        };
+    }
+
     template<typename T, typename D, unsigned N>
     class vector
     {
@@ -329,6 +336,18 @@ namespace units
         static constexpr unsigned dimension = N;
 
         vector() = default;
+
+      private:
+        explicit constexpr vector(detail::zero_vector_t) noexcept
+            : elements_{}
+        {
+        }
+
+      public:
+        static constexpr vector zero() noexcept
+        {
+            return vector{detail::zero_vector_t{}};
+        }
 
         // Indexing
 
@@ -1030,12 +1049,6 @@ TEST_CASE("vector: is trivial type")
     CHECK((std::is_trivial<length_vec>::value));
 }
 
-TEST_CASE("vector: is default constructible")
-{
-    using length_vec = units::vector<double, units::dimensions::length, 3>;
-    length_vec r;
-}
-
 TEST_CASE("vector: dimension access")
 {
     using A = units::vector<double, units::dimensions::length, 1>;
@@ -1044,6 +1057,18 @@ TEST_CASE("vector: dimension access")
     CHECK(A::dimension == 1);
     CHECK(B::dimension == 2);
     CHECK(C::dimension == 3);
+}
+
+TEST_CASE("vector: is default constructible")
+{
+    using length_vec = units::vector<double, units::dimensions::length, 3>;
+    length_vec r;
+}
+
+TEST_CASE("vector: zero initialization")
+{
+    using length_vec = units::vector<double, units::dimensions::length, 3>;
+    length_vec r = length_vec::zero();
 }
 
 TEST_CASE("vector: element access")
