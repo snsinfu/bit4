@@ -485,8 +485,10 @@ namespace dak
     template<typename T, typename D1, typename D2, typename RD = product_dimension_t<D1, D2>>
     vector<T, RD, 3> cross(vector<T, D1, 3> const& v, vector<T, D2, 3> const& w)
     {
-        return vector<T, RD, 3>{
-            v[1] * w[2] - v[2] * w[1], v[2] * w[0] - v[0] * w[2], v[0] * w[1] - v[1] * w[0]};
+        auto const x = v[1] * w[2] - v[2] * w[1];
+        auto const y = v[2] * w[0] - v[0] * w[2];
+        auto const z = v[0] * w[1] - v[1] * w[0];
+        return vector<T, RD, 3>{x, y, z};
     }
 
     //----------------------------------------------------------------
