@@ -295,7 +295,7 @@ namespace dak
             }
 
           protected:
-            scalar<T, D> coords_[N] {};
+            scalar<T, D> coords_[N]{};
         };
     } // namespace detail
 
@@ -421,7 +421,8 @@ namespace dak
         return vector<T, D, N>(v) /= a;
     }
 
-    template<typename T, typename D1, typename D2, unsigned N, typename RD = product_dimension_t<D1, D2>>
+    template<typename T, typename D1, typename D2, unsigned N,
+        typename RD = product_dimension_t<D1, D2>>
     vector<T, RD, N> operator*(vector<T, D1, N> const& v, scalar<T, D2> const& a)
     {
         vector<T, RD, N> result;
@@ -431,7 +432,8 @@ namespace dak
         return result;
     }
 
-    template<typename T, typename D1, typename D2, unsigned N, typename RD = product_dimension_t<D1, D2>>
+    template<typename T, typename D1, typename D2, unsigned N,
+        typename RD = product_dimension_t<D1, D2>>
     vector<T, RD, N> operator*(scalar<T, D1> const& a, vector<T, D2, N> const& v)
     {
         vector<T, RD, N> result;
@@ -441,7 +443,8 @@ namespace dak
         return result;
     }
 
-    template<typename T, typename D1, typename D2, unsigned N, typename RD = quotient_dimension_t<D1, D2>>
+    template<typename T, typename D1, typename D2, unsigned N,
+        typename RD = quotient_dimension_t<D1, D2>>
     vector<T, RD, N> operator/(vector<T, D1, N> const& v, scalar<T, D2> const& a)
     {
         vector<T, RD, N> result;
@@ -451,7 +454,8 @@ namespace dak
         return result;
     }
 
-    template<typename T, typename D1, typename D2, unsigned N, typename RD = product_dimension_t<D1, D2>>
+    template<typename T, typename D1, typename D2, unsigned N,
+        typename RD = product_dimension_t<D1, D2>>
     scalar<T, RD> dot(vector<T, D1, N> const& v, vector<T, D2, N> const& w)
     {
         scalar<T, RD> result{0};
@@ -477,10 +481,7 @@ namespace dak
     vector<T, RD, 3> cross(vector<T, D1, 3> const& v, vector<T, D2, 3> const& w)
     {
         return vector<T, RD, 3>{
-            v[1] * w[2] - v[2] * w[1],
-            v[2] * w[0] - v[0] * w[2],
-            v[0] * w[1] - v[1] * w[0]
-        };
+            v[1] * w[2] - v[2] * w[1], v[2] * w[0] - v[0] * w[2], v[0] * w[1] - v[1] * w[0]};
     }
 
     //----------------------------------------------------------------
@@ -609,10 +610,10 @@ namespace dak
     template<int L, int M, int T, int N>
     struct root_dimension<mechanical_dimension<L, M, T>, N>
     {
-        static_assert(L % N == 0 && M % N == 0 && T % N == 0, "fractional dimension is not supported");
+        static_assert(
+            L % N == 0 && M % N == 0 && T % N == 0, "fractional dimension is not supported");
         using type = mechanical_dimension<L / N, M / N, T / N>;
     };
-
 } // namespace dak
 
 //------------------------------------------------------------------------------
@@ -773,9 +774,7 @@ TEST_CASE("scalar: provides += operator")
     using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
 
     length_t x{12};
-    length_t& y = (
-        x += length_t{34}
-    );
+    length_t& y = (x += length_t{34});
     CHECK(&x == &y);
     CHECK(x == length_t{46});
 }
@@ -785,9 +784,7 @@ TEST_CASE("scalar: provides -= operator")
     using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
 
     length_t x{12};
-    length_t& y = (
-        x -= length_t{34}
-    );
+    length_t& y = (x -= length_t{34});
     CHECK(&x == &y);
     CHECK(x == length_t{-22});
 }
@@ -797,9 +794,7 @@ TEST_CASE("scalar: provides *= operator for scaling")
     using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
 
     length_t x{12};
-    length_t& y = (
-        x *= 2
-    );
+    length_t& y = (x *= 2);
     CHECK(&x == &y);
     CHECK(x == length_t{24});
 }
@@ -809,9 +804,7 @@ TEST_CASE("scalar: provides /= operator for scaling")
     using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
 
     length_t x{12};
-    length_t& y = (
-        x /= 2
-    );
+    length_t& y = (x /= 2);
     CHECK(&x == &y);
     CHECK(x == length_t{6});
 }
@@ -1049,7 +1042,6 @@ TEST_CASE("vector: exposes scalar_type")
     CHECK((std::is_same<displace_t::scalar_type, length_t>::value));
 }
 
-
 TEST_CASE("vector: exposes spatial dimension")
 {
     using vec1 = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 1>;
@@ -1109,9 +1101,7 @@ TEST_CASE("vector: provides += operator")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     displace_t x{1, 2, 3};
-    displace_t& y = (
-        x += displace_t{4, 5, 6}
-    );
+    displace_t& y = (x += displace_t{4, 5, 6});
     CHECK(&x == &y);
     CHECK(x == displace_t{5, 7, 9});
 }
@@ -1121,9 +1111,7 @@ TEST_CASE("vector: provides -= operator")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     displace_t x{1, 2, 3};
-    displace_t& y = (
-        x -= displace_t{6, 5, 4}
-    );
+    displace_t& y = (x -= displace_t{6, 5, 4});
     CHECK(&x == &y);
     CHECK(x == displace_t{-5, -3, -1});
 }
@@ -1133,9 +1121,7 @@ TEST_CASE("vector: provides *= operator for scaling")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     displace_t x{1, 2, 3};
-    displace_t& y = (
-        x *= 2
-    );
+    displace_t& y = (x *= 2);
     CHECK(&x == &y);
     CHECK(x == displace_t{2, 4, 6});
 }
@@ -1145,9 +1131,7 @@ TEST_CASE("vector: provides /= operator for scaling")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     displace_t x{2, 4, 6};
-    displace_t& y = (
-        x /= 2
-    );
+    displace_t& y = (x /= 2);
     CHECK(&x == &y);
     CHECK(x == displace_t{1, 2, 3});
 }
@@ -1265,7 +1249,7 @@ TEST_CASE("vector: provides cross function for three-dimensional vectors")
 
     displace_t const x{1, 2, 3};
     displace_t const y{4, 5, 6};
-    CHECK(dak::cross(x, y) == area_vector_t{2*6 - 3*5, 3*4 - 1*6, 1*5 - 2*4});
+    CHECK(dak::cross(x, y) == area_vector_t{2 * 6 - 3 * 5, 3 * 4 - 1 * 6, 1 * 5 - 2 * 4});
 
     // Invariant
     CHECK(dak::cross(x, x) == area_vector_t{0, 0, 0});
@@ -1410,9 +1394,7 @@ TEST_CASE("point: provides += operator for translation")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     point_t x{1, 2, 3};
-    point_t& y = (
-        x += displace_t{4, 5, 6}
-    );
+    point_t& y = (x += displace_t{4, 5, 6});
     CHECK(&x == &y);
     CHECK(x == point_t{5, 7, 9});
 }
@@ -1423,9 +1405,7 @@ TEST_CASE("point: provides -= operator for translation")
     using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
 
     point_t x{1, 2, 3};
-    point_t& y = (
-        x -= displace_t{6, 5, 4}
-    );
+    point_t& y = (x -= displace_t{6, 5, 4});
     CHECK(&x == &y);
     CHECK(x == point_t{-5, -3, -1});
 }
@@ -1457,7 +1437,7 @@ TEST_CASE("point: provides squared_distance function")
 
     point_t const p{1, 2, 3};
     point_t const q{6, 5, 4};
-    CHECK(dak::squared_distance(p, q) == area_t{5*5 + 3*3 + 1*1});
+    CHECK(dak::squared_distance(p, q) == area_t{5 * 5 + 3 * 3 + 1 * 1});
 }
 
 TEST_CASE("point: provides distance function")
