@@ -1,6 +1,5 @@
 // DAK: Dimensional Analysis for Mechanics
 
-#include <type_traits>
 #include <cmath>
 
 namespace dak
@@ -485,6 +484,96 @@ namespace dak
     }
 
     //----------------------------------------------------------------
+    // Cartesian point with dimensional analysis
+    //----------------------------------------------------------------
+
+    template<typename T, typename D, unsigned N>
+    class point : public detail::coords_mixin<T, D, N>
+    {
+        using coords_mixin = detail::coords_mixin<T, D, N>;
+        using coords_mixin::coords_;
+
+      public:
+        using number_type = T;
+        using scalar_type = scalar<T, D>;
+        using vector_type = vector<T, D, N>;
+        static constexpr unsigned dimension = N;
+
+        using coords_mixin::coords_mixin;
+
+        scalar_type& operator[](unsigned index)
+        {
+            return coords_[index];
+        }
+
+        scalar_type const& operator[](unsigned index) const
+        {
+            return coords_[index];
+        }
+
+        point& operator+=(vector_type const& rhs)
+        {
+            for (unsigned i = 0; i < dimension; ++i) {
+                coords_[i] += rhs[i];
+            }
+            return *this;
+        }
+
+        point& operator-=(vector_type const& rhs)
+        {
+            for (unsigned i = 0; i < dimension; ++i) {
+                coords_[i] -= rhs[i];
+            }
+            return *this;
+        }
+    };
+
+    template<typename T, typename D, unsigned N>
+    bool operator==(point<T, D, N> const& v, point<T, D, N> const& w)
+    {
+        for (unsigned i = 0; i < N; ++i) {
+            if (v[i] != w[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template<typename T, typename D, unsigned N>
+    bool operator!=(point<T, D, N> const& v, point<T, D, N> const& w)
+    {
+        return !(v == w);
+    }
+
+    template<typename T, typename D, unsigned N>
+    point<T, D, N> operator+(point<T, D, N> const& p, vector<T, D, N> const& v)
+    {
+        return point<T, D, N>{p} += v;
+    }
+
+    template<typename T, typename D, unsigned N>
+    vector<T, D, N> operator-(point<T, D, N> const& p, point<T, D, N> const& q)
+    {
+        vector<T, D, N> result;
+        for (unsigned i = 0; i < N; ++i) {
+            result[i] = p[i] - q[i];
+        }
+        return result;
+    }
+
+    template<typename T, typename D, unsigned N, typename RD = power_dimension_t<D, 2>>
+    scalar<T, RD> squared_distance(point<T, D, N> const& p, point<T, D, N> const& q)
+    {
+        return squared_norm(p - q);
+    }
+
+    template<typename T, typename D, unsigned N>
+    scalar<T, D> distance(point<T, D, N> const& p, point<T, D, N> const& q)
+    {
+        return norm(p - q);
+    }
+
+    //----------------------------------------------------------------
     // Reference dimension implementation
     //----------------------------------------------------------------
 
@@ -953,6 +1042,14 @@ TEST_CASE("vector: exposes number_type")
     CHECK((std::is_same<double_displace_t::number_type, double>::value));
 }
 
+TEST_CASE("vector: exposes scalar_type")
+{
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, -1>, 3>;
+    using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, -1>>;
+    CHECK((std::is_same<displace_t::scalar_type, length_t>::value));
+}
+
+
 TEST_CASE("vector: exposes spatial dimension")
 {
     using vec1 = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 1>;
@@ -972,10 +1069,24 @@ TEST_CASE("vector: provides indexing")
     using speed_t = dak::scalar<double, dak::mechanical_dimension<1, 0, -1>>;
     using velocity_t = dak::vector<double, dak::mechanical_dimension<1, 0, -1>, 3>;
 
-    velocity_t const v{1, 2, 3};
-    CHECK(v[0] == speed_t{1});
-    CHECK(v[1] == speed_t{2});
-    CHECK(v[2] == speed_t{3});
+    SUBCASE("mutable")
+    {
+        velocity_t v;
+        v[0] = speed_t{1};
+        v[1] = speed_t{2};
+        v[2] = speed_t{3};
+        CHECK(v[0] == speed_t{1});
+        CHECK(v[1] == speed_t{2});
+        CHECK(v[2] == speed_t{3});
+    }
+
+    SUBCASE("const")
+    {
+        velocity_t const v{1, 2, 3};
+        CHECK(v[0] == speed_t{1});
+        CHECK(v[1] == speed_t{2});
+        CHECK(v[2] == speed_t{3});
+    }
 }
 
 TEST_CASE("vector: provides equality comparison operators")
@@ -1159,4 +1270,202 @@ TEST_CASE("vector: provides cross function for three-dimensional vectors")
     // Invariant
     CHECK(dak::cross(x, x) == area_vector_t{0, 0, 0});
     CHECK(dak::cross(y, y) == area_vector_t{0, 0, 0});
+}
+
+//------------------------------------------------------------------------------
+// dak::point
+//------------------------------------------------------------------------------
+
+#include <type_traits>
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
+
+TEST_CASE("point: defined at least for four dimensions")
+{
+    using point1 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 1>;
+    using point2 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 2>;
+    using point3 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using point4 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 4>;
+    CHECK(sizeof(point1) > 0);
+    CHECK(sizeof(point2) > 0);
+    CHECK(sizeof(point3) > 0);
+    CHECK(sizeof(point4) > 0);
+    (void) point1{1};
+    (void) point2{1, 2};
+    (void) point3{1, 2, 3};
+    (void) point4{1, 2, 3, 4};
+}
+
+TEST_CASE("point: is trivially copyable")
+{
+    using float_point_t = dak::point<float, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using double_point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    CHECK((std::is_trivially_copyable<float_point_t>::value));
+    CHECK((std::is_trivially_copyable<double_point_t>::value));
+}
+
+TEST_CASE("vector: is explicitly constructible with coordinate values")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    point_t{1.0, 2.0, 3.0};
+    CHECK((std::is_constructible<point_t, double, double, double>::value));
+}
+
+TEST_CASE("point: is default constructed to zero")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    point_t x;
+    CHECK(x == point_t{0, 0, 0});
+}
+
+TEST_CASE("point: disallows dimension-altering conversion")
+{
+    using tuple_t = dak::point<double, dak::mechanical_dimension<0, 0, 0>, 3>;
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    CHECK_FALSE((std::is_convertible<tuple_t, point_t>::value));
+    CHECK_FALSE((std::is_convertible<point_t, tuple_t>::value));
+}
+
+TEST_CASE("point: exposes number_type")
+{
+    using float_point_t = dak::point<float, dak::mechanical_dimension<1, 0, -1>, 3>;
+    using double_point_t = dak::point<double, dak::mechanical_dimension<1, 0, -1>, 3>;
+    CHECK((std::is_same<float_point_t::number_type, float>::value));
+    CHECK((std::is_same<double_point_t::number_type, double>::value));
+}
+
+TEST_CASE("point: exposes scalar_type")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
+    CHECK((std::is_same<point_t::scalar_type, length_t>::value));
+}
+
+TEST_CASE("point: exposes vector_type")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    CHECK((std::is_same<point_t::vector_type, displace_t>::value));
+}
+
+TEST_CASE("point: exposes spatial dimension")
+{
+    using point1 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 1>;
+    using point2 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 2>;
+    using point3 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using point4 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 4>;
+    using point9 = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 9>;
+    CHECK((std::integral_constant<unsigned, point1::dimension>::value) == 1);
+    CHECK((std::integral_constant<unsigned, point2::dimension>::value) == 2);
+    CHECK((std::integral_constant<unsigned, point3::dimension>::value) == 3);
+    CHECK((std::integral_constant<unsigned, point4::dimension>::value) == 4);
+    CHECK((std::integral_constant<unsigned, point9::dimension>::value) == 9);
+}
+
+TEST_CASE("point: provides indexing")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
+
+    SUBCASE("mutable")
+    {
+        point_t p;
+        p[0] = length_t{1};
+        p[1] = length_t{2};
+        p[2] = length_t{3};
+        CHECK(p[0] == length_t{1});
+        CHECK(p[1] == length_t{2});
+        CHECK(p[2] == length_t{3});
+    }
+
+    SUBCASE("const")
+    {
+        point_t const p{1, 2, 3};
+        CHECK(p[0] == length_t{1});
+        CHECK(p[1] == length_t{2});
+        CHECK(p[2] == length_t{3});
+    }
+}
+
+TEST_CASE("point: provides equality comparison operators")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t const x{1, 2, 3};
+    point_t const y{1, 2, 3};
+    point_t const z{4, 5, 6};
+
+    CHECK(x == y);
+    CHECK(y == x);
+
+    CHECK(x != z);
+    CHECK(z != x);
+}
+
+TEST_CASE("point: provides += operator for translation")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t x{1, 2, 3};
+    point_t& y = (
+        x += displace_t{4, 5, 6}
+    );
+    CHECK(&x == &y);
+    CHECK(x == point_t{5, 7, 9});
+}
+
+TEST_CASE("point: provides -= operator for translation")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t x{1, 2, 3};
+    point_t& y = (
+        x -= displace_t{6, 5, 4}
+    );
+    CHECK(&x == &y);
+    CHECK(x == point_t{-5, -3, -1});
+}
+
+TEST_CASE("point: provides binary + operator for translation")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t const x{1, 2, 3};
+    displace_t const y{4, 5, 6};
+    CHECK((x + y) == point_t{5, 7, 9});
+}
+
+TEST_CASE("point: provides binary - operator for computing displacement")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t const x{5, 7, 9};
+    point_t const y{1, 2, 3};
+    CHECK((x - y) == displace_t{4, 5, 6});
+}
+
+TEST_CASE("point: provides squared_distance function")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using area_t = dak::scalar<double, dak::mechanical_dimension<2, 0, 0>>;
+
+    point_t const p{1, 2, 3};
+    point_t const q{6, 5, 4};
+    CHECK(dak::squared_distance(p, q) == area_t{5*5 + 3*3 + 1*1});
+}
+
+TEST_CASE("point: provides distance function")
+{
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 2>;
+    using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
+
+    point_t const p{1, 2};
+    point_t const q{4, 6};
+    CHECK(dak::distance(p, q) == length_t{5});
 }
