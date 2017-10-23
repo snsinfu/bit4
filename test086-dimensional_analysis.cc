@@ -1256,6 +1256,28 @@ TEST_CASE("vector: provides cross function for three-dimensional vectors")
     CHECK(dak::cross(y, y) == area_vector_t{0, 0, 0});
 }
 
+TEST_CASE("vector: example: mechanical quantities")
+{
+    using mass_t = dak::scalar<double, dak::mechanical_dimension<0, 1, 0>>;
+    using duration_t = dak::scalar<double, dak::mechanical_dimension<0, 0, 1>>;
+    using energy_t = dak::scalar<double, dak::mechanical_dimension<2, 1, -2>>;
+
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using velocity_t = dak::vector<double, dak::mechanical_dimension<1, 0, -1>, 3>;
+    using momentum_t = dak::vector<double, dak::mechanical_dimension<1, 1, -1>, 3>;
+    using force_t = dak::vector<double, dak::mechanical_dimension<1, 1, -2>, 3>;
+
+    displace_t const displacement{10, 20, 30};
+    mass_t const mass{2};
+    duration_t const time{5};
+    velocity_t const velocity = displacement / time;
+    momentum_t const momentum = velocity * mass;
+    force_t const force = momentum / time;
+    energy_t const energy = dak::dot(force, displacement);
+    double const some_ratio = dak::sqrt(mass * energy) / dak::norm(momentum);
+    (void) some_ratio;
+}
+
 //------------------------------------------------------------------------------
 // dak::point
 //------------------------------------------------------------------------------
@@ -1448,4 +1470,34 @@ TEST_CASE("point: provides distance function")
     point_t const p{1, 2};
     point_t const q{4, 6};
     CHECK(dak::distance(p, q) == length_t{5});
+}
+
+TEST_CASE("point: example: two-body simulation")
+{
+    using mass_t = dak::scalar<double, dak::mechanical_dimension<0, 1, 0>>;
+    using duration_t = dak::scalar<double, dak::mechanical_dimension<0, 0, 1>>;
+    using grav_constant_t = dak::scalar<double, dak::mechanical_dimension<3, -1, -2>>;
+
+    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using momentum_t = dak::vector<double, dak::mechanical_dimension<1, 1, -1>, 3>;
+    using force_t = dak::vector<double, dak::mechanical_dimension<1, 1, -2>, 3>;
+
+    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+
+    point_t a_position{0, 0, 0};
+    point_t b_position{1, 2, 3};
+    momentum_t a_momentum{1, 2, 3};
+    momentum_t b_momentum{0, 0, 0};
+
+    grav_constant_t const G{1};
+    mass_t const a_mass{1};
+    mass_t const b_mass{1};
+    duration_t const dt{0.01};
+
+    displace_t const r = a_position - b_position;
+    force_t const force = -G * a_mass * b_mass * r / dak::pow<3>(dak::norm(r));
+    a_momentum += force * dt;
+    b_momentum += -force * dt;
+    a_position += a_momentum * dt / a_mass;
+    b_position += b_momentum * dt / b_mass;
 }
