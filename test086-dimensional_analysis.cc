@@ -67,12 +67,12 @@ namespace dak
           public:
             scalar_mixin() = default;
 
-            scalar_mixin(T value)
+            scalar_mixin(T value) // NOLINT
                 : value_{value}
             {
             }
 
-            operator T() const
+            operator T() const // NOLINT
             {
                 return value_;
             }
@@ -80,7 +80,7 @@ namespace dak
           protected:
             T value_{};
         };
-    } // detail
+    } // namespace detail
 
     /*
      * Scalar quantity with dimensional analysis.
@@ -294,7 +294,7 @@ namespace dak
             {
             }
 
-            coords_mixin(scalar<Ts, D>... coords)
+            coords_mixin(scalar<Ts, D>... coords) // NOLINT
                 : coords_{coords...}
             {
             }
