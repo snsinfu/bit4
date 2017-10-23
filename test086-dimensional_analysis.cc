@@ -986,13 +986,13 @@ TEST_CASE("scalar: provides cbrt function")
 
 TEST_CASE("scalar: example: mechanical quantities")
 {
-    using length_t = dak::scalar<double, dak::mechanical_dimension<1, 0, 0>>;
-    using mass_t = dak::scalar<double, dak::mechanical_dimension<0, 1, 0>>;
-    using duration_t = dak::scalar<double, dak::mechanical_dimension<0, 0, 1>>;
-    using speed_t = dak::scalar<double, dak::mechanical_dimension<1, 0, -1>>;
-    using momentum_t = dak::scalar<double, dak::mechanical_dimension<1, 1, -1>>;
-    using force_t = dak::scalar<double, dak::mechanical_dimension<1, 1, -2>>;
-    using energy_t = dak::scalar<double, dak::mechanical_dimension<2, 1, -2>>;
+    using length_t = dak::scalar<double, dak::dim::length>;
+    using mass_t = dak::scalar<double, dak::dim::mass>;
+    using duration_t = dak::scalar<double, dak::dim::time>;
+    using speed_t = dak::scalar<double, dak::dim::speed>;
+    using momentum_t = dak::scalar<double, dak::dim::momentum>;
+    using force_t = dak::scalar<double, dak::dim::force>;
+    using energy_t = dak::scalar<double, dak::dim::energy>;
 
     length_t const distance{30};
     mass_t const mass{2};
@@ -1301,14 +1301,14 @@ TEST_CASE("vector: provides cross function for three-dimensional vectors")
 
 TEST_CASE("vector: example: mechanical quantities")
 {
-    using mass_t = dak::scalar<double, dak::mechanical_dimension<0, 1, 0>>;
-    using duration_t = dak::scalar<double, dak::mechanical_dimension<0, 0, 1>>;
-    using energy_t = dak::scalar<double, dak::mechanical_dimension<2, 1, -2>>;
+    using mass_t = dak::scalar<double, dak::dim::mass>;
+    using duration_t = dak::scalar<double, dak::dim::time>;
+    using energy_t = dak::scalar<double, dak::dim::energy>;
 
-    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
-    using velocity_t = dak::vector<double, dak::mechanical_dimension<1, 0, -1>, 3>;
-    using momentum_t = dak::vector<double, dak::mechanical_dimension<1, 1, -1>, 3>;
-    using force_t = dak::vector<double, dak::mechanical_dimension<1, 1, -2>, 3>;
+    using displace_t = dak::vector<double, dak::dim::length, 3>;
+    using velocity_t = dak::vector<double, dak::dim::speed, 3>;
+    using momentum_t = dak::vector<double, dak::dim::momentum, 3>;
+    using force_t = dak::vector<double, dak::dim::force, 3>;
 
     displace_t const displacement{10, 20, 30};
     mass_t const mass{2};
@@ -1517,15 +1517,15 @@ TEST_CASE("point: provides distance function")
 
 TEST_CASE("point: example: two-body simulation")
 {
-    using mass_t = dak::scalar<double, dak::mechanical_dimension<0, 1, 0>>;
-    using duration_t = dak::scalar<double, dak::mechanical_dimension<0, 0, 1>>;
+    using mass_t = dak::scalar<double, dak::dim::mass>;
+    using duration_t = dak::scalar<double, dak::dim::time>;
     using grav_constant_t = dak::scalar<double, dak::mechanical_dimension<3, -1, -2>>;
 
-    using displace_t = dak::vector<double, dak::mechanical_dimension<1, 0, 0>, 3>;
-    using momentum_t = dak::vector<double, dak::mechanical_dimension<1, 1, -1>, 3>;
-    using force_t = dak::vector<double, dak::mechanical_dimension<1, 1, -2>, 3>;
+    using displace_t = dak::vector<double, dak::dim::length, 3>;
+    using momentum_t = dak::vector<double, dak::dim::momentum, 3>;
+    using force_t = dak::vector<double, dak::dim::force, 3>;
 
-    using point_t = dak::point<double, dak::mechanical_dimension<1, 0, 0>, 3>;
+    using point_t = dak::point<double, dak::dim::length, 3>;
 
     point_t a_position{0, 0, 0};
     point_t b_position{1, 2, 3};
