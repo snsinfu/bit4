@@ -41,6 +41,8 @@ namespace dak
 
     namespace detail // for dak::scalar
     {
+        // This class mixes in (1) member variable value_ and (2) proper
+        // constructors and convertion operator.
         template<typename T, typename D, bool AllowConversion = dimension_traits<D>::is_zero>
         class scalar_mixin;
 
@@ -80,6 +82,9 @@ namespace dak
         };
     } // detail
 
+    /*
+     * Scalar quantity with dimensional analysis.
+     */
     template<typename T, typename D>
     class scalar : public detail::scalar_mixin<T, D>
     {
@@ -488,6 +493,9 @@ namespace dak
     // Cartesian point with dimensional analysis
     //----------------------------------------------------------------
 
+    /*
+     * Cartesian point with dimensional analysis.
+     */
     template<typename T, typename D, unsigned N>
     class point : public detail::coords_mixin<T, D, N>
     {
