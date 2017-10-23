@@ -624,7 +624,40 @@ namespace dak
             L % N == 0 && M % N == 0 && T % N == 0, "fractional dimension is not supported");
         using type = mechanical_dimension<L / N, M / N, T / N>;
     };
+
+    namespace dim
+    {
+        using length = mechanical_dimension<1, 0, 0>;
+        using mass = mechanical_dimension<0, 1, 0>;
+        using time = mechanical_dimension<0, 0, 1>;
+        using speed = quotient_dimension_t<length, time>;
+        using acceleration = quotient_dimension_t<speed, time>;
+        using momentum = product_dimension_t<speed, mass>;
+        using force = product_dimension_t<acceleration, mass>;
+        using energy = product_dimension_t<force, length>;
+    } // namespace dim
 } // namespace dak
+
+//------------------------------------------------------------------------------
+// dak::dim
+//------------------------------------------------------------------------------
+
+#include <type_traits>
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest.h>
+
+TEST_CASE("predefined dimensions")
+{
+    CHECK((std::is_same<dak::dim::length, dak::mechanical_dimension<1, 0, 0>>::value));
+    CHECK((std::is_same<dak::dim::mass, dak::mechanical_dimension<0, 1, 0>>::value));
+    CHECK((std::is_same<dak::dim::time, dak::mechanical_dimension<0, 0, 1>>::value));
+    CHECK((std::is_same<dak::dim::speed, dak::mechanical_dimension<1, 0, -1>>::value));
+    CHECK((std::is_same<dak::dim::acceleration, dak::mechanical_dimension<1, 0, -2>>::value));
+    CHECK((std::is_same<dak::dim::momentum, dak::mechanical_dimension<1, 1, -1>>::value));
+    CHECK((std::is_same<dak::dim::force, dak::mechanical_dimension<1, 1, -2>>::value));
+    CHECK((std::is_same<dak::dim::energy, dak::mechanical_dimension<2, 1, -2>>::value));
+}
 
 //------------------------------------------------------------------------------
 // dak::scalar
