@@ -308,7 +308,7 @@ namespace dak
      * Vector with dimensional analysis.
      */
     template<typename T, typename D, unsigned N>
-    class vector : public detail::coords_mixin<T, D, N>
+    class vector : private detail::coords_mixin<T, D, N>
     {
         using coords_mixin = detail::coords_mixin<T, D, N>;
         using coords_mixin::coords_;
@@ -497,7 +497,7 @@ namespace dak
      * Cartesian point with dimensional analysis.
      */
     template<typename T, typename D, unsigned N>
-    class point : public detail::coords_mixin<T, D, N>
+    class point : private detail::coords_mixin<T, D, N>
     {
         using coords_mixin = detail::coords_mixin<T, D, N>;
         using coords_mixin::coords_;
