@@ -6,6 +6,7 @@ actor Main
     timers(Timer(ClockworkPrime(PrimePrinter(env), 100000), 0, 1_000_000))
     timers(Timer(ClockworkPrime(PrimePrinter(env), 200000), 0, 1_000_000))
     timers(Timer(ClockworkPrime(PrimePrinter(env), 50000), 0, 1_000_000))
+    env.out.print("Started")
 
 class PrimePrinter
   let _env: Env
