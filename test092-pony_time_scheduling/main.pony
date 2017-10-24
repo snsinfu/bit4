@@ -21,7 +21,7 @@ class ClockworkPrime is TimerNotify
   let _printer: PrimePrinter
   let _request: U64
   let _unitTaskCount: U32 = 1000
-  var _counter: U64 = 0
+  var _counter: U64 = 1
   var _primeCount: U64 = 0
 
   new iso create(printer: PrimePrinter iso, n: U64) =>
