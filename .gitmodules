@@ -44,3 +44,6 @@
 [submodule "deps/ridiculousfish/libdivide"]
 	path = deps/ridiculousfish/libdivide
 	url = https://github.com/ridiculousfish/libdivide.git
+[submodule "deps/frickiericker/dak"]
+	path = deps/frickiericker/dak
+	url = https://github.com/frickiericker/dak.git
