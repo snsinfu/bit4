@@ -1,0 +1,42 @@
+table.quoridor-board {
+  border-collapse: collapse;
+}
+
+table.quoridor-board td {
+  background-color: #aaaa99;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccccbb;
+  font-size: 16px;
+  text-align: center;
+  vertical-align: center;
+  cursor: pointer;
+}
+
+table.quoridor-board td:hover {
+  background-color: #333333;
+}
+
+table.quoridor-board td.east-blocked {
+  border-right-color: #111100;
+}
+
+table.quoridor-board td.south-blocked {
+  border-bottom-color: #111100;
+}
+
+table.quoridor-board td.occupied-by-red {
+  color: #ff5522;
+}
+
+table.quoridor-board td.occupied-by-blue {
+  color: #5577ff;
+}
+
+table.quoridor-board td.occupied-by-green {
+  color: #77ee22;
+}
+
+table.quoridor-board td.occupied-by-yellow {
+  color: #ffee22;
+}
