@@ -43,6 +43,7 @@ def MakeCustomFlags( data ):
     '-Werror',
     '-fms-extensions',
     '-isystem', '/usr/include',
+    '-isystem', '/usr/include/c++/v1',
     '-isystem', '/usr/local/include',
     '-isystem', './include',
     '-isystem', '/usr/local/opt/llvm/include',
