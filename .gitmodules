@@ -47,3 +47,6 @@
 [submodule "deps/frickiericker/dak"]
 	path = deps/frickiericker/dak
 	url = https://github.com/frickiericker/dak.git
+[submodule "deps/msgpack/msgpack-c"]
+	path = deps/msgpack/msgpack-c
+	url = https://github.com/msgpack/msgpack-c.git
