@@ -19,7 +19,7 @@ makeFizzBuzzStr : Nat -> String
 makeFizzBuzzStr n = cast (makeFizzBuzz n)
 
 range : Nat -> Nat -> List Nat
-range x y = if x == y then []
+range x y = if x == y then Nil
                       else x :: range (S x) y
 
 printStrings : List String -> IO ()
