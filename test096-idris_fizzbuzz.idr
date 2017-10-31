@@ -15,5 +15,17 @@ makeFizzBuzz : (n:Nat) -> FizzBuzz n
 makeFizzBuzz (S Z) = One
 makeFizzBuzz (S k) = S (makeFizzBuzz k)
 
+makeFizzBuzzStr : Nat -> String
+makeFizzBuzzStr n = cast (makeFizzBuzz n)
+
+range : Nat -> Nat -> List Nat
+range x y = if x == y then []
+                      else x :: range (S x) y
+
+printStrings : List String -> IO ()
+printStrings Nil = pure ()
+printStrings (x::xs) = do putStrLn x
+                          printStrings xs
+
 main : IO ()
-main = putStrLn (cast (makeFizzBuzz 15))
+main = printStrings (map makeFizzBuzzStr (range 1 100))
