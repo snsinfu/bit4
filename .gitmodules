@@ -50,3 +50,6 @@
 [submodule "deps/msgpack/msgpack-c"]
 	path = deps/msgpack/msgpack-c
 	url = https://github.com/msgpack/msgpack-c.git
+[submodule "deps/Cylix/tacopie"]
+	path = deps/Cylix/tacopie
+	url = https://github.com/Cylix/tacopie.git
