@@ -6,38 +6,41 @@ import (
 	"net"
 	"time"
 	"os"
+	"os/signal"
 )
 
 func main() {
 	const socket_path = "test.sock"
-
-	// Need to unlink the path, if any, before Listen.
-	if err := os.Remove(socket_path); err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatal(err)
-		}
-	}
 
 	// Datagram has difficulties. Stream is enough.
 	listener, err := net.Listen("unix", socket_path)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// TODO: trap signal
+	defer os.Remove(socket_path)
 	defer listener.Close()
 
-	for {
+	signals := make(chan os.Signal, 1)
+	done := false
+	go func() {
+		<-signals
+		listener.Close()
+		done = true
+	}()
+	signal.Notify(signals, os.Interrupt)
+
+	for !done {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
+			continue
 		}
 
 		// We serve synchronously.
 		defer conn.Close()
 
 		if err := serve(conn); err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
 	}
 }
