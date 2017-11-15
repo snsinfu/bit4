@@ -17,7 +17,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer os.Remove(socket_path)
 	defer listener.Close()
 
 	signals := make(chan os.Signal, 1)
