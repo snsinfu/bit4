@@ -159,6 +159,7 @@ type pwmMap struct {
 	ctl    pwmControl // CTL
 	status pwmStatus  // STA
 	dmaCfg pwmDMACfg  // DMAC
+	dummy0 uint32
 	// This register is used to define the range for the corresponding channel.
 	// In PWM mode evenly distributed pulses are sent within a period of length
 	// defined by this register. In serial mode serialised data is transmitted
@@ -195,6 +196,7 @@ type pwmMap struct {
 	// If the set of channels to share the FIFO has been modified after a
 	// configuration change, FIFO should be cleared before writing new data.
 	fifo uint32 // FIF1
+	dummy1 uint32
 	rng2 uint32 // RNG2 Equivalent of rng1 for channel 2
 	dat2 uint32 // DAT2 Equivalent of dat1 for channel 2
 }
