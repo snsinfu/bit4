@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"periph.io/x/periph"
 	"periph.io/x/periph/conn/gpio/gpiostream"
-	"periph.io/x/periph/host"
 	"periph.io/x/periph/host/bcm283x"
 )
 
@@ -16,13 +16,13 @@ func main() {
 }
 
 func run() error {
-	if _, err := host.Init(); err != nil {
+	if _, err := periph.Init(); err != nil {
 		return err
 	}
 
 	pattern := make([]byte, 1000)
 	for i := range pattern {
-		if i % 100 < 50 {
+		if i%100 < 50 {
 			pattern[i] = 255
 		} else {
 			pattern[i] = 0
