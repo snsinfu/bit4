@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -40,7 +41,7 @@ type postHandler struct{}
 func (h *postHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	key := req.Header.Get("X-Auth-Key")
 	timestamp := req.Header.Get("X-Auth-Timestamp")
-	signature := req.Header.Get("X-Auth-Signature")
+	hexSignature := req.Header.Get("X-Auth-Signature")
 
 	type Response struct {
 		Message string `json:"message"`
@@ -57,6 +58,12 @@ func (h *postHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	signature, err := hex.DecodeString(hexSignature)
+	if err != nil {
+		res.Write([]byte(`{"message": "Mis-encoded signature"}`))
+		return
+	}
+
 	message, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		res.Write([]byte(`{"message": "Server error"}`))
@@ -68,9 +75,9 @@ func (h *postHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	mac.Write([]byte(req.Method))
 	mac.Write([]byte(req.URL.Path))
 	mac.Write(message)
-	expectedSignature := hex.EncodeToString(mac.Sum(nil))
+	expectedSignature := mac.Sum(nil)
 
-	if signature != expectedSignature {
+	if subtle.ConstantTimeCompare(signature, expectedSignature) != 1 {
 		res.Write([]byte(`{"message": "Bad signature"}`))
 		return
 	}
