@@ -56,3 +56,6 @@
 [submodule "deps/fmtlib/fmt"]
 	path = deps/fmtlib/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "deps/gabime/spdlog"]
+	path = deps/gabime/spdlog
+	url = https://github.com/gabime/spdlog.git
