@@ -9,6 +9,6 @@ Add users and DB:
     $ docker-compose exec influxdb influx
     > CREATE USER root WITH PASSWORD 'root' WITH ALL PRIVILEGES
     > CREATE USER alice WITH PASSWORD 'alice'
-    > CREATE DATABASE "testdb"
-    > GRANT READ ON "testdb" TO "alice"
-    > GRANT WRITE ON "testdb" TO "alice"
+    > CREATE DATABASE testdb
+    > GRANT READ ON testdb TO alice
+    > GRANT WRITE ON testdb TO alice
