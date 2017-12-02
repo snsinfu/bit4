@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import io
 import os
 
 from setuptools import find_packages, setup
@@ -11,11 +12,11 @@ test_requires = ['pytest>=2.0']
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-with open(os.path.join(here, 'README.rst'), encoding='utf8') as f:
+with io.open(os.path.join(here, 'README.rst'), encoding='utf8') as f:
     long_description = '\n' + f.read()
 
 about = {}
-with open(os.path.join(here, name, '__version__.py'), encoding='utf8') as f:
+with io.open(os.path.join(here, name, '__version__.py'), encoding='utf8') as f:
     exec(f.read(), about)
 
 setup(
