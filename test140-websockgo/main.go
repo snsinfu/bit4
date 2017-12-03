@@ -41,7 +41,7 @@ func run() error {
 
 		fmt.Printf(
 			"%.3f\t%s\t%s\t%s\t%s\n",
-			float64(msg.Time.UnixNano()) * 1e-9, // Safe for 100+ million years.
+			float64(msg.Time.UnixNano()) * 1e-9, // Safe for 100+ thousand years.
 			msg.Pair,
 			msg.Side,
 			msg.Price,
