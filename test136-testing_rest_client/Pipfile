@@ -9,11 +9,11 @@ name = "pypi"
 
 pytest = "*"
 requests = "*"
+pytest-localserver = ">=0.3"
 
 
 [packages]
 
-pytest-localserver = "*"
 
 
 [requires]
