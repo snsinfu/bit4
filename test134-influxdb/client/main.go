@@ -139,24 +139,22 @@ func read() {
 
 	// Bind parameters are sent as JSON, so durations cannot be bound. We have
 	// to embed duration parameters using Sprintf(). Ugh!
-	span := "1m"
+	span := "10m"
 	bin := "1s"
-	q := client.NewQueryWithParameters(
-		fmt.Sprintf(
-			"SELECT mean(price)" +
-			" FROM  trade" +
-			" WHERE market = $market" +
-			"   AND pair = $pair" +
-			"   AND time > now() - %s" +
+	qs := fmt.Sprintf(
+		"SELECT sum(weighted_price) / sum(amount) AS mean_price"+
+			" FROM (SELECT price * amount AS weighted_price, amount"+
+			"         FROM trade"+
+			"        WHERE market = $market"+
+			"          AND pair = $pair"+
+			"          AND time > now() - %s)"+
 			" GROUP BY time(%s) fill(none)",
-			span, bin),
-		DB,
-		"s",
-		map[string]interface{}{
-			"market": "bx",
-			"pair":   "btc_eth",
-		},
-	)
+		span, bin)
+
+	q := client.NewQueryWithParameters(qs, DB, "s", map[string]interface{}{
+		"market": "bx",
+		"pair":   "btc_eth",
+	})
 
 	resp, err := c.Query(q)
 	if err != nil {
