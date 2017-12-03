@@ -24,8 +24,8 @@ def main():
     ws.run_forever()
 
 def timestamp():
-    # Fractional seconds do not make much sense since data come from internet.
-    return int(time.time())
+    # Keep sufficient precision for time-series DB.
+    return round(time.time(), 3)
 
 if __name__ == '__main__':
     main()
