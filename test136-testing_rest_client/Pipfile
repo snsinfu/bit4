@@ -10,6 +10,7 @@ name = "pypi"
 pytest = "*"
 requests = "*"
 pytest-localserver = ">=0.3"
+bottle = ">=0.10"
 
 
 [packages]

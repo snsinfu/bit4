@@ -2,6 +2,7 @@ import hmac
 import json
 import urllib.parse
 
+import bottle
 import pytest
 import pytest_localserver.http
 
@@ -20,80 +21,52 @@ key_repository = {
     }
 }
 
-def get_header(environ, name):
-    return environ['HTTP_' + name.replace('-', '_').upper()]
+@bottle.route('/<path:path>', ['GET', 'POST', 'DELETE'])
+def handle(path):
+    bottle.content_type = 'application/json'
 
-def read_body(environ):
-    return environ['wsgi.input'].read(int(environ.get('CONTENT_LENGTH', 0)))
-
-def reconstruct_url(environ):
-    # https://www.python.org/dev/peps/pep-3333/
-    url = environ['wsgi.url_scheme'] + '://'
-
-    if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST']
-    else:
-        url += environ['SERVER_NAME']
-
-        if environ['wsgi.url_scheme'] == 'https':
-            if environ['SERVER_PORT'] != '443':
-               url += ':' + environ['SERVER_PORT']
-        else:
-            if environ['SERVER_PORT'] != '80':
-               url += ':' + environ['SERVER_PORT']
-
-    url += urllib.parse.quote(environ.get('SCRIPT_NAME', ''))
-    url += urllib.parse.quote(environ.get('PATH_INFO', ''))
-    if environ.get('QUERY_STRING'):
-        url += '?' + environ['QUERY_STRING']
-
-    return url
-
-def handle(environ):
-    key = get_header(environ, HTTP_HEADER_KEY)
-    nonce = get_header(environ, HTTP_HEADER_NONCE)
-    signature = get_header(environ, HTTP_HEADER_SIGNATURE)
+    req = bottle.request
+    key = req.headers[HTTP_HEADER_KEY]
+    nonce = req.headers[HTTP_HEADER_NONCE]
+    signature = req.headers[HTTP_HEADER_SIGNATURE]
 
     if key not in key_repository:
-        return '403 Forbidden', 'Unrecognized key'
+        bottle.response.status = 403
+        return json.dumps({'error': 'Unrecognized key'}).encode()
 
     if int(nonce) <= key_repository[key]['nonce']:
-        return '403 Forbidden', 'Repeated nonce'
+        bottle.response.status = 403
+        return json.dumps({'error': 'Repeated nonce'}).encode()
     key_repository[key]['nonce'] = int(nonce)
 
     secret = key_repository[key]['secret']
     mac = hmac.new(secret.encode(), digestmod=HMAC_HASH)
     mac.update(nonce.encode())
-    mac.update(reconstruct_url(environ).encode())
-    mac.update(read_body(environ))
+    mac.update(req.url.encode())
+    mac.update(req.body.read())
 
     if signature != mac.hexdigest():
-        return '401 Unauthorized', 'Bad signature'
+        bottle.response.status = 401
+        return json.dumps({'error': 'Bad signature'}).encode()
 
-    return '200 OK', ''
-
-def fake_app(environ, start_response):
-    status, message = handle(environ)
-    response_headers = [('Content-type', 'application/json')]
-    start_response(status, response_headers)
-    return [json.dumps({'error': message}).encode()]
+    return b'{}'
 
 @pytest.fixture
 def testserver(request):
-    server = pytest_localserver.http.WSGIServer(application=fake_app)
+    server = pytest_localserver.http.WSGIServer(application=bottle.default_app())
     server.start()
     request.addfinalizer(server.stop)
     return server
 
 def test_auth(testserver):
     with Session(testserver.url, TEST_KEY, TEST_SECRET) as session:
-        assert session.post('/series/cpu/0') == {'error': ''}
-        assert session.get('/series/cpu/0/load') == {'error': ''}
-        assert session.delete('/series/cpu/0') == {'error': ''}
+        assert session.post('/series/cpu/0') == {}
+        assert session.get('/series/cpu/0/load') == {}
+        assert session.delete('/series/cpu/0') == {}
 
-        assert session.post('/series/cpu/1', params={'label': 'newcpu'}) == {'error': ''}
-        assert session.get('/series/cpu/1/load', params={'bin': '5s'}) == {'error': ''}
-        assert session.delete('/series/cpu', params={'id': 1}) == {'error': ''}
+        assert session.post('/series/cpu/1', params={'label': 'newcpu'}) == {}
+        assert session.get('/series/cpu/1/load', params={'bin': '5s'}) == {}
+        assert session.delete('/series/cpu', params={'id': 1}) == {}
 
 def test_auth_badkey(testserver):
     with Session(testserver.url, TEST_KEY + 'x', TEST_SECRET) as session:
