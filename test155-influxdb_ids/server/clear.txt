@@ -1,0 +1,4 @@
+--
+-- docker exec -i $(docker-compose ps -q influxdb) influx -database=testdb < clear.txt
+--
+DELETE FROM test;
