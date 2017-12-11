@@ -1,0 +1,8 @@
+--
+-- docker exec -i $(docker-compose ps -q influxdb) influx < init.txt
+--
+CREATE USER root WITH PASSWORD 'root' WITH ALL PRIVILEGES;
+CREATE USER alice WITH PASSWORD 'alice';
+CREATE DATABASE testdb;
+GRANT READ ON testdb TO alice;
+GRANT WRITE ON testdb TO alice;
