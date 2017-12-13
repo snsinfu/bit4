@@ -11,9 +11,13 @@ func main() {
 
 	fmt.Println(posMod(12.3, 6))
 	fmt.Println(posMod(-4.5, 6))
-
 	fmt.Println(math.Remainder(12.3, 6))
 	fmt.Println(math.Remainder(-4.5, 6))
+
+	fmt.Println(posMod(4.5, 6)) // 4.5
+	fmt.Println(posMod(-4.5, 6)) // 1.5
+	fmt.Println(math.Remainder(4.5, 6)) // -1.5
+	fmt.Println(math.Remainder(-4.5, 6)) // 1.5
 }
 
 func posMod(x, m float64) float64 {
