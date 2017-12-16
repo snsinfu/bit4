@@ -1,0 +1,9 @@
+- hosts: all
+  become: true
+  tasks:
+  - name: nginx is installed
+    apt: name=nginx state=latest
+  - name: nginx is configured
+    template: src=nginx.j2 dest=/etc/nginx.conf
+  - name: nginx is running
+    service: name=nginx state=started enabled=yes
