@@ -1,0 +1,14 @@
+- hosts: all
+  become: true
+  tasks:
+  - name: nginx is installed
+    apt: name=nginx state=latest
+
+  - name: nginx is configured
+    copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
+  - name: website exists
+    copy: src=index.html dest=/var/www/html/index.html
+
+  - name: nginx is running
+    service: name=nginx state=started enabled=yes
