@@ -38,7 +38,7 @@ def grayscale(colors):
     return np.clip(colorspacious.cspace_convert(jch, 'JCh', 'sRGB1'), 0, 1)
 
 def show_palette(ax, palette):
-    cmap = mpl.colors.LinearSegmentedColormap.from_list('', palette)
+    cmap = mpl.colors.ListedColormap(palette)
     ax.matshow(np.arange(len(palette)).reshape(1, -1),
                vmin=0, vmax=16, cmap=cmap, aspect='auto')
     ax.tick_params(axis='both', which='both',
