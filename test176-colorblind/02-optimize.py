@@ -1,19 +1,23 @@
 import logging
+import signal
 import sys
 
 import colorspacious
 import numpy as np
 import scipy.spatial.distance as spd
 
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%T')
-np.random.seed(1)
+np.random.seed(1234)
 
 points = np.random.uniform(0, 1, size=(16, 3))
 points = np.array([
-    (  0,   0,   0),
     (255, 255, 255), # Added
+    (  0,   0,   0),
     (  0,  73,  73),
     (  0, 146, 146),
     (255, 109, 182),
@@ -81,7 +85,7 @@ for step in range(max_steps):
     cost = eval_cost(points)
 
     fract_step = float(step) / max_steps
-    temperature = 10.0
+    temperature = 100.0
     temperature *= 1 / (1 + 1000 * fract_step**2)
 
     if cost - prev_cost < -temperature * np.log(1 - np.random.uniform()):
@@ -93,5 +97,5 @@ for step in range(max_steps):
     if step % log_interval == 0:
         logging.info('%.0f%%\t%g\t%g' % (fract_step * 100, prev_cost, temperature))
 
-for point in points:
+for point in points[1:]:
     print('%.2f\t%.2f\t%.2f' % (point[0], point[1], point[2]))
