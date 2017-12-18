@@ -1,7 +1,13 @@
+import logging
+import sys
+
 import colorspacious
 import numpy as np
 import scipy.spatial.distance as spd
 
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%T')
 np.random.seed(1)
 
 points = np.random.uniform(0, 1, size=(16, 3))
@@ -85,7 +91,7 @@ for step in range(max_steps):
         points = prev_points.copy()
 
     if step % log_interval == 0:
-        print('%.0f%%\t%g\t%g' % (fract_step * 100, prev_cost, temperature))
+        logging.info('%.0f%%\t%g\t%g' % (fract_step * 100, prev_cost, temperature))
 
 for point in points:
-    print('[%.2f, %.2f, %.2f],' % (point[0], point[1], point[2]))
+    print('%.2f\t%.2f\t%.2f' % (point[0], point[1], point[2]))
