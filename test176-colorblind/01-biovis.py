@@ -40,7 +40,7 @@ tritanomaly_palette = colorblind(palette, 'tritanomaly')
 def show_palette(ax, pal):
     cm = mpl.colors.LinearSegmentedColormap.from_list('', pal)
     ax.matshow(np.arange(15).reshape(3, 5),
-               vmin=0, vmax=15, cmap=cm, aspect='auto')
+               vmin=0, vmax=14, cmap=cm, aspect='auto')
     ax.set_xticklabels([])
     ax.set_yticklabels([])
     return ax
