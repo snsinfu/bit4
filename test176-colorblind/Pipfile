@@ -13,6 +13,7 @@ name = "pypi"
 
 colorspacious = "*"
 matplotlib = "*"
+scipy = "*"
 
 
 [requires]
