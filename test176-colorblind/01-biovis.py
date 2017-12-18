@@ -29,7 +29,7 @@ def colorblind(pal, typ):
         'cvd_type': typ,
         'severity': 100,
     }
-    return np.clip(colorspacious.cspace_convert(palette, input_space, 'sRGB1'),
+    return np.clip(colorspacious.cspace_convert(pal, input_space, 'sRGB1'),
                    0, 1)
 
 deuteranomaly_palette = colorblind(palette, 'deuteranomaly')
