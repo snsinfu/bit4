@@ -1,4 +1,4 @@
-16-color palette found via a simulated annealing based on [15-color one][1]:
+16-color palette found via a simulated annealing:
 
 ![palette](https://raw.githubusercontent.com/snsinfu/bit4/master/test176-colorblind/04-out-palette2-sorted.png)
 
