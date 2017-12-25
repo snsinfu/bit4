@@ -1,0 +1,9 @@
+- name: development tools are installed
+  apt: name={{ item }} state=present
+  with_items:
+    - git
+    - docker.io
+    - docker-compose
+
+- name: docker is running
+  service: name=docker state=started enabled=yes
