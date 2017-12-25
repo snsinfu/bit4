@@ -1,0 +1,5 @@
+- name: slurm-client is installed
+  apt: name=slurm-client state=present
+
+- name: slurm-wlm-torque is installed
+  apt: name=slurm-wlm-torque state=present

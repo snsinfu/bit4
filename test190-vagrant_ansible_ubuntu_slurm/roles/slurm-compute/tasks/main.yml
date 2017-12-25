@@ -1,0 +1,5 @@
+- name: slurmd is installed
+  apt: name=slurmd state=present
+
+- name: slurmd is running
+  service: name=slurmd state=started enabled=yes

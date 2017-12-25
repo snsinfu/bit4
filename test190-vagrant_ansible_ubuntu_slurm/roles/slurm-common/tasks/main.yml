@@ -1,0 +1,20 @@
+- name: nis cliend is installed
+  apt: name=nis state=present
+
+- name: nfs cliend is installed
+  apt: name=nfs-common state=present
+
+- name: rsh server is installed
+  apt: name=rsh-server state=present
+
+- name: mail command is installed
+  apt: name=mailutils state=present
+
+- name: munge is installed
+  apt: name=munge state=present
+
+- name: munge is running
+  service: name=munge state=started enabled=yes
+
+- name: slurm is configured
+  copy: src=slurm.conf dest=/etc/slurm-llnl/

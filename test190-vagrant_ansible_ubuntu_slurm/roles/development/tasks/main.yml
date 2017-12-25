@@ -1,0 +1,21 @@
+- name: fundamental development tools are installed
+  apt: name={{ item }} state=present
+  with_items:
+    - git
+    - build-essential
+    - cmake
+    - gcc
+    - gfortran
+    - gdb
+    - google-perftools
+    - python
+    - python3
+    - python-pip
+    - python3-pip
+    - ruby
+
+- name: virtualization tools are installed
+  apt: name={{ item }} state=present
+  with_items:
+    - docker
+    - docker-compose

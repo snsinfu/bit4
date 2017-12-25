@@ -1,0 +1,9 @@
+- hosts: default
+  become: true
+  roles:
+    - generic
+    - development
+    - slurm-common
+    - slurm-control
+    - slurm-compute
+    - slurm-client
