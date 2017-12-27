@@ -12,6 +12,23 @@
 
     - name: firewall script is put into place
       template: src=firewall.sh.j2 dest=/etc/firewall.sh mode=0700
+      notify:
+        - restart firewall
+        - check connection
 
-    - name: ensure firewall is running
-      service: name=firewall state=started enabled=yes
+    - name: firewall is enabled
+      service: name=firewall enabled=yes
+
+  handlers:
+    - name: restart firewall
+      shell: "sleep 2 && systemctl restart firewall"
+      async: 1
+      poll: 0
+
+    - name: check connection
+      local_action:
+        module: wait_for
+        host: "{{ ansible_host }}"
+        port: "{{ ansible_port }}"
+        delay: 2
+      become: false
