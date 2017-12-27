@@ -1,6 +1,6 @@
 [Unit]
 Description=Firewall
-After=syslog.target network.target
+Before=network.target
 
 [Service]
 Type=oneshot
