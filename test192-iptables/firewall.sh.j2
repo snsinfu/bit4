@@ -1,0 +1,55 @@
+#!/bin/sh
+set -eu
+
+PIF="{{ wan_interface }}"
+
+DHCPRECV=67
+SSH=22
+DNS=53
+HTTP=80
+HTTPS=443
+NTP=123
+
+# Reset the firewall
+iptables -F -t nat
+iptables -F -t mangle
+iptables -F
+iptables -X
+
+# Drop by default
+iptables -P INPUT   DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT  DROP
+
+# Allow loopback packets
+iptables -A INPUT  -j ACCEPT -i lo
+iptables -A OUTPUT -j ACCEPT -o lo
+
+# Allow established connections
+iptables -A INPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
+iptables -A OUTPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+
+# Suspicious inbound packets
+iptables -A INPUT -j DROP -s 192.168.0.0/16  -i $PIF
+iptables -A INPUT -j DROP -s 172.16.0.0/12   -i $PIF
+#iptables -A INPUT -j DROP -s 10.0.0.0/8      -i $PIF
+iptables -A INPUT -j DROP -s 127.0.0.0/8     -i $PIF
+iptables -A INPUT -j DROP -s 0.0.0.0/8       -i $PIF
+iptables -A INPUT -j DROP -s 169.254.0.0/16  -i $PIF
+iptables -A INPUT -j DROP -s 192.0.2.0/24    -i $PIF
+iptables -A INPUT -j DROP -s 204.152.64.0/23 -i $PIF
+iptables -A INPUT -j DROP -s 224.0.0.0/3     -i $PIF
+iptables -A INPUT -j DROP --fragment         -i $PIF
+
+# Allowed inbound packets
+iptables -A INPUT -j ACCEPT -p icmp                         -i $PIF
+iptables -A INPUT -j ACCEPT -p tcp -m tcp --dport $SSH      -i $PIF -m state --state NEW
+iptables -A INPUT -j ACCEPT -p udp -m udp --dport $DHCPRECV -i $PIF -m state --state NEW
+
+# Allowed outbound packets
+iptables -A OUTPUT -j ACCEPT -p icmp                      -o $PIF
+iptables -A OUTPUT -j ACCEPT -p tcp -m tcp --dport $DNS   -o $PIF -m state --state NEW
+iptables -A OUTPUT -j ACCEPT -p udp -m udp --dport $DNS   -o $PIF -m state --state NEW
+iptables -A OUTPUT -j ACCEPT -p tcp -m tcp --dport $HTTP  -o $PIF -m state --state NEW
+iptables -A OUTPUT -j ACCEPT -p tcp -m tcp --dport $HTTPS -o $PIF -m state --state NEW
+iptables -A OUTPUT -j ACCEPT -p udp -m udp --dport $NTP   -o $PIF -m state --state NEW
