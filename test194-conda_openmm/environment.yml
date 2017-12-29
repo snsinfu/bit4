@@ -1,0 +1,15 @@
+# conda env create -f environment.yml
+# source activate openmm-experiments
+
+name:
+  openmm-experiments
+
+channels:
+  - omnia # openmm
+
+dependencies:
+  - python=3
+  - matplotlib
+  - numpy
+  - scipy
+  - openmm
