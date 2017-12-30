@@ -42,17 +42,6 @@ close() {
     iptables -A INPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
     iptables -A OUTPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
 
-    # Suspicious inbound packets (does rp_filter handle these? not sure...)
-    iptables -A INPUT -j DROP -s 192.168.0.0/16  -i $PIF
-    iptables -A INPUT -j DROP -s 172.16.0.0/12   -i $PIF
-    #iptables -A INPUT -j DROP -s 10.0.0.0/8      -i $PIF
-    iptables -A INPUT -j DROP -s 127.0.0.0/8     -i $PIF
-    iptables -A INPUT -j DROP -s 0.0.0.0/8       -i $PIF
-    iptables -A INPUT -j DROP -s 169.254.0.0/16  -i $PIF
-    iptables -A INPUT -j DROP -s 192.0.2.0/24    -i $PIF
-    iptables -A INPUT -j DROP -s 204.152.64.0/23 -i $PIF
-    iptables -A INPUT -j DROP -s 224.0.0.0/3     -i $PIF
-
     # Allowed inbound packets
     iptables -A INPUT -j ACCEPT -p icmp                         -i $PIF
     iptables -A INPUT -j ACCEPT -p tcp -m tcp --dport $SSH      -i $PIF -m state --state NEW
