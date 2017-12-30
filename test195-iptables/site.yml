@@ -1,0 +1,34 @@
+- hosts: default
+  become: true
+  vars:
+    - wan_interface: eth0
+
+  tasks:
+    - name: kernel parameters are set
+      copy: src="{{item}}" dest=/etc/sysctl.d/ mode=0600
+      with_items:
+        - 60-network_security.conf
+      notify:
+        - reset kernel parameters
+
+    - name: firewall script is up to date
+      template: src=firewall.sh.j2 dest=/etc/firewall.sh mode=0700
+      notify:
+        - enable connection tracking
+        - enable firewall
+
+    - name: firewall service is up to date
+      copy: src=firewall.service dest=/etc/systemd/system/ mode=0600
+
+    - name: firewall is enabled
+      service: name=firewall enabled=yes
+
+  handlers:
+    - name: reset kernel parameters
+      command: systemctl restart systemd-sysctl
+
+    - name: enable connection tracking
+      command: /etc/firewall.sh open
+
+    - name: enable firewall
+      command: /etc/firewall.sh close
