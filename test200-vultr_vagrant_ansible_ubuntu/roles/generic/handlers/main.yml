@@ -1,0 +1,8 @@
+- name: reset kernel parameters
+  command: systemctl restart systemd-sysctl
+
+- name: enable connection tracking
+  command: /etc/firewall.sh open
+
+- name: enable firewall
+  command: /etc/firewall.sh close

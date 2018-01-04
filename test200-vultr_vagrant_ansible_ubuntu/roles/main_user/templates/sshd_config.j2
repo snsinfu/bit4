@@ -1,0 +1,13 @@
+AddressFamily inet
+Port 22
+DebianBanner no
+
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+UsePAM yes
+AllowUsers {{ main_user }}
+
+PermitUserEnvironment no
+Subsystem sftp /usr/lib/openssh/sftp-server

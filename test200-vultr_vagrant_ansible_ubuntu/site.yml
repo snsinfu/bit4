@@ -1,0 +1,19 @@
+- hosts: default
+  become: true
+  vars:
+    - wan_interface: ens3
+    - main_user: ubuntu
+
+  gather_facts: false
+  pre_tasks:
+    - name: python is installed
+      raw: command -v python || apt-get install -qqy python
+      register: install_python
+      changed_when: install_python.stdout == ""
+
+    - name: Gathering Facts
+      setup:
+
+  roles:
+    - generic
+    - main_user

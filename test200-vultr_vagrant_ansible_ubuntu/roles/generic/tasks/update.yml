@@ -1,0 +1,24 @@
+- name: apt cache is up to date
+  apt: update_cache=yes
+
+- name: distribution is up to date
+  apt: upgrade=dist
+
+- name: reboot-required file is checked
+  stat: path=/var/run/reboot-required
+  register: reboot_required
+
+- name: server is restarted if required
+  shell: sleep 2 && shutdown -r now
+  async: 1
+  poll: 0
+  when: reboot_required.stat.exists
+
+- name: server is restarted and up
+  become: false
+  local_action:
+    module: wait_for
+    host: "{{ ansible_host }}"
+    port: "{{ ansible_port }}"
+    delay: 10
+  when: reboot_required.stat.exists

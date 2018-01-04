@@ -1,0 +1,16 @@
+- name: kernel network parameters are set
+  copy: src=60-network_security.conf dest=/etc/sysctl.d/ mode=0600
+  notify:
+    - reset kernel parameters
+
+- name: firewall script is up to date
+  template: src=firewall.sh.j2 dest=/etc/firewall.sh mode=0700
+  notify:
+    - enable connection tracking
+    - enable firewall
+
+- name: firewall service is up to date
+  copy: src=firewall.service dest=/etc/systemd/system/ mode=0600
+
+- name: firewall is enabled
+  service: name=firewall enabled=yes
