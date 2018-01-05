@@ -1,0 +1,5 @@
+.env
+.vagrant
+*.retry
+*.pub
+admin_inventory

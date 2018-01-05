@@ -1,0 +1,63 @@
+- hosts: all
+
+  vars:
+    - wan_interface: ens3
+    - new_ssh_port: 22
+    - admin_user: ubuntu
+    - admin_pubkey: "{{ lookup('file', 'id_rsa-ubuntu.pub') }}"
+
+  tasks:
+    - name: kernel network parameters are configured
+      copy:
+        src: 60-network_security.conf
+        dest: /etc/sysctl.d/
+        mode: 0600
+
+    - name: firewall script is up to date
+      template:
+        src: firewall.sh.j2
+        dest: /etc/firewall.sh
+        mode: 0700
+
+    - name: firewall service unit is up to date
+      copy:
+        src: firewall.service
+        dest: /etc/systemd/system/
+        mode: 0600
+
+    - name: firewall service is enabled
+      service:
+        name: firewall
+        enabled: yes
+
+    - name: admin user is present
+      user:
+        name: "{{ admin_user }}"
+        state: present
+
+    - name: admin user is a sudoer
+      copy:
+        content: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+        dest: /etc/sudoers.d/admin
+        mode: 440
+
+    - name: admin user uses the specified key
+      authorized_key:
+        user: "{{ admin_user }}"
+        key: "{{ admin_pubkey }}"
+
+    - name: sshd_config is up to date
+      template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+
+    - name: inventory file is generated
+      template:
+        src: admin_inventory.j2
+        dest: /tmp/admin_inventory
+
+    - name: inventory file is fetched back
+      fetch:
+        src: /tmp/admin_inventory
+        dest: admin_inventory
+        flat: yes
