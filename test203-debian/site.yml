@@ -1,0 +1,34 @@
+# See: https://docs.docker.com/engine/installation/linux/docker-ce/debian/
+
+- hosts: all
+
+  tasks:
+    - name: required packages are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: apt signing key for docker repository is registered
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: docker repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+        state: present
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+
+    - name: docker is installed
+      apt:
+        name: docker-ce
+        state: present
