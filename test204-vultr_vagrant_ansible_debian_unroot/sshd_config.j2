@@ -1,0 +1,12 @@
+AddressFamily inet
+Port {{ admin_port }}
+DebianBanner no
+
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+UsePAM yes
+AllowGroups ssh-users
+
+Subsystem sftp /usr/lib/openssh/sftp-server

@@ -1,0 +1,46 @@
+- hosts: all
+
+  vars:
+    - admin_port: 22
+    - admin_user: ansib
+    - admin_pass: $6$lqNS9MhHFeSz8y$5fID/0HISOAloeEE.g1o/OB52ETgbzlIoPUS902wnP5oVjJC3Brch2EXzQ4Y5arVhMp/r47k2qNwA0zAylXDo0
+    - admin_pubkey: "{{ lookup('file', 'id_rsa.pub') }}"
+
+  tasks:
+    - name: sudo is installed
+      apt:
+        name: sudo
+        state: present
+
+    - name: ssh-users group is present
+      group:
+        name: ssh-users
+        state: present
+
+    - name: admin user is present
+      user:
+        name: "{{ admin_user }}"
+        password: "{{ admin_pass }}"
+        groups: sudo,ssh-users
+        state: present
+
+    - name: admin user uses the specified key
+      authorized_key:
+        user: "{{ admin_user }}"
+        key: "{{ admin_pubkey }}"
+
+    - name: sshd_config is up to date
+      template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+
+    - name: inventory file is generated
+      template:
+        src: admin_inventory.j2
+        dest: /tmp/admin_inventory
+
+    - name: inventory file is fetched back
+      fetch:
+        src: /tmp/admin_inventory
+        dest: admin_inventory
+        flat: yes
