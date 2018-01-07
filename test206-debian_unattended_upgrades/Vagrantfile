@@ -1,0 +1,9 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/stretch64"
+  config.vm.hostname = "debian.example.com"
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+end

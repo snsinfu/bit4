@@ -1,0 +1,21 @@
+- hosts: all
+
+  become: true
+
+  tasks:
+    - name: unattended security updates are enabled
+      apt:
+        name: unattended-upgrades
+        state: present
+      notify:
+        - update package database
+        - install security updates
+
+  handlers:
+    - name: update package database
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: install security updates
+      command: unattended-upgrades
