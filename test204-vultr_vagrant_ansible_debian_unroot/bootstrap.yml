@@ -20,9 +20,15 @@
     - name: admin user is present
       user:
         name: "{{ admin_user }}"
-        password: "{{ admin_pass }}"
+        password: "{{ admin_pass | default('*') }}"
         groups: sudo,ssh-users
         state: present
+
+    - name: admin user is a password-less sudoer iff no password is set
+      lineinfile:
+        path: /etc/sudoers
+        line: "{{ admin_user }} ALL=(ALL) NOPASSWD: ALL"
+        state: "{{ 'present' if admin_pass is not defined else 'absent' }}"
 
     - name: admin user uses the specified key
       authorized_key:
