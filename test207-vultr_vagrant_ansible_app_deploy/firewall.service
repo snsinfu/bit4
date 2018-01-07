@@ -1,0 +1,12 @@
+[Unit]
+Description=Firewall
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/firewall.sh close
+ExecStop=/etc/firewall.sh open
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,66 @@
+# Requirement: vagrant plugin install vagrant-vultr dotenv
+
+Dotenv.load
+
+VULTR_BOX_URL = "https://github.com/p0deje/vagrant-vultr/raw/master/box/vultr.box"
+VULTR_BOX     = "vultr"
+
+VULTR_REGION  = ENV["VULTR_REGION"]  || "Tokyo"
+VULTR_PLAN    = ENV["VULTR_PLAN"]    || "1024 MB RAM,25 GB SSD,1.00 TB BW"
+VULTR_BASE_OS = ENV["VULTR_BASE_OS"] || "Debian 9 x64 (stretch)"
+VULTR_IMAGE   = ENV["VULTR_IMAGE"]
+VULTR_TOKEN   = ENV["VULTR_TOKEN"]
+
+SSH_USER    = ENV["SSH_USER"]
+SSH_PRIVKEY = ENV["SSH_PRIVKEY"]
+SSH_PUBKEY  = ENV["SSH_PUBKEY"] || "#{SSH_PRIVKEY}.pub"
+SSH_PORT    = ENV["SSH_PORT"]   || 22
+
+Vagrant.configure("2") do |config|
+
+  # Do not use default sync. Let Ansible manage everything.
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  # For creating a base image
+  config.vm.define "image", autostart: false do |image|
+    image.ssh.private_key_path = SSH_PRIVKEY
+
+    image.vm.provider :vultr do |vultr, override|
+      vultr.region = VULTR_REGION
+      vultr.plan = VULTR_PLAN
+      vultr.os = VULTR_BASE_OS
+      vultr.token = VULTR_TOKEN
+      override.vm.box_url = VULTR_BOX_URL
+      override.vm.box = VULTR_BOX
+    end
+
+    image.vm.provision :ansible do |ansible|
+      ansible.playbook = "image.yml"
+      ansible.extra_vars = {
+        deploy_user: SSH_USER,
+        deploy_pubkey: SSH_PUBKEY,
+        ssh_port: SSH_PORT
+      }
+    end
+  end
+
+  # For deploying the app
+  config.vm.define "app", primary: true do |app|
+    app.ssh.username = SSH_USER
+    app.ssh.private_key_path = SSH_PRIVKEY
+    app.ssh.port = SSH_PORT
+
+    app.vm.provider :vultr do |vultr, override|
+      vultr.region = VULTR_REGION
+      vultr.plan = VULTR_PLAN
+      vultr.snapshot = VULTR_IMAGE
+      vultr.token = VULTR_TOKEN
+      override.vm.box_url = VULTR_BOX_URL
+      override.vm.box = VULTR_BOX
+    end
+
+    app.vm.provision :ansible do |ansible|
+      ansible.playbook = "app.yml"
+    end
+  end
+end

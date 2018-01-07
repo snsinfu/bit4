@@ -1,0 +1,7 @@
+- hosts: app
+
+  become: true
+
+  tasks:
+    - import_tasks: app_system.yml
+    - import_tasks: app_setup.yml

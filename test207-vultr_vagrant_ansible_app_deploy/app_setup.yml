@@ -1,0 +1,40 @@
+- name: required packages are installed for docker
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg2
+    - software-properties-common
+
+- name: apt signing key for docker repository is registered
+  apt_key:
+    id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: docker repository is registered
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+    state: present
+
+- name: packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - git
+    - gcc
+    - libc-dev
+    - make
+    - python3
+    - python3-pip
+    - docker-ce
+
+- name: deploy user may use docker
+  user:
+    user: "{{ ansible_user }}"
+    groups: docker
+    append: yes

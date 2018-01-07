@@ -1,0 +1,46 @@
+- name: apt cache is up to date
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: distribution is up to date
+  apt:
+    upgrade: dist
+    autoclean: yes
+    autoremove: yes
+
+- name: unattended security updates are enabled
+  apt:
+    name: unattended-upgrades
+    state: present
+
+- name: kernel network security parameters are set
+  copy:
+    src: 60-network_security.conf
+    dest: /etc/sysctl.d/
+
+- name: firewall script is up to date
+  template:
+    src: firewall.sh.j2
+    dest: /etc/firewall.sh
+    mode: u+x
+
+- name: firewall service is up to date
+  copy:
+    src: firewall.service
+    dest: /etc/systemd/system/
+
+- name: firewall is enabled
+  service:
+    name: firewall
+    enabled: yes
+
+- name: ntp is configured
+  copy:
+    src: ntp.conf
+    dest: /etc/
+
+- name: ntp is enabled
+  service:
+    name: ntp
+    enabled: yes

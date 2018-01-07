@@ -1,0 +1,35 @@
+- hosts: image
+
+  tasks:
+    - name: sudo is installed
+      apt:
+        name: sudo
+        state: present
+
+    - name: ssh-users group is present
+      group:
+        name: ssh-users
+        state: present
+
+    - name: deploy user is present
+      user:
+        name: "{{ deploy_user }}"
+        password: "{{ deploy_pass | default('*') }}"
+        groups: sudo,ssh-users
+        state: present
+
+    - name: deploy user is a password-less sudoer iff no password is set
+      lineinfile:
+        path: /etc/sudoers
+        line: "{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL"
+        state: "{{ 'present' if deploy_pass is not defined else 'absent' }}"
+
+    - name: deploy user uses the specified key
+      authorized_key:
+        user: "{{ deploy_user }}"
+        key: "{{ lookup('file', deploy_pubkey) }}"
+
+    - name: sshd_config is up to date
+      template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
