@@ -1,0 +1,94 @@
+- name: Provision the system
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: apt https repository requirements are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: apt signing key for docker repository is registered
+      apt_key:
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: docker repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+        state: present
+
+    - name: docker is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker-compose requirements are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - python-pip
+
+    - name: docker-compose is installed
+      pip:
+        name: docker-compose
+        state: present
+
+    - name: deploy user is a docker user
+      user:
+        user: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      notify:
+        - renew ssh connection
+
+  handlers:
+    - name: renew ssh connection
+      meta: reset_connection
+      # This fails. https://github.com/ansible/ansible/issues/27520
+
+- name: Deploy the app
+  hosts: all
+  become: no
+
+  vars:
+    - database_dir: "{{ ansible_env.HOME }}/db"
+
+  tasks:
+    - name: influxdb is up
+      docker_service:
+        project_name: influxdb
+        definition:
+          version: "2"
+          services:
+            influxdb:
+              image: influxdb:1.4
+              ports:
+                - 8086:8086
+              volumes:
+                - "{{ database_dir }}:/var/lib/influxdb"
+
+    - name: testdb is present
+      uri:
+        url: http://localhost:8086/query
+        method: POST
+        headers:
+          Content-Type: application/x-www-form-urlencoded
+        body: "q=CREATE+DATABASE+testdb"
+        status_code: 200
+
+    - name: a random point is inserted into testdb
+      uri:
+        url: http://localhost:8086/write?db=testdb&precision=ms
+        method: POST
+        body: >
+          play value={{ 100 | random }}
+        status_code: 204
