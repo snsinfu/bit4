@@ -1,0 +1,9 @@
+name:
+  bit4-openmm-experiments
+
+channels:
+  - omnia # openmm
+
+dependencies:
+  - python=3
+  - openmm
