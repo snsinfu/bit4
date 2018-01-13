@@ -27,10 +27,10 @@ func main() {
 func makeClientConfig() client.HTTPConfig {
 	var config client.HTTPConfig
 
-	if addr, ok := os.LookupEnv("GATEWAY_INFLUXDB_ADDRESS"); ok {
+	if addr, ok := os.LookupEnv("GATEWAY_INFLUXDB_URL"); ok {
 		config.Addr = addr
 	} else {
-		config.Addr = ":8086"
+		config.Addr = "http://:8086"
 	}
 
 	if user, ok := os.LookupEnv("GATEWAY_INFLUXDB_USER"); ok {
