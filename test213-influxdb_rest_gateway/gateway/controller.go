@@ -48,8 +48,6 @@ func handleTemperatureGet(c echo.Context) error {
 	result := r.Results[0]
 	body := bytes.Buffer{}
 
-	log.Print(r.Results)
-
 	for _, row := range result.Series {
 		for _, record := range row.Values {
 			body.WriteString(fmt.Sprintf("%s\t%s\n", record[0], record[1]))
