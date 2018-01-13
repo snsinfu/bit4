@@ -1,48 +1,44 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
+	"os"
 	"time"
 
-	"github.com/snsinfu/bit4/test213-influxdb_rest_gateway/gateway/app"
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 func main() {
-	config, err := app.GetConfig()
+	c, err := client.NewHTTPClient(makeClientConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := ping(config); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func ping(config *app.Config) error {
-	res, err := tryGet("http://" + config.DatabaseAddress + "/ping", 3)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	log.Println("ping response:", res)
-
-	if res.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected ping status: %d", res.StatusCode)
-	}
-	return nil
-}
-
-func tryGet(url string, retry int) (res *http.Response, err error) {
-	for retry >= 0 {
-		res, err = http.Get(url)
-		if err == nil {
-			return res, nil
+	for i := 0; i < 3; i++ {
+		_, pong, err := c.Ping(10 * time.Second)
+		if err != nil {
+			log.Fatal(err)
 		}
-		retry--
-		<-time.After(5 * time.Second)
+		log.Print("Pong: ", pong)
+		<-time.After(3)
 	}
-	return res, err
+}
+
+func makeClientConfig() client.HTTPConfig {
+	var config client.HTTPConfig
+
+	if addr, ok := os.LookupEnv("GATEWAY_INFLUXDB_ADDRESS"); ok {
+		config.Addr = addr
+	} else {
+		config.Addr = ":8086"
+	}
+
+	if user, ok := os.LookupEnv("GATEWAY_INFLUXDB_USER"); ok {
+		config.Username = user
+	}
+	if pass, ok := os.LookupEnv("GATEWAY_INFLUXDB_PASSWORD"); ok {
+		config.Password = pass
+	}
+
+	return config
 }
