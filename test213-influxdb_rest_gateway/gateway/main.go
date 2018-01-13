@@ -15,6 +15,7 @@ func main() {
 	e.Use(bind("influx", newClient()))
 
 	e.GET("/ping", handlePing)
+	e.GET("/temperature", handleTemperatureGet)
 	e.POST("/temperature", handleTemperaturePost)
 
 	e.Logger.Fatal(e.Start(os.Getenv("GATEWAY_ADDRESS")))

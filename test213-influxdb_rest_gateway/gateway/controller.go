@@ -2,6 +2,9 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,6 +26,37 @@ func handlePing(c echo.Context) error {
 		"latency": float64(latency) / float64(time.Second),
 		"message": msg,
 	})
+}
+
+func handleTemperatureGet(c echo.Context) error {
+	influx := c.Get("influx").(client.Client)
+
+	q := client.NewQuery(
+		"SELECT temperature FROM metrics",
+		os.Getenv("GATEWAY_INFLUXDB_DB"),
+		"",
+	)
+	r, err := influx.Query(q)
+	if err != nil {
+		return err
+	}
+	if err := r.Error(); err != nil {
+		return err
+	}
+
+	// Single statement, so single result
+	result := r.Results[0]
+	body := bytes.Buffer{}
+
+	log.Print(r.Results)
+
+	for _, row := range result.Series {
+		for _, record := range row.Values {
+			body.WriteString(fmt.Sprintf("%s\t%s\n", record[0], record[1]))
+		}
+	}
+
+	return c.String(http.StatusOK, body.String())
 }
 
 func handleTemperaturePost(c echo.Context) error {
