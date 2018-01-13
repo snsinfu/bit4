@@ -3,30 +3,16 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"github.com/influxdata/influxdb/client/v2"
 )
-
-const pingTimeout = 1 * time.Second
 
 func newClient() client.Client {
 	c, err := client.NewHTTPClient(makeClientConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Print("Ping: ", testPing(c))
-
 	return c
-}
-
-func testPing(c client.Client) string {
-	_, msg, err := c.Ping(pingTimeout)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return msg
 }
 
 func makeClientConfig() client.HTTPConfig {

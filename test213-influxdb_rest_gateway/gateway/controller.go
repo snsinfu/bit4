@@ -27,7 +27,7 @@ func handlePing(c echo.Context) error {
 
 func handleTemperaturePost(c echo.Context) error {
 	batch, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  os.Getenv("GATEWAY_INFLUXDB_DATABASE"),
+		Database:  os.Getenv("GATEWAY_INFLUXDB_DB"),
 		Precision: "ms",
 	})
 	if err != nil {
