@@ -15,12 +15,12 @@ func main() {
 	}
 
 	for i := 0; i < 3; i++ {
+		<-time.After(1 * time.Second)
 		_, pong, err := c.Ping(10 * time.Second)
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Print("Pong: ", pong)
-		<-time.After(3)
 	}
 }
 
