@@ -16,3 +16,4 @@ services:
       - 8080:8080
     environment:
       - GATEWAY_INFLUXDB_URL=http://influxdb:8086
+      - GATEWAY_ADDRESS=:8080
