@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  # https://hub.docker.com/_/influxdb/
+  influxdb:
+    image: influxdb:1.4
+    ports:
+      - 8086:8086
+    volumes:
+      - $PWD/db:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=test
+
+  gateway:
+    image: test223-gateway
+    depends_on:
+      - influxdb
+    ports:
+      - 8080:8080
+    environment:
+      - GATEWAY_INFLUXDB_URL=http://influxdb:8086
+      - GATEWAY_INFLUXDB_DB=test
+      - GATEWAY_ADDRESS=:8080
