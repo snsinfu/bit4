@@ -1,0 +1,32 @@
+# Require: vagrant plugin install vagrant-scaleway dotenv
+# Envs: SCW_ORGANIZATION, SCW_TOKEN, SSH_PRIVKEY, WARP_HOSTNAME
+
+Dotenv.load
+
+DEFAULT_PLAN = "VC1S"
+DEFAULT_IMAGE = "89457135-d446-41ba-a8df-d53e5bb54710" # Ubuntu Xenial x86_64
+
+SCW_PLAN = ENV["SCW_PLAN"] || DEFAULT_PLAN
+SCW_IMAGE = ENV["SCW_IMAGE"] || DEFAULT_IMAGE
+SCW_PRIVKEY = ENV["SCW_PRIVKEY"]
+
+WARP_HOSTNAME = ENV["WARP_HOSTNAME"]
+
+Vagrant.configure("2") do |config|
+  config.vm.provider :scaleway do |scaleway, override|
+    scaleway.commercial_type = SCW_PLAN
+    scaleway.image = SCW_IMAGE
+    override.ssh.private_key_path = SCW_PRIVKEY
+    override.nfs.functional = false
+  end
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {
+      warp_hostname: WARP_HOSTNAME
+    }
+  end
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.hostname = WARP_HOSTNAME
+end

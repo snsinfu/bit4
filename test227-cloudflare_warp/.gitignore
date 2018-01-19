@@ -1,0 +1,4 @@
+cloudflare-warp.pem
+.env
+.vagrant
+*.retry

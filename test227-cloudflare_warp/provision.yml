@@ -1,0 +1,24 @@
+- hosts: all
+  tasks:
+    - name: warp cert is present
+      copy:
+        src: cloudflare-warp.pem
+        dest: /root/.cloudflare-warp/cert.pem
+
+    - name: warp binary distribution is downloaded
+      get_url:
+        # From: https://warp.cloudflare.com/downloads/
+        url: https://bin.equinox.io/c/2ovkwS9YHaP/warp-stable-linux-amd64.tgz
+        dest: /tmp/
+
+    - name: warp binary distribution is expanded
+      unarchive:
+        src: /tmp/warp-stable-linux-amd64.tgz
+        dest: /usr/local/bin
+        creates: /usr/local/bin/cloudflare-warp
+        remote_src: yes
+
+    - name: warp hello-world is up
+      command: cloudflare-warp --hostname {{ warp_hostname }} --hello-world
+      async: 1
+      poll: 0
