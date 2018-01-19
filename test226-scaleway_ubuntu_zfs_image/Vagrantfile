@@ -2,16 +2,15 @@
 
 Dotenv.load
 
-#
+DEFAULT_REGION = "par1"
 DEFAULT_PLAN = "C2S"
+DEFAULT_VOLUME = 50_000_000_000
 
 # Image Builder 1.4.2 x86_64 (kernel 4.4.6)
 # UUID obtained from: https://cp-par1.scaleway.com/images
 DEFAULT_BUILDER_IMAGE = "a93ca7af-bbc0-4862-b612-2c676b7e9bcf"
 
-#
-DEFAULT_VOLUME = 50_000_000_000
-
+SCW_REGION = ENV["SCW_REGION"] || DEFAULT_REGION
 SCW_PLAN = ENV["SCW_PLAN"] || DEFAULT_PLAN
 SCW_IMAGE = ENV["SCW_IMAGE"] || DEFAULT_BUILDER_IMAGE
 SCW_VOLUME = ENV["SCW_VOLUME"] || DEFAULT_VOLUME
@@ -24,11 +23,12 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.provider :scaleway do |scaleway, override|
+    scaleway.region = SCW_REGION
     scaleway.commercial_type = SCW_PLAN
     scaleway.image = SCW_IMAGE
     scaleway.volumes = [
       { size: SCW_VOLUME.to_i }
     ]
-    override.ssh.private_key_path = SSH_PRIVKEY
+    override.ssh.private_key_path = SCW_PRIVKEY
   end
 end
