@@ -18,14 +18,17 @@ SCW_VOLUME = ENV["SCW_VOLUME"] || DEFAULT_VOLUME
 SSH_PRIVKEY = ENV["SSH_PRIVKEY"]
 
 Vagrant.configure("2") do |config|
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "builder.yml"
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
   config.vm.provider :scaleway do |scaleway, override|
     scaleway.commercial_type = SCW_PLAN
     scaleway.image = SCW_IMAGE
     scaleway.volumes = [
       { size: SCW_VOLUME.to_i }
     ]
-
-    override.nfs.functional = false
     override.ssh.private_key_path = SSH_PRIVKEY
   end
 end
