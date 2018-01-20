@@ -6,10 +6,10 @@ DEFAULT_REGION = "par1"
 DEFAULT_PLAN   = "C2S"
 DEFAULT_VOLUME = 50_000_000_000
 
-# UUID obtained from: https://cp-par1.scaleway.com/images
+# Get UUID with: vagrant scaleway images
 DEFAULT_BUILDER_IMAGE = "9c91c96f-7fc5-4224-96fb-cf8d55422934" # Image Builder 1.4.3
 
-# UUID obtained from: https://cp-par1.scaleway.com/bootscripts
+# Get UUID with: vagrant scaleway bootscripts
 DEFAULT_BOOTSCRIPT = "59c77041-6b3b-43c2-99c9-2d764bf0e326" # x86_64 mainline 4.4.112 rev1
 
 SCW_REGION     = ENV["SCW_REGION"]     || DEFAULT_REGION
