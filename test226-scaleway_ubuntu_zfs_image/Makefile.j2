@@ -1,0 +1,19 @@
+NAME =                  ubuntu-zfs
+VERSION =               {{ ansible_lsb.codename }}
+TITLE =                 Ubuntu with ZFS
+DESCRIPTION =           Ubuntu with ZFS
+DOC_URL =
+SOURCE_URL =
+VENDOR_URL =
+DEFAULT_IMAGE_ARCH =    x86_64
+
+IMAGE_VOLUME_SIZE =     50G
+IMAGE_BOOTSCRIPT =      stable
+IMAGE_NAME =            Ubuntu with ZFS
+
+all: docker-rules.mk
+
+docker-rules.mk:
+	curl -sfLO "https://raw.githubusercontent.com/scaleway/image-tools/master/builder/docker-rules.mk"
+
+-include docker-rules.mk

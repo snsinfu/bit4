@@ -57,8 +57,7 @@
         src: Dockerfile.j2
         dest: /root/Dockerfile
 
-    - name: Dockerfile is fetched back
-      fetch:
-        src: /root/Dockerfile
-        dest: Dockerfile
-        flat: yes
+    - name: Makefile is present
+      template:
+        src: Makefile.j2
+        dest: /root/Makefile
