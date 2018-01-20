@@ -1,11 +1,11 @@
-FROM scaleway/ubuntu:amd64-xenial AS builder
+FROM scaleway/ubuntu:amd64-xenial AS build-env
 
 ARG RELEASE={{ ansible_kernel }}
 ARG UPSTREAM={{ ansible_kernel | regex_replace('-.*', '') }}
 ARG LOCALVER={{ ansible_kernel | regex_search('-.*') }}
 
 RUN apt-get update -q
-RUN apt-get install -y -qq zfsutils-linux zfs-dkms build-essential libssl-dev
+RUN apt-get install -y -qq zfs-dkms build-essential libssl-dev
 RUN mkdir -p "/lib/modules/${RELEASE}"
 
 WORKDIR /usr/src
@@ -26,6 +26,9 @@ RUN dkms install -m spl -v $(dkms status | awk -v FS='[ ,:]*' '$1 == "spl" { pri
 RUN dkms install -m zfs -v $(dkms status | awk -v FS='[ ,:]*' '$1 == "zfs" { print $2 }')
 
 FROM scaleway/ubuntu:amd64-xenial
-RUN /usr/local/sbin/scw-builder-enter
-COPY --from=builder /lib/modules/${RELEASE}/ /lib/modules/${RELEASE}/
-RUN  /usr/local/sbin/scw-builder-leave
+COPY --from=build-env /lib/modules/${RELEASE}/ /lib/modules/${RELEASE}/
+RUN /usr/local/sbin/scw-builder-enter     \
+ && apt-get update -q                     \
+ && apt-get install -y -qq zfsutils-linux \
+ && rm -rf /var/lib/apt/lists/*           \
+ && /usr/local/sbin/scw-builder-leave
