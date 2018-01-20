@@ -1,0 +1,31 @@
+FROM scaleway/ubuntu:amd64-xenial AS builder
+
+ARG RELEASE={{ ansible_kernel }}
+ARG UPSTREAM={{ ansible_kernel | regex_replace('-.*', '') }}
+ARG LOCALVER={{ ansible_kernel | regex_search('-.*') }}
+
+RUN apt-get update -q
+RUN apt-get install -y -qq zfsutils-linux zfs-dkms build-essential libssl-dev
+RUN mkdir -p "/lib/modules/${RELEASE}"
+
+WORKDIR /usr/src
+RUN curl -fsLO "https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-${UPSTREAM}.tar.xz"
+RUN tar xf "linux-${UPSTREAM}.tar.xz"
+RUN ln -fns "/usr/src/linux-${UPSTREAM}" /usr/src/linux
+RUN ln -fns "/usr/src/linux-${UPSTREAM}" "/lib/modules/${RELEASE}/build"
+
+WORKDIR /usr/src/linux
+RUN zcat /proc/config.gz                       >  .config
+RUN echo "CONFIG_LOCALVERSION=\"${LOCALVER}\"" >> .config
+RUN echo "CONFIG_CROSS_COMPILE=\"\""           >> .config
+RUN curl -fsLO "http://mirror.scaleway.com/kernel/${ARCH}/${RELEASE}/Module.symvers"
+RUN make prepare modules_prepare
+
+WORKDIR /
+RUN dkms install -m spl -v $(dkms status | awk -v FS='[ ,:]*' '$1 == "spl" { print $2 }')
+RUN dkms install -m zfs -v $(dkms status | awk -v FS='[ ,:]*' '$1 == "zfs" { print $2 }')
+
+FROM scaleway/ubuntu:amd64-xenial
+RUN /usr/local/sbin/scw-builder-enter
+COPY --from=builder /lib/modules/${RELEASE}/ /lib/modules/${RELEASE}/
+RUN  /usr/local/sbin/scw-builder-leave

@@ -1,3 +1,76 @@
 - hosts: all
+
   tasks:
-    - ping:
+    - name: old docker services are disabled
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items:
+        - docker.service
+        - docker.socket
+
+    - name: old docker service files are absent
+      file:
+        path: "/etc/systemd/system/{{ item }}"
+        state: absent
+      with_items:
+        - docker.service
+        - docker.socket
+
+    - name: old docker is uninstalled
+      apt:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - docker-engine
+        - docker.io
+
+    - name: apt https repository requirements are satisfied
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: apt signing key for docker-ce repository is registered
+      apt_key:
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: docker-ce repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: docker-ce is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker-ce service is up
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Dockerfile is present
+      template:
+        src: Dockerfile.j2
+        dest: /root/Dockerfile
+
+    - name: Dockerfile is fetched back
+      fetch:
+        src: /root/Dockerfile
+        dest: Dockerfile
+        flat: yes
