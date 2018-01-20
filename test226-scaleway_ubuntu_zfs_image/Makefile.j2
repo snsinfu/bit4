@@ -9,6 +9,6 @@ IMAGE_BOOTSCRIPT =      {{ scw_bootscript }}
 all: docker-rules.mk
 
 docker-rules.mk:
-	curl -sfLO "https://raw.githubusercontent.com/scaleway/image-tools/master/builder/docker-rules.mk"
+	curl -fsSLO "https://raw.githubusercontent.com/scaleway/image-tools/master/builder/docker-rules.mk"
 
 -include docker-rules.mk
