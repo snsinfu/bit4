@@ -22,6 +22,9 @@ SCW_PRIVKEY    = ENV["SCW_PRIVKEY"]
 Vagrant.configure("2") do |config|
   config.vm.provision :ansible do |ansible|
     ansible.playbook = "builder.yml"
+    ansible.extra_vars = {
+      scw_bootscript: SCW_BOOTSCRIPT,
+    }
   end
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
