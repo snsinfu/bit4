@@ -1,0 +1,11 @@
+Vagrant.configure("2") do |config|
+  config.vm.provider :scaleway do |scaleway, override|
+    scaleway.commercial_type = "C2S"
+    scaleway.image = "9c91c96f-7fc5-4224-96fb-cf8d55422934" # Image Builder 1.4.3
+    scaleway.bootscript = "59c77041-6b3b-43c2-99c9-2d764bf0e326" # x86_64 mainline 4.4.112 rev1
+    override.ssh.private_key_path = ENV["SCW_SSHKEY"]
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.provision :shell, inline: "uname -r"
+end
+
