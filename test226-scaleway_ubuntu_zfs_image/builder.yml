@@ -1,23 +1,6 @@
 - hosts: all
 
   tasks:
-    - name: old docker services are disabled
-      service:
-        name: "{{ item }}"
-        state: stopped
-        enabled: no
-      with_items:
-        - docker.service
-        - docker.socket
-
-    - name: old docker service files are absent
-      file:
-        path: "/etc/systemd/system/{{ item }}"
-        state: absent
-      with_items:
-        - docker.service
-        - docker.socket
-
     - name: old docker is uninstalled
       apt:
         name: "{{ item }}"
@@ -25,6 +8,16 @@
       with_items:
         - docker-engine
         - docker.io
+
+    - name: old docker service file is absent
+      file:
+        path: /etc/systemd/system/docker.service
+        state: absent
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
 
     - name: apt https repository requirements are satisfied
       apt:
@@ -47,11 +40,6 @@
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
         state: present
-
-    - name: apt cache is up to date
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
 
     - name: docker-ce is installed
       apt:
