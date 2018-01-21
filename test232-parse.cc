@@ -7,6 +7,49 @@
 #include <string_view>
 #include <unordered_map>
 
+// program:
+//      toplevel-declaration *
+//
+// toplevel-declaration:
+//      import-declaration
+//      function-declaration
+//
+// import-declaration:
+//      "import" "<" identifier ">"
+//
+// function-declaration:
+//      "func" identifier "(" parameterlist ")" function-body
+//
+// parameter-list:
+//      identifier ":" cr-type
+//
+// function-body:
+//      "{" statement * "}"
+//
+// statement:
+//      expression
+//
+// expression:
+//      shift-expression
+//
+// shift-expression:
+//      primary-expression "<<" primary-expression
+//
+// primary-expression:
+//      qualified-identifier
+//
+// cr-type:
+//      type
+//      "&" type
+//      "&" "const" type
+//
+// type:
+//      qualified-identifier
+//
+// qualified-identifier:
+//      identifier
+//      identifier "::" qualified-identifier
+
 namespace cc
 {
     enum class token_kind
