@@ -59,3 +59,6 @@
 [submodule "deps/gabime/spdlog"]
 	path = deps/gabime/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "test233-doxygen/doxygen-bootstrapped"]
+	path = test233-doxygen/doxygen-bootstrapped
+	url = https://github.com/Velron/doxygen-bootstrapped.git
