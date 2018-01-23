@@ -22,7 +22,3 @@ HTML_FOOTER            = doxygen-bootstrapped/example-site/footer.html
 HTML_EXTRA_STYLESHEET  = doxygen-bootstrapped/customdoxygen.css
 HTML_EXTRA_FILES       = doxygen-bootstrapped/doxy-boot.js
 SEARCHENGINE           = YES
-USE_MATHJAX            = YES
-MATHJAX_FORMAT         = HTML-CSS
-MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/
-MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
