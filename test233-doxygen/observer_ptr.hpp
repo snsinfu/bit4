@@ -5,7 +5,6 @@
 
 namespace ext
 {
-    /// observer_ptr is a non-owning pointer to a single object.
     template<typename T>
     class observer_ptr
     {
@@ -25,6 +24,10 @@ namespace ext
       private:
         pointer ptr_ = nullptr;
     };
+
+    /// observer_ptr is a non-owning pointer to a single object.
+    template<typename T>
+    class observer_ptr;
 
     /// Constructs an observer_ptr pointing to nothing.
     template<typename T>
