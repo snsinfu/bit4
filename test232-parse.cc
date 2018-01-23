@@ -1,11 +1,15 @@
 #include <algorithm>
 #include <cctype>
+#include <deque>
+#include <exception>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 // program:
 //      toplevel-declaration *
@@ -89,8 +93,6 @@ namespace cc
 
     class lexer
     {
-        lexer(lexer const&) = delete;
-
       public:
         explicit lexer(std::string_view source)
             : source_{source}
@@ -274,6 +276,294 @@ namespace cc
         std::unordered_map<std::string, token_kind> keywords_;
     };
 
+    class identifier
+    {
+      public:
+        explicit identifier(std::string const& name)
+            : name_{name}
+        {
+        }
+
+      private:
+        std::string name_;
+    };
+
+    class type
+    {
+      public:
+        explicit type(identifier const& ident)
+            : ident_{ident}
+        {
+        }
+
+      private:
+        identifier ident_;
+    };
+
+    class declaration
+    {
+      public:
+        virtual ~declaration() = default;
+    };
+
+    class import_declaration : public declaration
+    {
+    };
+
+    class function_declaration : public declaration
+    {
+    };
+
+    class program
+    {
+      public:
+        void add_declaration(std::unique_ptr<declaration> decl)
+        {
+            decls_.push_back(std::move(decl));
+        }
+
+        void run() const
+        {
+        }
+
+      private:
+        std::vector<std::unique_ptr<declaration>> decls_;
+    };
+
+    class parser
+    {
+      public:
+        explicit parser(lexer lex)
+            : lex_{lex}
+        {
+        }
+
+        program parse()
+        {
+            program prog;
+
+            while (peek()) {
+                prog.add_declaration(parse_toplevel_declaration());
+            }
+
+            return prog;
+        }
+
+      private:
+        std::unique_ptr<declaration> parse_toplevel_declaration()
+        {
+            switch (peek().kind) {
+            case token_kind::kw_import:
+                return parse_import_declaration();
+
+            case token_kind::kw_func:
+                return parse_function_declaration();
+
+            default:
+                throw std::runtime_error("syntax error: program");
+            }
+        }
+
+        std::unique_ptr<import_declaration> parse_import_declaration()
+        {
+            if (scan().kind != token_kind::kw_import) {
+                throw std::logic_error("parse_import_declaration");
+            }
+
+            if (scan().kind != token_kind::langle) {
+                throw std::runtime_error("syntax error: import");
+            }
+
+            if (scan().kind != token_kind::ident) {
+                throw std::runtime_error("syntax error: import");
+            }
+
+            if (scan().kind != token_kind::rangle) {
+                throw std::runtime_error("syntax error: import");
+            }
+
+            return nullptr;
+        }
+
+        std::unique_ptr<function_declaration> parse_function_declaration()
+        {
+            if (scan().kind != token_kind::kw_func) {
+                throw std::logic_error("parse_function_declaration");
+            }
+
+            if (scan().kind != token_kind::ident) {
+                throw std::runtime_error("syntax error: func");
+            }
+
+            if (scan().kind != token_kind::lparen) {
+                throw std::runtime_error("syntax error: func");
+            }
+
+            parse_parameter_list();
+            parse_function_body();
+
+            return nullptr;
+        }
+
+        void parse_parameter_list()
+        {
+            if (scan().kind != token_kind::ident) {
+                throw std::runtime_error("syntax error: parameter list: ident");
+            }
+
+            if (scan().kind != token_kind::colon) {
+                throw std::runtime_error("syntax error: parameter list: colon");
+            }
+
+            parse_qual_type();
+
+            if (scan().kind != token_kind::rparen) {
+                throw std::runtime_error("syntax error: parameter list: rparen");
+            }
+        }
+
+        void parse_qual_type()
+        {
+            switch (peek().kind) {
+            case token_kind::ampersand:
+                return parse_ref_type();
+
+            case token_kind::kw_const:
+                return parse_const_type();
+
+            case token_kind::ident:
+                return parse_naked_type();
+
+            default:
+                throw std::runtime_error("syntax error: qual-type");
+            }
+        }
+
+        void parse_ref_type()
+        {
+            if (scan().kind != token_kind::ampersand) {
+                throw std::logic_error("parse_ref_type");
+            }
+
+            switch (peek().kind) {
+            case token_kind::kw_const:
+                return parse_const_type();
+
+            case token_kind::ident:
+                return parse_naked_type();
+
+            default:
+                throw std::runtime_error("syntax error: ref-type");
+            }
+        }
+
+        void parse_const_type()
+        {
+            if (scan().kind != token_kind::kw_const) {
+                throw std::logic_error("parse_const_type");
+            }
+
+            parse_naked_type();
+        }
+
+        void parse_naked_type()
+        {
+            parse_qual_name();
+        }
+
+        void parse_function_body()
+        {
+            if (scan().kind != token_kind::lbrace) {
+                throw std::runtime_error("syntax error: functino-body: lbrace");
+            }
+
+            parse_statement();
+
+            if (scan().kind != token_kind::rbrace) {
+                throw std::runtime_error("syntax error: function-body: rbrace");
+            }
+        }
+
+        void parse_statement()
+        {
+            parse_expression();
+        }
+
+        void parse_expression()
+        {
+            parse_primary_expression();
+
+            switch (peek().kind) {
+              case token_kind::lshift:
+                parse_lshift_expression();
+                break;
+
+              default:
+                break;
+            }
+        }
+
+        void parse_lshift_expression()
+        {
+            if (scan().kind != token_kind::lshift) {
+                throw std::runtime_error("syntax error: lshift-expression");
+            }
+
+            parse_primary_expression();
+        }
+
+        void parse_primary_expression()
+        {
+            parse_qual_name();
+        }
+
+        void parse_qual_name()
+        {
+            for (;;) {
+                if (scan().kind != token_kind::ident) {
+                    throw std::runtime_error("syntax error: qual-name");
+                }
+
+                if (peek().kind != token_kind::scope) {
+                    break;
+                }
+                scan();
+            }
+        }
+
+        token const& peek()
+        {
+            auto& tok = scan();
+            unscan(tok);
+            return tok;
+        }
+
+        token const& scan()
+        {
+            if (!token_buffer_.empty()) {
+                token_buffer_.pop_front();
+            }
+
+            token_buffer_.push_back(lex_.scan());
+
+            return current_token();
+        }
+
+        void unscan(token const& tok)
+        {
+            token_buffer_.push_front(tok);
+        }
+
+        token const& current_token() const
+        {
+            return token_buffer_.front();
+        }
+
+      private:
+        lexer lex_;
+        std::deque<token> token_buffer_;
+    };
+
     void run(std::string_view source)
     {
         auto lex = lexer{source};
@@ -282,12 +572,10 @@ namespace cc
         lex.bind_keyword("func", token_kind::kw_func);
         lex.bind_keyword("const", token_kind::kw_const);
 
-        while (auto tok = lex.scan()) {
-            std::cout << static_cast<int>(tok.kind)
-                      << '\t'
-                      << tok.text
-                      << '\n';
-        }
+        auto par = parser{lex};
+        auto prog = par.parse();
+
+        prog.run();
     }
 }
 
@@ -297,10 +585,14 @@ int main()
 import <iostream>
 import <string>
 
-func greet(msg: &const std::string)
+func print(msg: &const std::string)
 {
     std::cout << msg
 }
 )-";
-    cc::run(source);
+    try {
+        cc::run(source);
+    } catch (std::exception const& e) {
+        std::cerr << e.what() << '\n';
+    }
 }
