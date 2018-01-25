@@ -9,6 +9,7 @@
         - /etc/ssl/csr
         - /etc/ssl/certs
         - /etc/ssl/private
+        - /etc/nginx/ssl
 
     - name: root-ca cert private key is generated
       command: openssl genrsa -out private/rootca.key 4096
@@ -29,27 +30,25 @@
         creates: certs/rootca.cert
 
     - name: server private key is generated
-      command: openssl genrsa -out private/server.key 4096
+      command: openssl genrsa -out server.key 4096
       args:
-        chdir: /etc/ssl
-        creates: private/server.key
+        chdir: /etc/nginx/ssl
+        creates: server.key
 
     - name: server csr is generated
-      command: openssl req -new -key private/server.key -subj "/CN=localhost" -out csr/server.csr
+      command: openssl req -new -key server.key -subj "/CN=localhost" -out server.csr
       args:
-        chdir: /etc/ssl
+        chdir: /etc/nginx/ssl
         creates: csr/server.csr
 
     - name: server cert is generated
-      command: openssl x509 -req -sha256 -days 365 -in csr/server.csr -CA certs/rootca.cert -CAkey private/rootca.key -set_serial 1 -out certs/server.cert
+      command: openssl x509 -req -sha256 -days 365 -in server.csr -CA /etc/ssl/certs/rootca.cert -CAkey /etc/ssl/private/rootca.key -set_serial 1 -out server.cert
       args:
-        chdir: /etc/ssl
-        creates: certs/server.cert
+        chdir: /etc/nginx/ssl
+        creates: server.cert
 
     - name: server cert is valid
-      command: openssl verify -CAfile certs/rootca.cert certs/server.cert
-      args:
-        chdir: /etc/ssl
+      command: openssl verify -CAfile /etc/ssl/certs/rootca.cert /etc/nginx/ssl/server.cert
       changed_when: none
 
     - name: nginx is installed
