@@ -1,0 +1,84 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: ssl directories are present
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - /etc/ssl/csr
+        - /etc/ssl/certs
+        - /etc/ssl/private
+
+    - name: root-ca cert private key is generated
+      command: openssl genrsa -out private/rootca.key 4096
+      args:
+        chdir: /etc/ssl
+        creates: private/rootca.key
+
+    - name: root-ca csr is generated
+      command: openssl req -new -key private/rootca.key -subj "/O=RootCA" -out csr/rootca.csr
+      args:
+        chdir: /etc/ssl
+        creates: csr/rootca.csr
+
+    - name: root-ca cert is generated
+      command: openssl x509 -req -sha256 -days 365 -in csr/rootca.csr -signkey private/rootca.key -out certs/rootca.cert
+      args:
+        chdir: /etc/ssl
+        creates: certs/rootca.cert
+
+    - name: server private key is generated
+      command: openssl genrsa -out private/server.key 4096
+      args:
+        chdir: /etc/ssl
+        creates: private/server.key
+
+    - name: server csr is generated
+      command: openssl req -new -key private/server.key -subj "/CN=localhost" -out csr/server.csr
+      args:
+        chdir: /etc/ssl
+        creates: csr/server.csr
+
+    - name: server cert is generated
+      command: openssl x509 -req -sha256 -days 365 -in csr/server.csr -CA certs/rootca.cert -CAkey private/rootca.key -set_serial 1 -out certs/server.cert
+      args:
+        chdir: /etc/ssl
+        creates: certs/server.cert
+
+    - name: server cert is valid
+      command: openssl verify -CAfile certs/rootca.cert certs/server.cert
+      args:
+        chdir: /etc/ssl
+      changed_when: none
+
+    - name: nginx is installed
+      apt:
+        name: nginx
+        state: present
+
+    - name: nginx is configured
+      copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - restart nginx
+
+    - meta: flush_handlers
+
+    - name: nginx is started
+      service:
+        name: nginx
+        state: started
+
+    - name: local https connection is working
+      command: curl --silent --show-error --output /dev/null https://localhost/
+      args:
+        warn: no
+      changed_when: none
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
