@@ -1,0 +1,60 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: apt https repository requirements are satisfied
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: docker-ce repository signing key is registered
+      apt_key:
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: docker-ce repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: docker-ce is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker-ce service is up
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: packagecloud repository signing key is registered
+      apt_key:
+        id: C2E73424D59097AB
+        url: https://packagecloud.io/gpg.key
+        state: present
+
+    - name: dokku repository is registered
+      apt_repository:
+        # Specify trusty here even if the actual release is xenial.
+        repo: deb https://packagecloud.io/dokku/dokku/ubuntu/ trusty main
+        state: present
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: dokku is installed
+      apt:
+        name: dokku
+        state: present
+
+    - name: dokku core dependencies are installed
+      command: dokku plugin:install-dependencies --core
