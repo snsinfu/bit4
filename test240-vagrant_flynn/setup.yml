@@ -33,3 +33,17 @@
         TLS_KEY="$(cat /root/server.key)"
         CLUSTER_DOMAIN={{ ansible_fqdn }}
         flynn-host bootstrap
+      args:
+        creates: /var/lib/flynn/image
+
+    - name: controller domain is added to the hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: 127.0.0.1 controller.{{ ansible_fqdn }}
+
+    - name: controller connectivity is verified
+      shell: curl --silent --show-error --cacert /root/ca.cert \
+                  https://controller.{{ ansible_fqdn }}/ca-cert
+      args:
+        warn: no
+      changed_when: none
