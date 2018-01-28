@@ -1,0 +1,6 @@
+- hosts: all
+  roles:
+    - security
+    - zfs
+    - flynn
+    - warp

@@ -1,0 +1,30 @@
+- name: warp is installed
+  unarchive:
+    remote_src: yes
+    src: https://bin.equinox.io/c/2ovkwS9YHaP/warp-stable-linux-amd64.tgz
+    dest: /usr/local/bin
+    creates: /usr/local/bin/cloudflare-warp
+
+- name: warp directory is created
+  file:
+    path: /root/.cloudflare-warp
+    state: directory
+
+- name: certificate is present
+  copy:
+    src: cloudflare-warp-cert.pem
+    dest: /root/.cloudflare-warp/cert.pem
+
+- name: config is present
+  copy:
+    src: cloudflare-warp-config.yml
+    dest: /root/.cloudflare-warp/config.yml
+
+- name: service is installed
+  shell: cloudflare-warp service install
+
+- name: service is enabled
+  service:
+    name: cloudflare-warp
+    state: started
+    enabled: yes

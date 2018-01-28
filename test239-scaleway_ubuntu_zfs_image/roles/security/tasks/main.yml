@@ -1,0 +1,16 @@
+- name: firewall script is up to date
+  template:
+    src: firewall.sh.j2
+    dest: /etc/firewall.sh
+    mode: 0700
+
+- name: firewall service is up to date
+  copy:
+    src: firewall.service
+    dest: /etc/systemd/system/
+    mode: 0600
+
+- name: firewall is enabled
+  service:
+    name: firewall
+    enabled: yes

@@ -1,0 +1,55 @@
+- name: installer is downloaded
+  get_url:
+    url: https://dl.flynn.io/install-flynn
+    dest: /root/install-flynn
+    mode: u+x
+
+- name: host service is installed
+  shell: /root/install-flynn --clean --yes
+  args:
+    creates: /etc/systemd/system/multi-user.target.wants/flynn-host.service
+
+- name: host service is started
+  service:
+    name: flynn-host
+    state: started
+
+# The bootstrap process assumes the cluster domain resolves to a working flynn
+# server. Since we are behind Cloudflare Warp, we can't use public DNS.
+- name: cluster domain is registered in the hosts file
+  lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 {{ cluster_domain }}
+    state: present
+
+- name: bootstrap is done
+  shell: CLUSTER_DOMAIN={{ cluster_domain }} flynn-host bootstrap
+  args:
+    creates: /var/lib/flynn
+
+# This key should be passed to `flynn cluster add` command on a client.
+- name: controller key is extracted
+  shell: >
+    flynn-host inspect $(flynn-host ps |
+                         awk '/controller/ && /worker/ { print $1 }') |
+    awk '/AUTH_KEY/ { print $2 }' > /root/flynn-controller.key
+  args:
+    creates: /root/flynn-controller.key
+
+- name: controller key is fetched back
+  fetch:
+    src: /root/flynn-controller.key
+    dest: ./
+    flat: yes
+
+# Certificate is needed for Full SSL Warp access.
+- name: controller domain is registered in the hosts file
+  lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 controller.{{ cluster_domain }}
+    state: present
+
+- name: certificate is installed
+  get_url:
+    url: http://controller.{{ cluster_domain }}/ca-cert
+    dest: /etc/ssl/certs/flynn.cert

@@ -1,0 +1,77 @@
+- set_fact:
+    arch: "{{ ansible_architecture }}"
+    release: "{{ ansible_kernel }}"
+    upstream: "{{ ansible_kernel | regex_replace('-.*', '') }}"
+    localver: "{{ ansible_kernel | regex_search('-.*') }}"
+
+- name: apt database is up to date
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: dkms and build dependencies are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - build-essential
+    - libssl-dev
+    - spl-dkms
+    - zfs-dkms
+
+- name: kernel module directory is present
+  file:
+    path: /lib/modules/{{ release }}
+    state: directory
+
+- name: kernel source tree is present
+  unarchive:
+    remote_src: yes
+    src: https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-{{ upstream }}.tar.xz
+    dest: /usr/src
+    creates: /usr/src/linux-{{ upstream }}
+
+- name: kernel source tree is properly linked
+  file:
+    path: "{{ item }}"
+    src: /usr/src/linux-{{ upstream }}
+    state: link
+  with_items:
+    - /usr/src/linux
+    - /lib/modules/{{ release }}/build
+
+- name: kernel config is created
+  shell: zcat /proc/config.gz > /usr/src/linux/.config
+  args:
+    creates: /usr/src/linux/.config
+
+- name: kernel config has localversion set
+  lineinfile:
+    path: /usr/src/linux/.config
+    line: CONFIG_LOCALVERSION={{ localver }}
+    state: present
+
+- name: Scaleway's Module.symvers is present
+  get_url:
+    url: http://mirror.scaleway.com/kernel/{{ arch }}/{{ release }}/Module.symvers
+    dest: /usr/src/linux
+
+- name: kernel source tree is prepared for building
+  shell: make -C /usr/src/linux prepare modules_prepare
+
+- name: zfs kernel modules are installed
+  shell: >
+    dkms install -m {{ item }}    \
+                 -v $(dkms status |
+                      awk -v FS='[ ,:]*' '$1 == "{{ item }}" { print $2 }')
+  with_items:
+    - spl
+    - zfs
+
+- name: zfs utilities are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - udev
+    - zfsutils-linux

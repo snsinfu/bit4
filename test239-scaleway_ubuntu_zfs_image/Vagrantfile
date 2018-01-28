@@ -1,0 +1,40 @@
+# Require: vagrant plugin install vagrant-scaleway dotenv
+
+Dotenv.load
+
+DEFAULT_REGION = "par1"
+DEFAULT_PLAN   = "C2S"
+
+# Get UUID with: vagrant scaleway images
+DEFAULT_IMAGE = "89457135-d446-41ba-a8df-d53e5bb54710" # x86_64 Ubuntu Xenial (16.04 latest)
+
+# Get UUID with: vagrant scaleway bootscripts
+DEFAULT_BOOTSCRIPT = "59c77041-6b3b-43c2-99c9-2d764bf0e326" # x86_64 mainline 4.4.112 rev1
+
+SCW_REGION     = ENV["SCW_REGION"]     || DEFAULT_REGION
+SCW_PLAN       = ENV["SCW_PLAN"]       || DEFAULT_PLAN
+SCW_IMAGE      = ENV["SCW_IMAGE"]      || DEFAULT_IMAGE
+SCW_BOOTSCRIPT = ENV["SCW_BOOTSCRIPT"] || DEFAULT_BOOTSCRIPT
+SCW_NAME       = ENV["SCW_NAME"]
+SCW_PRIVKEY    = ENV["SCW_PRIVKEY"]
+CLUSTER_DOMAIN = ENV["CLUSTER_DOMAIN"]
+
+Vagrant.configure("2") do |config|
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {
+      ansible_python_interpreter: "/usr/bin/python3",
+      cluster_domain: CLUSTER_DOMAIN
+    }
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  config.vm.provider :scaleway do |scaleway, override|
+    scaleway.region = SCW_REGION
+    scaleway.commercial_type = SCW_PLAN
+    scaleway.image = SCW_IMAGE
+    scaleway.bootscript = SCW_BOOTSCRIPT
+    scaleway.name = SCW_NAME if SCW_NAME
+    override.ssh.private_key_path = SCW_PRIVKEY
+  end
+end
