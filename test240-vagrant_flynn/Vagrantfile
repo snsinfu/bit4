@@ -1,0 +1,17 @@
+BASE_BOX = "bento/ubuntu-16.04"
+CLUSTER_DOMAIN = "flynn.example.com"
+
+Vagrant.configure("2") do |config|
+  config.vm.define "flynn" do |machine|
+    machine.vm.box = BASE_BOX
+    machine.vm.hostname = CLUSTER_DOMAIN
+  end
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "setup.yml"
+    ansible.extra_vars = {
+      ansible_python_interpreter: "/usr/bin/python3"
+    }
+  end
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+end

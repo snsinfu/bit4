@@ -1,0 +1,35 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: certificates are pushed to the server
+      copy:
+        src: certs/{{ item }}
+        dest: /root/
+      with_items:
+        - ca.cert
+        - server.cert
+        - server.key
+
+    - name: flynn installer is downloaded
+      get_url:
+        url: https://dl.flynn.io/install-flynn
+        dest: /root/install-flynn
+        mode: u+x
+
+    - name: flynn-host service is installed
+      shell: /root/install-flynn --clean --yes
+      args:
+        creates: /etc/systemd/system/multi-user.target.wants/flynn-host.service
+
+    - name: flynn-host service is started
+      service:
+        name: flynn-host
+        state: started
+
+    - name: flynn bootstrap is done
+      shell: >
+        TLS_CA="$(cat /root/ca.cert)"
+        TLS_CERT="$(cat /root/server.cert)"
+        TLS_KEY="$(cat /root/server.key)"
+        CLUSTER_DOMAIN={{ ansible_fqdn }}
+        flynn-host bootstrap

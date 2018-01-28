@@ -1,0 +1,5 @@
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = flynn.example.com
+DNS.2 = *.flynn.example.com
