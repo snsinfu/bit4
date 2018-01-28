@@ -1,0 +1,5 @@
+https://www.openssl.org/docs/manmaster/man1/req.html
+https://www.openssl.org/docs/manmaster/man5/x509v3_config.html
+https://www.openssl.org/docs/manmaster/man1/x509.html
+https://stackoverflow.com/questions/6194236/openssl-version-v3-with-subject-alternative-name
+http://wiki.cacert.org/FAQ/subjectAltName
