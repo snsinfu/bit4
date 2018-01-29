@@ -33,12 +33,11 @@ jq --raw-output \
       , .value.ansible_ssh_private_key_file
       ]
     | @tsv'     |
-awk -v OFS='\t' \
-'{
-    host = $1
-    addr = $2
-    port = $3
-    user = $4
-    key = $5
-    print host, user "@" addr, "-p " port " -i " key
+awk '{
+    print "Host " $2
+    print "  HostName " $1
+    print "  User " $4
+    print "  Port " $3
+    print "  IdentityFile " $5
+    print "  IdentitiesOnly yes"
 }'
