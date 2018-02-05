@@ -1,0 +1,7 @@
+[package]
+name = "test245-rust_nalgebra"
+version = "0.1.0"
+authors = ["snsinfu <snsinfu@gmail.com>"]
+
+[dependencies]
+nalgebra = "*"
