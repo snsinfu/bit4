@@ -1,0 +1,20 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+evernote = {git = "https://github.com/evernote/evernote-sdk-python.git"}
+
+
+[dev-packages]
+
+yapf = "*"
+
+
+[requires]
+
+python_version = "2.7"
