@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Menu</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/picnic@6.4.0/picnic.min.css" integrity="sha384-kYZ8bNZ3lCbUn9vBc+R/DzbvgAfYTaF3Xzp55XmjdGpeFezEr80AaQupGhq4VAEw" crossorigin="anonymous">
+    <style>
+      nav .show:checked ~ .menu {
+        width: 12em;
+      }
+
+      nav .show ~ .menu .unburger {
+        float: right;
+        display: none;
+      }
+
+      nav .show:checked ~ .menu .unburger {
+        display: block;
+      }
+
+      select {
+        min-width: 6em;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <span class="brand">Menu</span>
+      <input id="menu" type="checkbox" class="show">
+      <label for="menu" class="burger pseudo button">&#8801;</label>
+
+      <div class="menu">
+        <select>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+        <label for="menu" class="unburger pseudo button">&#215;</label>
+      </div>
+    </nav>
+  </body>
+<html>
