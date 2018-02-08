@@ -64,6 +64,9 @@ def bin_stream(source, bin_size, hard_end):
         if cur.beg < end:
             cur.sum += value * (end - cur.beg)
 
+    while cur.beg < hard_end:
+        yield pop_bin()
+
 
 class BinStreamException(Exception):
     pass
