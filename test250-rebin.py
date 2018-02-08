@@ -23,41 +23,46 @@ def bin_stream(source, bin_size, hard_end):
         pass
 
     cur = State()
-    cur.end = 0
+    cur.beg = 0
+    cur.end = min(bin_size, hard_end)
     cur.sum = 0.0
 
     def pop_bin():
-        bin_beg = cur.end - bin_size
+        bin_beg = cur.beg
         bin_end = cur.end
-        bin_value = cur.sum / bin_size
+        bin_value = cur.sum / (cur.end - cur.beg)
 
+        cur.beg += bin_size
         cur.end = min(cur.end + bin_size, hard_end)
         cur.sum = 0.0
 
         return bin_beg, bin_end, bin_value
 
     for beg, end, value in source:
-        if beg >= end:
+        if end <= beg:
             raise BinStreamException('input contains degenerate or reverse interval')
 
-        if beg < cur.end:
+        if end <= cur.beg:
             raise BinStreamException('input is not sorted')
 
         if end > hard_end:
             raise BinStreamException('input overshoots')
 
-        while beg >= cur.end:
+        # The bin may be behind the input
+
+        while cur.end <= beg:
             yield pop_bin()
 
-        assert beg < cur.end
+        # Now the bin overlaps with the input
 
-        while beg < end and cur.end - bin_size < end:
-            slice_end = min(cur.end, end)
-            cur.sum += (slice_end - beg) * value
-            beg = slice_end
-
-        if cur.end <= beg:
+        while cur.end <= end:
+            cur.sum += value * bin_size
             yield pop_bin()
+
+        # Now the bin overshoots the input
+
+        if cur.beg < end:
+            cur.sum += value * (end - cur.beg)
 
 
 class BinStreamException(Exception):
