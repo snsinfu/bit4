@@ -18,23 +18,24 @@ def main():
         print(b)
 
 
-def bin_stream(source, bin_size, hard_end):
-    class State:
-        pass
+class Bin:
+    def __init__(self, beg=None, end=None, value=0.0):
+        self.beg = beg
+        self.end = end
+        self.value = value
 
-    cur = State()
-    cur.beg = 0
-    cur.end = min(bin_size, hard_end)
-    cur.sum = 0.0
+
+def bin_stream(source, bin_size, hard_end):
+    cur = Bin(0, min(bin_size, hard_end))
 
     def pop_bin():
         bin_beg = cur.beg
         bin_end = cur.end
-        bin_value = cur.sum / (cur.end - cur.beg)
+        bin_value = cur.value / (cur.end - cur.beg)
 
         cur.beg += bin_size
         cur.end = min(cur.end + bin_size, hard_end)
-        cur.sum = 0.0
+        cur.value = 0.0
 
         return bin_beg, bin_end, bin_value
 
@@ -56,13 +57,13 @@ def bin_stream(source, bin_size, hard_end):
         # Now the bin overlaps with the input
 
         while cur.end <= end:
-            cur.sum += value * bin_size
+            cur.value += value * bin_size
             yield pop_bin()
 
         # Now the bin overshoots the input
 
         if cur.beg < end:
-            cur.sum += value * (end - cur.beg)
+            cur.value += value * (end - cur.beg)
 
     while cur.beg < hard_end:
         yield pop_bin()
