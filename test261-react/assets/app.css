@@ -1,0 +1,22 @@
+.button {
+  display: inline-block;
+  padding: 0.5ex 1.5ex;
+  border-radius: 0.3ex;
+  cursor: pointer;
+  user-select: none;
+}
+
+.button {
+  background-color: #68e;
+  color: #fff;
+}
+
+.button.accepting {
+  background-color: #79f;
+  color: #ffe;
+}
+
+.button.clicking {
+  background-color: #57d;
+  color: #fff;
+}
