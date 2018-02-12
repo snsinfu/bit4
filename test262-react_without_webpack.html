@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>React</title>
+
+    <!-- No integrity checks. Follow updates. -->
+    <script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js" crossorigin="anonymous"></script>
+
+    <style>
+      .button {
+        display: inline-block;
+        padding: 0.5ex 1.5ex;
+        border-radius: 0.3ex;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .button {
+        background-color: #68e;
+        color: #fff;
+      }
+
+      .button.accepting {
+        background-color: #79f;
+        color: #ffe;
+      }
+
+      .button.clicking {
+        background-color: #57d;
+        color: #fff;
+      }
+    </style>
+
+    <script type="text/babel">
+      class MyButton extends React.Component {
+        constructor(props) {
+          super(props);
+
+          this.state = {
+            accepting: false,
+            clicking: false
+          };
+        }
+
+        computeClass() {
+          return 'button'
+            + (this.state.accepting ? ' accepting' : '')
+            + (this.state.clicking ? ' clicking' : '');
+        }
+
+        render() {
+          // Manually implement :hover and :active.
+          return <span className={this.computeClass()}
+                        onMouseEnter={_ => this.setState({ accepting: true, clicking: false })}
+                        onMouseLeave={_ => this.setState({ accepting: false, clicking: false })}
+                        onMouseDown={_ => this.setState({ clicking: true })}
+                        onMouseUp={_ => this.setState({ clicking: false })}>
+            {this.props.label}
+          </span>;
+        }
+      }
+
+      // DOMContentLoaded does not work because of Babel transpilation.
+      window.onload = function() {
+        ReactDOM.render(
+          <MyButton label="Click" />,
+          document.getElementById('app')
+        );
+      };
+    </script>
+  </head>
+  <body>
+    <main id="app"></main>
+  </body>
+</html>
