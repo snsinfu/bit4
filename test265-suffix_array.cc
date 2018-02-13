@@ -41,6 +41,8 @@ int main()
         }
     }
 
+    std::cout << steps << " steps\n";
+
     if (lower_bound + 1 < upper_bound) {
         std::cout << "'"
                   << word
