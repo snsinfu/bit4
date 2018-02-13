@@ -1,0 +1,3 @@
+#!/usr/bin/env python
+from binner.cli import main
+main()
