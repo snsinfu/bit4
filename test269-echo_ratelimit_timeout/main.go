@@ -10,14 +10,17 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
+const (
+	interval = 1 * time.Second
+	timeout  = 2 * time.Second
+)
+
 func main() {
 	e := echo.New()
-
 	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(withTimeout(1 * time.Second))
-
-	e.GET("/", handleRoot, withRateLimit(1 * time.Second))
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, fmt.Sprintln(time.Now()))
+	}, withRateLimit(interval, timeout))
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -26,39 +29,22 @@ func main() {
 	e.Logger.Fatal(e.Start(":" + port))
 }
 
-func handleRoot(c echo.Context) error {
-	return c.String(http.StatusOK, fmt.Sprintln(time.Now()))
-}
-
-func withRateLimit(interval time.Duration) echo.MiddlewareFunc {
+func withRateLimit(interval time.Duration, timeout time.Duration) echo.MiddlewareFunc {
 	limiter := time.NewTicker(interval)
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			<-limiter.C
-			return next(c)
-		}
-	}
-}
 
-func withTimeout(timeout time.Duration) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			timer := time.NewTimer(timeout)
-			done := make(chan error, 1)
-
-			go func() {
-				done <- next(c)
-			}()
 
 			select {
+			case <-limiter.C:
+				return next(c)
+
 			case <-timer.C:
 				return c.String(
 					http.StatusServiceUnavailable,
-					"Service temporarily unavailable",
+					"Service temporarily unavailable\n",
 				)
-
-			case err := <-done:
-				return err
 			}
 		}
 	}
