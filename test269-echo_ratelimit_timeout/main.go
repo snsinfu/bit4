@@ -17,7 +17,10 @@ const (
 
 func main() {
 	e := echo.New()
+
 	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, fmt.Sprintln(time.Now()))
 	}, withRateLimit(interval, timeout))
