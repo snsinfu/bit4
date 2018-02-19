@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  dovecot:
+    build: .
+    image: dovecot:local
+    ports:
+      - 1143:143
+    volumes:
+      - $PWD/local.conf:/etc/dovecot/local.conf
