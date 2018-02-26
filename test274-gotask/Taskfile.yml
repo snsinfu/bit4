@@ -1,0 +1,17 @@
+dataset:
+  deps:
+    - task: download_alignment
+      vars: { filename: E003-H3K9me3.tagAlign.gz }
+
+    - task: download_alignment
+      vars: { filename: E003-H3K27me3.tagAlign.gz }
+
+download_alignment:
+  cmds:
+    - curl -fsSL -o '{{ .filename }}' '{{ .uri }}'
+
+  generates:
+    - '{{ .filename }}'
+
+  vars:
+    uri: http://egg2.wustl.edu/roadmap/data/byFileType/alignments/consolidated/{{ .filename }}
