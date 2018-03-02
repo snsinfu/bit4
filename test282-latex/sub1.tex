@@ -1,0 +1,23 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+
+\section{Lorem ipsum}
+
+Dolor sit amet\cite{LoremIpsum2018}.
+
+\begin{align}
+    p\left(x \mid \alpha, \beta \right)
+     & = \frac{
+             1
+         }{
+             B(\alpha, \beta)
+         }
+         x^{\alpha - 1} {(1 - x)}^{\beta - 1}
+    \\
+    \log p\left(x \mid \alpha, \beta \right)
+     & = - \log B(\alpha, \beta)
+       + (\alpha - 1) \log x
+       + (\beta - 1) \log (1 - x)
+\end{align}
+
+\end{document}
