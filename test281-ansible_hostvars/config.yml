@@ -1,0 +1,43 @@
+- name: maintain network config files
+
+  hosts: localhost
+  connection: local
+  become: no
+  gather_facts: no
+
+  vars:
+    cluster_nodes: "{{ groups['gene'] | map('extract', hostvars) | list }}"
+
+  tasks:
+    - name: hosts contain entries for the nodes
+      lineinfile:
+        path: ./etc/hosts
+        create: yes
+        regexp: '\b{{ item.name }}\b'
+        line: >-
+          {{ item.inventory_hostname }}
+          {{ item.name }}
+          {{ item.name }}.{{ item.domain }}
+      with_items: "{{ cluster_nodes }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: dnsmasq recognizes the nodes
+      lineinfile:
+        path: ./etc/dnsmasq.conf
+        create: yes
+        regexp: '\b{{ item.name }}\b'
+        line: >-
+          dhcp-host =
+          {{ item.mac }},
+          {{ item.name }},
+          {{ item.inventory_hostname }}
+      with_items: "{{ cluster_nodes }}"
+      loop_control:
+        label: "{{ item.name }}"
+      notify:
+        - restart dnsmasq
+
+  handlers:
+    - name: restart dnsmasq
+      ping: # mock

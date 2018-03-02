@@ -1,0 +1,8 @@
+[gene]
+10.0.1.1 name=gene01 mac=00:00:00:00:00:01
+10.0.1.2 name=gene02 mac=00:00:00:00:00:02
+10.0.1.3 name=gene03 mac=00:00:00:00:00:03
+10.0.1.4 name=gene04 mac=00:00:00:00:00:04
+
+[gene:vars]
+domain=gene.example.com
