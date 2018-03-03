@@ -1,0 +1,55 @@
+- name: maintain configuration files
+
+  vars:
+    target_group: gene
+
+  hosts: "{{ target_group }}"
+  become: yes
+  gather_facts: no
+
+  tasks:
+    - name: playbook is synced
+      copy:
+        src: worker-node.yml
+        dest: /root/
+
+    - name: local-only inventory is generated
+      copy:
+        content: |
+          [{{ target_group }}]
+          localhost ansible_connection=local
+        dest: /root/local-inventory
+
+    - name: ansible is installed
+      yum:
+        name: ansible
+        state: present
+
+    - name: hosts contain the gateway address
+      lineinfile:
+        path: /etc/hosts
+        create: yes
+        regexp: '\bgateway\b'
+        line: "10.0.2.2 gateway"
+
+    - name: docker repository is registered
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        owner: root
+        group: wheel
+
+    - name: docker is installed
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - device-mapper-persistent-data
+        - lvm2
+        - docker-ce
+
+    - name: docker service is started
+      service:
+        name: docker
+        state: started
+        enabled: yes
