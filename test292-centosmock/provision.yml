@@ -1,0 +1,122 @@
+- name: Set up host as an RPM repository
+
+  hosts: all
+  become: yes
+
+  vars:
+    mock_chroots:
+      - centos-6-x86_64
+      - centos-7-x86_64
+
+  tasks:
+    - name: required packages are installed
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - mock
+        - rpmdevtools
+
+    - name: mock user is present
+      user:
+        name: mock
+        groups: mock
+        password: "*"
+        state: present
+
+    - name: mock working directories are present
+      file:
+        name: "/home/mock/{{ item }}"
+        state: directory
+      with_items:
+        - spec
+        - source
+        - rpm
+      become_user: mock
+
+    - name: mock chroots are present and up to date
+      command: /usr/bin/mock --root "{{ item }}" --update
+      with_items: "{{ mock_chroots }}"
+
+    - name: mock chroot rpm tags are gathered
+      command: >
+        /usr/bin/mock --root "{{ item }}"
+                      --offline
+                      --quiet
+                      --chroot
+                      --
+                      rpm --eval "{ dist: '%{?dist}', arch: '%{_arch}' }"
+      changed_when: none
+      with_items: "{{ mock_chroots }}"
+      register: mock_tags_cmd
+
+    - name: mock chroot rpm tags are set as fact
+      set_fact:
+        mock_tags: "{{ dict(mock_chroots
+                            | zip(range(mock_tags_cmd.results | length)
+                                  | map('extract', mock_tags_cmd.results, 'stdout')
+                                  | map('from_yaml'))) }}"
+
+    - name: spec is pushed to the host
+      copy:
+        src: hello.spec
+        dest: /home/mock/spec/
+      become_user: mock
+
+    - name: rpm versioned name is computed
+      command: >
+        /usr/bin/rpmspec --query
+                         --define "debug_package %{nil}"
+                         --define "dist %{nil}"
+                         --queryformat "%{name}-%{version}-%{release}"
+                         /home/mock/spec/hello.spec
+      changed_when: none
+      register: name_cmd
+
+    - name: rpm build metadata is set as fact
+      set_fact:
+        mock_builds: |-
+          {% set name = name_cmd.stdout %}
+          {% set mock_builds = [] %}
+          {% for chroot in mock_chroots %}
+          {%   set tags = mock_tags[chroot] %}
+          {%   set _ = mock_builds.append({
+                 'chroot': chroot,
+                 'srpm': name + tags.dist + '.src.rpm',
+                 'rpm': name + tags.dist + '.' + tags.arch + '.rpm'
+               })
+          %}
+          {% endfor %}
+          {{ mock_builds }}
+
+    - name: rpm source is fetched
+      command: >
+        /usr/bin/spectool --get-files
+                          --directory /home/mock/source
+                          /home/mock/spec/hello.spec
+      register: spectool_cmd
+      changed_when: "'skipping download' not in spectool_cmd.stderr"
+      become_user: mock
+
+    - name: source rpms are built
+      command: >
+        /usr/bin/mock --root "{{ item.chroot }}"
+                      --buildsrpm
+                      --spec /home/mock/spec/hello.spec
+                      --sources /home/mock/source
+                      --resultdir /home/mock/rpm
+      args:
+        creates: "/home/mock/rpm/{{ item.srpm }}"
+      with_items: "{{ mock_builds }}"
+      become_user: mock
+
+    - name: rpms are built
+      command: >
+        /usr/bin/mock --root "{{ item.chroot }}"
+                      --rebuild
+                      --resultdir /home/mock/rpm
+                      "/home/mock/srpm/{{ item.srpm }}"
+      args:
+        creates: "/home/mock/rpm/{{ item.rpm }}"
+      with_items: "{{ mock_builds }}"
+      become_user: mock
