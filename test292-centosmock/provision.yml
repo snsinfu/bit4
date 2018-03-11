@@ -45,7 +45,7 @@
                       --quiet
                       --chroot
                       --
-                      rpm --eval "{ dist: '%{?dist}', arch: '%{_arch}' }"
+                      rpm --eval "{ releasever: '%{centos_ver}', dist: '%{?dist}', arch: '%{_arch}' }"
       changed_when: none
       with_items: "{{ mock_chroots }}"
       register: mock_tags_cmd
@@ -82,6 +82,8 @@
           {%   set tags = mock_tags[chroot] %}
           {%   set _ = mock_builds.append({
                  'chroot': chroot,
+                 'releasever': tags.releasever,
+                 'arch': tags.arch,
                  'srpm': name + tags.dist + '.src.rpm',
                  'rpm': name + tags.dist + '.' + tags.arch + '.rpm'
                })
@@ -165,23 +167,25 @@
       notify:
         - restart nginx
 
-    - name: rpm web repository is created
+    - name: rpm web repositories are created
       file:
-        path: /var/www/rpm-repo
+        path: "/var/www/rpm-repo/{{ item.releasever }}/{{ item.arch }}"
         state: directory
         owner: nginx
         group: nginx
+      with_items: "{{ mock_builds }}"
 
     - name: rpm files are copied to web repository
       copy:
         remote_src: yes
         src: "/home/mock/rpm/{{ item.rpm }}"
-        dest: /var/www/rpm-repo/
+        dest: "/var/www/rpm-repo/{{ item.releasever }}/{{ item.arch }}/"
       with_items: "{{ mock_builds }}"
 
     - name: rpm-repo metadata is created
       command: >
-        /usr/bin/createrepo /var/www/rpm-repo
+        /usr/bin/createrepo "/var/www/rpm-repo/{{ item.releasever }}/{{ item.arch }}"
+      with_items: "{{ mock_builds }}"
 
     - name: selinux allows nginx to bind to the repo port
       seport:
@@ -203,12 +207,30 @@
         state: started
         enabled: yes
 
-    - name: repository metadata is accessible
-      uri:
-        url: "http://localhost:{{ repo_port }}/repodata/repomd.xml"
-
   handlers:
     - name: restart nginx
       service:
         name: nginx
         state: restarted
+
+
+- name: Test repository access
+
+  hosts: all
+  become: yes
+
+  vars:
+    repo_baseurl: http://localhost:2000/$releasever/$arch/
+
+  tasks:
+    - name: local repository is registered
+      yum_repository:
+        name: local
+        description: Local repository
+        baseurl: "{{ repo_baseurl }}"
+        gpgcheck: no
+
+    - name: local repository package is installed
+      yum:
+        name: hello
+        state: present
