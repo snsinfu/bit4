@@ -1,4 +1,4 @@
-- name: Set up host as an RPM repository
+- name: Build RPMs
 
   hosts: all
   become: yes
@@ -115,8 +115,100 @@
         /usr/bin/mock --root "{{ item.chroot }}"
                       --rebuild
                       --resultdir /home/mock/rpm
-                      "/home/mock/srpm/{{ item.srpm }}"
+                      "/home/mock/rpm/{{ item.srpm }}"
       args:
         creates: "/home/mock/rpm/{{ item.rpm }}"
       with_items: "{{ mock_builds }}"
       become_user: mock
+
+
+- name: Serve RPM repository via HTTP
+
+  hosts: all
+  become: yes
+
+  vars:
+    repo_port: 2000
+
+  tasks:
+    - name: epel is enabled
+      yum:
+        name: epel-release
+        state: present
+
+    - name: nginx is installed
+      yum:
+        name: nginx
+        state: present
+
+    - name: createrepo is installed
+      yum:
+        name: createrepo
+        state: present
+
+    - name: ansible selinux dependency is installed
+      yum:
+        name: policycoreutils-python
+        state: present
+
+    - name: nginx core config is pushed
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - restart nginx
+
+    - name: nginx rpm-repo config is pushed
+      template:
+        src: nginx-rpm-repo.conf.j2
+        dest: /etc/nginx/conf.d/rpm-repo.conf
+      notify:
+        - restart nginx
+
+    - name: rpm web repository is created
+      file:
+        path: /var/www/rpm-repo
+        state: directory
+        owner: nginx
+        group: nginx
+
+    - name: rpm files are copied to web repository
+      copy:
+        remote_src: yes
+        src: "/home/mock/rpm/{{ item.rpm }}"
+        dest: /var/www/rpm-repo/
+      with_items: "{{ mock_builds }}"
+
+    - name: rpm-repo metadata is created
+      command: >
+        /usr/bin/createrepo /var/www/rpm-repo
+
+    - name: selinux allows nginx to bind to the repo port
+      seport:
+        setype: http_port_t
+        ports: "{{ repo_port }}"
+        proto: tcp
+        state: present
+
+    - name: selinux allows nginx to read repo tree
+      file:
+        name: /var/www/rpm-repo/
+        state: directory
+        setype: httpd_sys_content_t
+        recurse: yes
+
+    - name: nginx is activated
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: repository metadata is accessible
+      uri:
+        url: "http://localhost:{{ repo_port }}/repodata/repomd.xml"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
