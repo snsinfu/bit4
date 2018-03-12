@@ -62,3 +62,6 @@
 [submodule "test233-doxygen/doxygen-bootstrapped"]
 	path = test233-doxygen/doxygen-bootstrapped
 	url = https://github.com/Velron/doxygen-bootstrapped.git
+[submodule "deps/docopt/docopt.cpp"]
+	path = deps/docopt/docopt.cpp
+	url = https://github.com/docopt/docopt.cpp.git
