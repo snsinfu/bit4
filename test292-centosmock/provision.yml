@@ -5,10 +5,20 @@
 
   vars:
     mock_chroots:
-      - centos-6-x86_64
-      - centos-7-x86_64
+      - epel-6-x86_64
+      - epel-7-x86_64
 
   tasks:
+    - name: selinux python package is installed
+      yum:
+        name: libselinux-python
+        state: present
+
+    - name: epel is enabled
+      yum:
+        name: epel-release
+        state: present
+
     - name: required packages are installed
       yum:
         name: "{{ item }}"
@@ -65,11 +75,13 @@
 
     - name: rpm versioned name is computed
       command: >
-        /usr/bin/rpmspec --query
-                         --define "debug_package %{nil}"
-                         --define "dist %{nil}"
-                         --queryformat "%{name}-%{version}-%{release}"
-                         /home/mock/spec/hello.spec
+        /bin/rpm --query
+                 --define "debug_package %{nil}"
+                 --define "dist %{nil}"
+                 --queryformat "%{name}-%{version}-%{release}"
+                 --specfile /home/mock/spec/hello.spec
+      args:
+        warn: no
       changed_when: none
       register: name_cmd
 
@@ -220,7 +232,7 @@
   become: yes
 
   vars:
-    repo_baseurl: http://localhost:2000/$releasever/$arch/
+    repo_baseurl: http://localhost:2000/$releasever/$basearch
 
   tasks:
     - name: local repository is registered

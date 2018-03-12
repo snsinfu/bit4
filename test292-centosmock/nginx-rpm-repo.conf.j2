@@ -1,0 +1,10 @@
+server {
+    listen {{ repo_port }};
+
+    # Load configuration files for the default server block.
+    include /etc/nginx/default.d/*.conf;
+
+    location / {
+        root /var/www/rpm-repo;
+    }
+}
