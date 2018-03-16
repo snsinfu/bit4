@@ -1,0 +1,5 @@
+#!/bin/sh -eu
+target="${1%.*}"
+shift
+make -s "${target}"
+"./${target}" "$@"
