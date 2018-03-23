@@ -65,3 +65,9 @@
 [submodule "deps/docopt/docopt.cpp"]
 	path = deps/docopt/docopt.cpp
 	url = https://github.com/docopt/docopt.cpp.git
+[submodule "deps/snsinfu/dim"]
+	path = deps/snsinfu/dim
+	url = https://github.com/snsinfu/dim
+[submodule "deps/snsinfu/array_view"]
+	path = deps/snsinfu/array_view
+	url = https://github.com/snsinfu/array_view
