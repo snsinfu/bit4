@@ -45,6 +45,8 @@ def MakeCustomFlags( data ):
     '-isystem', '/usr/include',
     '-isystem', '/usr/include/c++/v1',
     '-isystem', '/usr/local/include',
+    '-isystem', '/usr/local/include/eigen3',
+    '-isystem', '/usr/local/include/eigen3/unsupported',
     '-isystem', './include',
     '-isystem', '/usr/local/opt/llvm/include',
   ]
