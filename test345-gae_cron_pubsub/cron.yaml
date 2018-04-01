@@ -1,0 +1,4 @@
+cron:
+  - description: periodic event
+    url: /publish/periodic-1min
+    schedule: every 1 minutes
