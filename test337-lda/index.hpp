@@ -22,6 +22,13 @@ namespace ijk
         return xt::view(matrix, xt::all(), xt::all(), xt::newaxis());
     }
 
+    // result(i, j, k) = matrix(j, i)
+    template<typename E>
+    auto ji(E&& matrix)
+    {
+        return xt::view(xt::transpose(matrix), xt::all(), xt::all(), xt::newaxis());
+    }
+
     // result(i, j, k) = matrix(i, k)
     template<typename E>
     auto ik(E&& matrix)
@@ -34,6 +41,13 @@ namespace ijk
     auto kj(E&& matrix)
     {
         return xt::view(xt::transpose(matrix), xt::newaxis(), xt::all(), xt::all());
+    }
+
+    // result(i, j, k) = tensor(j, i, k)
+    template<typename E>
+    auto jik(E&& tensor)
+    {
+        return xt::transpose(tensor);
     }
 }
 

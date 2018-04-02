@@ -8,6 +8,13 @@ OPTFLAGS = \
   -flto    \
   -O3
 
+#DBGFLAGS = \
+#  -g       \
+#  -fsanitize=address
+#
+#OPTFLAGS = \
+#  -O1
+
 CXXFLAGS =            \
   -std=c++14          \
   -pedantic           \
