@@ -35,5 +35,7 @@ run: main
 clean:
 	rm -f main
 
-main: main.cc
+main: main.cc lda.hpp
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+lda.hpp: digamma.hpp index.hpp
