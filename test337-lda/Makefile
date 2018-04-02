@@ -1,9 +1,11 @@
 INCLUDES = \
   -isystem /usr/local/include
 
+DBGFLAGS = \
+  -DNDEBUG
+
 OPTFLAGS = \
   -flto    \
-  -DNDEBUG \
   -O3
 
 CXXFLAGS =            \
@@ -15,6 +17,7 @@ CXXFLAGS =            \
   -Wshadow            \
   -Wno-missing-braces \
   $(OPTFLAGS)         \
+  $(DBGFLAGS)         \
   $(INCLUDES)
 
 .PHONY: run clean
