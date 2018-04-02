@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'unsafe-inline' https://unpkg.com; base-uri 'none';">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css@8.0.0/normalize.css" integrity="sha384-jTFzRHnGayPcZHkUx5hTuWbygQevlGFimHdpRHicjyJXGyyjcioudSScb7/YN0PE" crossorigin="anonymous">
+
+    <style>
+      body {
+        font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+        font-size: 14px;
+        margin: 1em;
+      }
+
+      h1 {
+        margin-left: 70px;
+        margin-bottom: 2em;
+        font-size: 150%;
+        font-weight: normal;
+      }
+
+      table.posts {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table.posts td {
+        vertical-align: top;
+      }
+
+      tr.post > td:nth-child(1),
+      tr.post > td:nth-child(2) > a {
+        padding: 0 10px;
+        line-height: 2.3;
+      }
+
+      tr.post > td:nth-child(1) {
+        width: 50px;
+        text-align: right;
+        padding-left: 0;
+      }
+
+      tr.post > td:nth-child(2) > a {
+        display: block;
+        color: #000;
+        text-decoration: none;
+      }
+
+      tr.post > td:nth-child(2) > a:hover {
+        background-color: #eee;
+      }
+
+      tr.event > td {
+        padding: 1em 0;
+      }
+
+      .tags {
+        display: inline-block;
+        margin-left: 1em;
+        font-size: 1ex;
+        color: #999;
+      }
+
+      .separator {
+        border-bottom: 1px solid #999;
+        padding-left: 70px;
+        font-size: 1em;
+        font-weight: normal;
+      }
+
+      .separator > .tab {
+        display: inline-block;
+        padding: 1px 10px 0 10px;
+        border-radius: 5px 5px 0 0;
+        line-height: 1.7;
+        background-color: #999;
+        color: #000;
+        text-decoration: none;
+      }
+
+      .day.separator {
+        border-color: #55c500;
+      }
+
+      .day.tab {
+        background-color: #55c500;
+        color: #fff;
+      }
+    </style>
+
+    <title>Lorem ipsum</title>
+  </head>
+
+  <body>
+    <h1>Lorem ipsum</h1>
+
+    <table class="posts">
+      <tr class="post">
+        <td>2</td>
+        <td><a href="#">Lorem ipsum dolor sit amet <span class="tags">Ruby, AWS</span></a></td>
+      </tr>
+
+      <tr class="event" id="lastvisit">
+        <td colspan="2"><div class="event separator"><a href="#lastvisit" class="event tab">Last visit</a></div><td>
+      </tr>
+
+      <tr class="post">
+        <td>1</td>
+        <td><a href="#">Lorem ipsum dolor sit amet, Lorem ipsum dolor sit amet <span class="tags">PHP, Laravel</span></a></td>
+      </tr>
+    </table>
+
+    <h2 class="day separator" id="20180401"><a href="#20180401" class="day tab">1 April</a></h2>
+
+    <table class="posts">
+      <tr class="post">
+        <td>12</td>
+        <td><a href="#">Lorem ipsum dolor sit amet</a></td>
+      </tr>
+
+      <tr class="post">
+        <td>9</td>
+        <td><a href="#">Lorem ipsum dolor sit amet</a></td>
+      </tr>
+    </table>
+  </body>
+</html>
