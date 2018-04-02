@@ -8,7 +8,8 @@
 #include <xtensor/xstrided_view.hpp>
 #include <xtensor/xtensor.hpp>
 
-#include "digamma.hpp"
+#include "digamma.hpp"  // digamma
+#include "index.hpp"    // ij, ijk
 
 
 int main()
@@ -36,13 +37,6 @@ int main()
     xt::xtensor<double, 2> lambda_geoexp(lambda.shape());
     xt::xtensor<double, 2> phi_norm({phi.shape()[0], phi.shape()[1]});
 
-    // exp(E[log X])
-    auto const geometric_expectation = [](auto const& dirichlets) {
-        return xt::exp(
-            digamma(dirichlets)
-            - xt::view(digamma(xt::sum(dirichlets, {1})), xt::all(), xt::newaxis()));
-    };
-
     auto const start = std::chrono::steady_clock::now();
 
     for (int m_step = 0; m_step < m_step_count; ++m_step) {
@@ -51,19 +45,17 @@ int main()
         for (int e_step = 0; e_step < e_step_count; ++e_step) {
             beta = xt::random::randn<double>(beta.shape());
 
-            beta_geoexp = geometric_expectation(beta);
-            lambda_geoexp = geometric_expectation(lambda);
+            beta_geoexp = xt::exp(digamma(beta) - ij::i(digamma(xt::sum(beta, {1}))));
+            lambda_geoexp = xt::exp(digamma(lambda) - ij::i(digamma(xt::sum(lambda, {1}))));
 
-            phi = xt::view(xt::transpose(beta_geoexp), xt::newaxis(), xt::all(), xt::all())
-                * xt::view(lambda_geoexp, xt::all(), xt::newaxis(), xt::all());
-
+            phi = ijk::kj(beta_geoexp) * ijk::ik(lambda_geoexp);
             phi_norm = 1 / (xt::sum(phi, {2}) + phi_epsilon);
-            phi *= xt::view(phi_norm, xt::all(), xt::all(), xt::newaxis());
+            phi *= ijk::ij(phi_norm);
 
-            lambda = alpha + xt::sum(xt::view(X, xt::all(), xt::all(), xt::newaxis()) * phi, {1});
+            lambda = alpha + xt::sum(ijk::ij(X) * phi, {1});
         }
 
-        beta = eta + xt::sum(xt::view(X, xt::all(), xt::all(), xt::newaxis()) * phi, {0});
+        beta = eta + xt::sum(ijk::ij(X) * phi, {0});
     }
 
     auto const elapsed_time
