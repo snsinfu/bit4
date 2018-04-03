@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'unsafe-inline'">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spinner</title>
+    <style>
+      body {
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .splitter {
+        position: relative;
+      }
+
+      .splitter > .tab {
+        display: inline-block;
+        padding: 0.8ex;
+        margin-left: 50px;
+        border-radius: 5px 5px 0 0;
+        background-color: #55c500;
+        color: #fff;
+      }
+
+      .splitter > .tab:after {
+        content: "";
+        position: absolute;
+        bottom: 2px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: #55c500;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+    <div class="splitter"><div class="tab">Lorem ipsum</div></div>
+    <p>Duis vehicula placerat facilisis.</p>
+  </body>
+</html>
