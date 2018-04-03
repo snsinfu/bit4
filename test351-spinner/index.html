@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'unsafe-inline'">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spinner</title>
+    <style>
+      .spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+
+        /* Create a circle by deeply rounding corners */
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: 3px solid #ccc;
+        border-top-color: #55c500;
+
+        /* And rotate the entire element infintely */
+        animation: spinner 1s linear infinite;
+      }
+
+      @keyframes spinner {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="spinner"></div>
+  </body>
+</html>
