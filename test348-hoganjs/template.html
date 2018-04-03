@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-security-policy" content="default-src 'none'; base-uri 'none';">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lorem ipsum</title>
+  </head>
+  <body>
+    <h1>Lorem ipsum</h1>
+
+    {{#recentPosts}}
+    <p>{{title}}</p>
+    {{/recentPosts}}
+    {{#olderPosts}}
+
+    <h2>{{day}}</h2>
+
+    {{#posts}}
+    <p>{{title}}</p>
+    {{/posts}}
+    {{/olderPosts}}
+  </body>
+</html>

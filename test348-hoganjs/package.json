@@ -1,0 +1,13 @@
+{
+  "name": "test348-hoganjs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  },
+  "dependencies": {
+    "hogan.js": "^3.0.2"
+  }
+}
