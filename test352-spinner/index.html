@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'unsafe-inline'">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Spinner</title>
+    <style>
+      body {
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+
+      .loading {
+        display: inline-block;
+        padding: 5px;
+        border: 1px dotted #888;
+      }
+
+      .loading:before {
+        display: inline-block;
+        content: "";
+
+        width: 1em;
+        height: 1em;
+        margin-bottom: -0.1em;
+        margin-right: 5px;
+
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: 3px solid #ccc;
+        border-top-color: #55c500;
+
+        animation: spinner 1s linear infinite;
+      }
+
+      @keyframes spinner {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p class="loading">Loading...</p>
+  </body>
+</html>
