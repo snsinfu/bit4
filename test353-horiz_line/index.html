@@ -12,6 +12,14 @@
       }
 
       .splitter {
+        /*
+         * Mark .splitter element positioned, without actually altering its
+         * position from itd default. This makes contained .tab:after element
+         * absolutely positioned inside this .splitter element. See MDN [1][2].
+         *
+         * [1]: https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Positioning#Positioning_contexts
+         * [2]: https://developer.mozilla.org/ja/docs/Web/CSS/position
+         */
         position: relative;
       }
 
