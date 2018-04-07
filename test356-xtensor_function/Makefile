@@ -32,4 +32,5 @@ clean:
 main: main.cc
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
-main.cc: beta.hpp
+main.cc: beta.hpp expr.hpp
+beta.hpp: expr.hpp
