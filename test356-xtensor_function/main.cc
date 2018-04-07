@@ -14,7 +14,8 @@
 template<typename E>
 auto log_beta(E&& e)
 {
-    return xt::sum(xt::lgamma(e), {1}) - xt::lgamma(xt::sum(e, {1}));
+    return xt::sum(xt::lgamma(std::forward<E>(e)), {1})
+           - xt::lgamma(xt::sum(std::forward<E>(e), {1}));
 }
 
 int main()
