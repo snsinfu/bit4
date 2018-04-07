@@ -20,9 +20,6 @@ CXXFLAGS =            \
   $(DBGFLAGS)         \
   $(INCLUDES)
 
-OBJECTS = \
-  main.o
-
 .SUFFIXES: .cc
 .PHONY: run clean
 
@@ -30,12 +27,9 @@ run: main
 	./main
 
 clean:
-	rm -f main $(OBJECTS)
+	rm -f main
 
-main: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)
-
-.cc.o:
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+main: main.cc
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 main.cc: beta.hpp
