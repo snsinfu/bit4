@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
+#include <type_traits>
 
 #include <xtensor/xio.hpp>
 #include <xtensor/xmath.hpp>
@@ -14,8 +15,10 @@
 template<typename E>
 auto log_beta(E&& e)
 {
-    return xt::sum(xt::lgamma(std::forward<E>(e)), {1})
-           - xt::lgamma(xt::sum(std::forward<E>(e), {1}));
+    std::decay_t<E> e1 = e;
+    std::decay_t<E> e2 = e;
+    return xt::sum(xt::lgamma(std::move(e1)), {1})
+           - xt::lgamma(xt::sum(std::move(e2), {1}));
 }
 
 int main()
