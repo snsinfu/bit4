@@ -18,10 +18,54 @@ describe('join', function() {
     ]);
   });
 
-  it('works with empty input', function() {
+  it('does nothing when both input is empty', function() {
     let count = 0;
+
     join([], []).forEach(_ => count++);
+
     assert.equal(count, 0);
+  });
+
+  it('outputs the left array if the right one is empty', function() {
+    let input = [2, 3, 5];
+    let track = [];
+
+    join(input, []).forEach((x, y) => track.push([x, y]));
+
+    assert.deepEqual(track, [
+      [2, undefined],
+      [3, undefined],
+      [5, undefined]
+    ]);
+  });
+
+  it('outputs the right array if the left one is empty', function() {
+    let input = [2, 3, 5];
+    let track = [];
+
+    join([], input).forEach((x, y) => track.push([x, y]));
+
+    assert.deepEqual(track, [
+      [undefined, 2],
+      [undefined, 3],
+      [undefined, 5]
+    ]);
+  });
+
+  it('works with strings', function() {
+    let xs = ['bcd', 'cde', 'efg'];
+    let ys = ['abc', 'bcd', 'cde', 'def'];
+    let track = [];
+
+    join(xs, ys).forEach((x, y) => track.push([x, y]));
+
+    assert.deepEqual(track, [
+      [undefined, 'abc'],
+      ['bcd', 'bcd'],
+      ['cde', 'cde'],
+      [undefined, 'def'],
+      ['efg', undefined]
+    ]);
   });
 
   it('can emulate left join', function() {
