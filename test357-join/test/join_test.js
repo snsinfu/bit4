@@ -109,4 +109,29 @@ describe('join', function() {
 
     assert.deepEqual(inner, [2, 3]);
   });
+
+  it('supports custom ordering', function() {
+    let xs = [
+      {id: 2, name: 'Ada'},
+      {id: 3, name: 'Brainfuck'},
+      {id: 5, name: 'C'}
+    ];
+    let ys = [
+      {id: 1, name: 'D'},
+      {id: 2, name: 'Erlang'},
+      {id: 3, name: 'Forth'},
+      {id: 4, name: 'Go'}
+    ];
+    let track = [];
+
+    join(xs, ys, (x, y) => x.id - y.id).forEach((x, y) => track.push([x, y]));
+
+    assert.deepEqual(track, [
+      [undefined,                  {id: 1, name: 'D'}     ],
+      [{id: 2, name: 'Ada'},       {id: 2, name: 'Erlang'}],
+      [{id: 3, name: 'Brainfuck'}, {id: 3, name: 'Forth'} ],
+      [undefined,                  {id: 4, name: 'Go'}    ],
+      [{id: 5, name: 'C'},         undefined              ]
+    ]);
+  });
 });
