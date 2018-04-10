@@ -42,6 +42,7 @@ def MakeCustomFlags( data ):
     '-Wconversion', '-Wno-sign-conversion',
     '-Werror',
     '-fms-extensions',
+    '-isystem', '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1',
     '-isystem', '/usr/include',
     '-isystem', '/usr/include/c++/v1',
     '-isystem', '/usr/local/include',
@@ -147,14 +148,6 @@ def FlagsForFile( filename, **kwargs ):
     final_flags = MakeRelativePathsInFlagsAbsolute(
       compilation_info.compiler_flags_,
       compilation_info.compiler_working_dir_ )
-
-    # NOTE: This is just for YouCompleteMe; it's highly likely that your project
-    # does NOT need to remove the stdlib flag. DO NOT USE THIS IN YOUR
-    # ycm_extra_conf IF YOU'RE NOT 100% SURE YOU NEED IT.
-    try:
-      final_flags.remove( '-stdlib=libc++' )
-    except ValueError:
-      pass
   else:
     flags = MakeCustomFlags( kwargs[ 'client_data' ] )
     relative_to = DirectoryOfThisScript()
