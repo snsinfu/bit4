@@ -59,7 +59,7 @@ class latent_dirichlet_allocation
     double score(xt::xtensor<double, 2> const& data) const;
 
     // Returns the topic-word dirichlet parameters of a trained model.
-    xt::xtensor<double, 2> topic_word_distribution() const;
+    xt::xtensor<double, 2> topic_word_dirichlets() const;
 
   private:
     // Computes the document-topic dirichlet parameters and document-word-topic
@@ -86,7 +86,7 @@ class latent_dirichlet_allocation
 
   private:
     config config_;
-    xt::xtensor<double, 2> topic_word_dirichlets_;
+    xt::xtensor<double, 2> topic_word_dirichlets_ = {{}};
 };
 
 #endif

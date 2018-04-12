@@ -43,13 +43,6 @@ namespace ijk
     {
         return xt::view(xt::transpose(matrix), xt::newaxis(), xt::all(), xt::all());
     }
-
-    // result(i, j, k) = tensor(j, i, k)
-    template<typename E>
-    auto jik(E&& tensor)
-    {
-        return xt::transpose(tensor);
-    }
 }
 
 #endif

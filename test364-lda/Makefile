@@ -2,11 +2,12 @@ INCLUDES = \
   -isystem /usr/local/include
 
 DBGFLAGS = \
-  -g
+  -g       \
+  -fsanitize=address
 
 OPTFLAGS = \
   -flto    \
-  -O3
+  -O1
 
 CXXFLAGS =            \
   -std=c++14          \
@@ -20,24 +21,29 @@ CXXFLAGS =            \
   $(DBGFLAGS)         \
   $(INCLUDES)
 
-OBJECTS = \
-  lda.o   \
-  main.o
+OBJECTS =     \
+  lda.o       \
+  lda_test.o  \
+  ijk_test.o  \
+  math_test.o \
+  test.o
 
-.SUFFIXES: .cc
+.SUFFIXES: .cc .hpp
 .PHONY: run clean
 
-run: main
-	./main
+run: test
+	ASAN_OPTIONS=detect_odr_violation=0 ./test
 
 clean:
-	rm -f main $(OBJECTS)
+	rm -f test $(OBJECTS)
 
-main: $(OBJECTS)
+test: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)
 
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-main.cc: lda.hpp
-lda.cc: lda.hpp ijk.hpp math.hpp
+lda.o: lda.hpp ijk.hpp math.hpp
+ijk_test.o: ijk.hpp
+lda_test.o: lda.hpp
+math_test.o: math.hpp

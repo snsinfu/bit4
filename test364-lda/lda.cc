@@ -160,10 +160,9 @@ double latent_dirichlet_allocation::score(
     return estimate_log_likelihood(data, doc_topic_dirichlets, doc_word_topic_distr);
 }
 
-xt::xtensor<double, 2> latent_dirichlet_allocation::topic_word_distribution() const
+xt::xtensor<double, 2> latent_dirichlet_allocation::topic_word_dirichlets() const
 {
     return topic_word_dirichlets_;
-    // return topic_word_dirichlets_ / ij::i(xt::sum(topic_word_dirichlets_, {1}) + epsilon);
 }
 
 void latent_dirichlet_allocation::init_topic_word_dirichlets(

@@ -23,8 +23,8 @@ auto digamma(E&& expr);
 template<typename E>
 auto log_beta(E&& expr)
 {
-    return xt::sum(xt::lgamma(+expr), {expr.dimension() - 1})
-            - xt::lgamma(xt::sum(+expr, {expr.dimension() - 1}));
+    return xt::sum(xt::lgamma(E{expr}), {expr.dimension() - 1})
+            - xt::lgamma(xt::sum(E{expr}, {expr.dimension() - 1}));
 }
 
 namespace detail
@@ -51,7 +51,7 @@ namespace detail
         double r = 1 / x;
         result += std::log(x) - 0.5 * r;
         r *= r;
-        result -= r * (1./12 - r * (1./120 - r * (1./252)));
+        result += r * (-1./12 + r * (1./120 + r * (-1./252)));
 
         return result;
     }
