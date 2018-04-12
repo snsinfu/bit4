@@ -71,3 +71,6 @@
 [submodule "deps/snsinfu/array_view"]
 	path = deps/snsinfu/array_view
 	url = https://github.com/snsinfu/array_view
+[submodule "deps/catchorg/Catch2"]
+	path = deps/catchorg/Catch2
+	url = https://github.com/catchorg/Catch2.git
