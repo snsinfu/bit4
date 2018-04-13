@@ -1,0 +1,11 @@
+- name: Provision LineageOS build environment
+
+  hosts: all
+  become: no
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: ubuntu
+
+  tasks:
+    - ping:
