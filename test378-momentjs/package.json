@@ -1,0 +1,10 @@
+{
+  "name": "test378-momentjs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "moment": "^2.22.1"
+  }
+}
