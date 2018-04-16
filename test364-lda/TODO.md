@@ -1,0 +1,1 @@
+- `latent_dirichlet_allocation::score` is untested.
