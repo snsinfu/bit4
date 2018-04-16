@@ -23,8 +23,11 @@ auto digamma(E&& expr);
 template<typename E>
 auto log_beta(E&& expr)
 {
-    return xt::sum(xt::lgamma(E{expr}), {expr.dimension() - 1})
-            - xt::lgamma(xt::sum(E{expr}, {expr.dimension() - 1}));
+    using closure_type = xt::const_xclosure_t<E>;
+    closure_type& closure = expr;
+
+    return xt::sum(xt::lgamma(closure_type{closure}), {expr.dimension() - 1})
+            - xt::lgamma(xt::sum(closure_type{closure}, {expr.dimension() - 1}));
 }
 
 namespace detail

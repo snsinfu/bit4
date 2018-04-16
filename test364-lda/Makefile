@@ -6,7 +6,6 @@ DBGFLAGS = \
   -fsanitize=address
 
 OPTFLAGS = \
-  -flto    \
   -O1
 
 CXXFLAGS =            \
@@ -21,11 +20,12 @@ CXXFLAGS =            \
   $(DBGFLAGS)         \
   $(INCLUDES)
 
-OBJECTS =     \
-  lda.o       \
-  lda_test.o  \
-  ijk_test.o  \
-  math_test.o \
+OBJECTS =         \
+  lda.o           \
+  lda_test.o      \
+  ijk_test.o      \
+  math_test.o     \
+  testutil_test.o \
   test.o
 
 .SUFFIXES: .cc .hpp
@@ -45,5 +45,6 @@ test: $(OBJECTS)
 
 lda.o: lda.hpp ijk.hpp math.hpp
 ijk_test.o: ijk.hpp
-lda_test.o: lda.hpp
+lda_test.o: lda.hpp testutil.hpp
 math_test.o: math.hpp
+testutil_test.o: testutil.hpp
