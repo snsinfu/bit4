@@ -1,0 +1,10 @@
+{
+  "name": "test379-hogan",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "hogan": "^1.0.2"
+  }
+}
