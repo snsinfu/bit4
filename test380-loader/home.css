@@ -1,0 +1,34 @@
+body {
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+main {
+  margin: 10px;
+}
+
+.loading:before {
+  display: inline-block;
+  content: "";
+
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.1em;
+  margin-right: 5px;
+
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3px solid #cccccc;
+  border-top-color: #55c500;
+
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: #aa0000;
+}
