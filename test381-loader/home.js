@@ -4,17 +4,28 @@ $(function() {
   var main = $('#main');
   var ajaxStatusBox = $('<p>').appendTo(main);
   var uiStatusBox = $('<p>').appendTo(main);
+  var wheelCount = 0;
+  var wheelThreshold = 20;
 
   $(window).on('wheels:wheelstart', function(event) {
     uiStatusBox.text('wheelstart');
+    wheelCount = 0;
   });
 
   $(window).on('wheels:wheelend', function(event) {
     uiStatusBox.text('wheelend: ' + event.deltaY);
   });
 
+  $(window).on('wheels:overscroll', function(event) {
+    uiStatusBox.text('overscroll: ' + event.deltaY + ' [' + wheelCount + ']');
+    if (++wheelCount >= wheelThreshold) {
+      $(window).trigger('app:load-more');
+      wheelCount = 0;
+    }
+  });
+
   (function rebind() {
-    $(window).one('overscroll', function(event) {
+    $(window).one('app:load-more', function(event) {
       ajaxStatusBox.addClass('loading').text('Loading...');
       loadMore()
         .done(function() {
@@ -44,16 +55,35 @@ $(function() {
   }
 });
 
-// custom event: wheelstart wheelend -------------------------------------------
+// custom event: wheels:overscroll ---------------------------------------------
 
 $(function() {
   'use strict';
 
   var bottomFuzz = 1;
+  var overscrolling = false;
+  var deltaSum = 0;
 
   $(window).on('wheels:wheelstart', function(event) {
     if (isViewportAtBottom() && event.deltaY > 0) {
-      $(window).trigger('overscroll');
+      overscrolling = true;
+      deltaSum = 0;
+    }
+  });
+
+  $(window).on('wheels:wheelend', function(event) {
+    overscrolling = false;
+  });
+
+  $(window).on('wheels:wheelmove', function(event) {
+    if (!overscrolling) {
+      return;
+    }
+
+    deltaSum += event.deltaY;
+
+    if (deltaSum > 0) {
+      $(window).trigger($.Event('wheels:overscroll', { deltaY: deltaSum }));
     }
   });
 
@@ -69,7 +99,7 @@ $(function() {
 
   var wheelTimeoutDuration = 500;
   var wheelTimeout = null;
-  var deltaY = 0;
+  var deltaSum = 0;
 
   $(window).on('wheel', function(event) {
     if (!wheelTimeout) {
@@ -79,11 +109,13 @@ $(function() {
     }
 
     wheelTimeout = window.setTimeout(function() {
-      $(window).trigger($.Event('wheels:wheelend', { deltaY: deltaY }));
+      $(window).trigger($.Event('wheels:wheelend', { deltaY: deltaSum }));
       wheelTimeout = null;
-      deltaY = 0;
+      deltaSum = 0;
     }, wheelTimeoutDuration)
 
-    deltaY += event.deltaY;
+    deltaSum += event.deltaY;
+
+    $(window).trigger($.Event('wheels:wheelmove', event));
   });
 });
