@@ -1,0 +1,38 @@
+.loading-bar {
+  position: relative;
+}
+
+.loading-bar:before, .loading-bar:after {
+  content: "";
+  position: absolute;
+}
+
+.loading-bar, .loading-bar:before, .loading-bar:after {
+  display: block;
+  width: 10px;
+  height: 10px;
+  background-color: #ddd;
+  animation: loading-bar 1s linear infinite;
+}
+
+.loading-bar:before {
+  left: -15px;
+  animation-delay: 0s;
+}
+
+.loading-bar {
+  margin-left: 15px;
+  margin-right: 15px;
+  animation-delay: 0.3s;
+}
+
+.loading-bar:after {
+  left: 15px;
+  animation-delay: 0.6s;
+}
+
+@keyframes loading-bar {
+  from { background-color: #dddddd; }
+  50% { background-color: #55c500; }
+  to { background-color: #dddddd; }
+}
