@@ -1,0 +1,11 @@
+.loading-spinner {
+  width: 30px;
+  height: 5px;
+  background: linear-gradient(to right, #55c500 40%, #ddd 40%, #ddd 100%);
+  animation: loading-spinner 1s linear infinite;
+}
+
+@keyframes loading-spinner {
+  from { background-position: 0px; }
+  to { background-position: 30px; }
+}
