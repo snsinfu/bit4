@@ -1,0 +1,10 @@
+{
+  "name": "test383-module_global",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "jsdom": "^11.10.0"
+  }
+}
