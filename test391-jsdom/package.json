@@ -1,0 +1,19 @@
+{
+  "name": "test391-jsdom",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "jasmine": "^3.1.0",
+    "jsdom": "^11.10.0",
+    "karma": "^2.0.2",
+    "karma-jasmine": "^1.1.2",
+    "karma-jsdom-launcher": "^6.1.3",
+    "karma-sinon": "^1.0.5",
+    "sinon": "^5.0.7"
+  },
+  "scripts": {
+    "test": "karma start karma.conf.js --single-run"
+  }
+}
