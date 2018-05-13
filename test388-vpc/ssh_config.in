@@ -1,0 +1,8 @@
+Host                   workstation
+HostName               @
+User                   ubuntu
+PasswordAuthentication no
+PubkeyAuthentication   yes
+IdentityFile           id_rsa
+StrictHostKeyChecking  no
+UserKnownHostsFile     /dev/null
