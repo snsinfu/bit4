@@ -1,0 +1,13 @@
+- name: invoke my hello_world module
+
+  hosts: localhost
+  connection: local
+  become: no
+
+  tasks:
+    - hello_world:
+        message: "Hello, Ansible module!"
+      register: result
+
+    - debug:
+        var: result
