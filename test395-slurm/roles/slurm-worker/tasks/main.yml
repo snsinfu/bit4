@@ -1,0 +1,10 @@
+- name: slurmd is installed
+  yum:
+    name: slurm-slurmd
+    state: present
+
+- name: slurmd is activated
+  service:
+    name: slurmd
+    state: started
+    enabled: yes

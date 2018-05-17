@@ -1,0 +1,9 @@
+- name: slurm is installed
+  yum:
+    name: slurm
+    state: present
+
+- name: slurm-torque is installed
+  yum:
+    name: slurm-torque
+    state: present

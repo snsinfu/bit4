@@ -1,0 +1,15 @@
+- name: mailx is installed
+  yum:
+    name: mailx
+    state: present
+
+- name: slurmctld is installed
+  yum:
+    name: slurm-slurmctld
+    state: present
+
+- name: slurmctld is activated
+  service:
+    name: slurmctld
+    state: started
+    enabled: yes

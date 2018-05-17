@@ -1,0 +1,25 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: hosts file contain inventory nodes
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - 172.16.0.100 gene
+        - 172.16.0.1 gene01
+        - 172.16.0.2 gene02
+
+- hosts: gene
+  become: yes
+  roles:
+    - slurm-common
+    - slurm-server
+    - slurm-client
+
+- hosts: worker
+  become: yes
+  roles:
+    - slurm-common
+    - slurm-worker

@@ -1,0 +1,36 @@
+- name: PUIAS Computational repository is enabled
+  yum_repository:
+    name: PUIAS-computational
+    description: Scientific and research packages from Springdale Linux.
+    mirrorlist: http://puias.math.ias.edu/data/puias/computational/$releasever/$basearch/mirrorlist
+    gpgkey: http://springdale.math.ias.edu/data/puias/7/x86_64/os/RPM-GPG-KEY-puias
+    gpgcheck: yes
+
+- name: munge is installed
+  yum:
+    name: munge
+    state: present
+
+- name: munge shared key is present
+  copy:
+    src: munge.key
+    dest: /etc/munge/munge.key
+    mode: 0400
+    owner: munge
+    group: root
+
+- name: munge service is enabled
+  service:
+    name: munge
+    state: started
+    enabled: yes
+
+- name: slurm configuration file is present
+  copy:
+    src: slurm.conf
+    dest: /etc/slurm/
+
+- name: slurm cgroup configuration file is present
+  copy:
+    src: cgroup.conf
+    dest: /etc/slurm/
