@@ -1,0 +1,28 @@
+- name: .
+
+  hosts: all
+  become: no
+
+  tasks:
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: pipenv dependencies are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - python3-certifi
+        - python3-pip
+        - python3-setuptools
+        - python3-virtualenv
+
+    - name: pipenv is installed
+      command: pip3 install --user pipenv
+
+    # Current version of flit cannot be installed via pipenv.
+    # https://github.com/pypa/pipenv/issues/1881
+    - name: flit is installed
+      command: pip3 install --user pipenv
