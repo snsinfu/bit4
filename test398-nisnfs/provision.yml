@@ -1,0 +1,139 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: hosts are configured
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ static_ips[item] }} {{ item }}"
+      with_inventory_hostnames:
+        - all
+
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: hoge user is added
+      user:
+        name: hoge
+        password: "{{ 'hoge' | password_hash('sha256') }}"
+        state: present
+        group: users
+
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: ypserv is installed
+      yum:
+        name: ypserv
+        state: present
+
+    - name: yp domain name is set
+      command: "ypdomainname {{ nis_domain }}"
+
+    - name: yp domain name is configured
+      lineinfile:
+        path: /etc/sysconfig/network
+        line: "NISDOMAIN={{ nis_domain }}"
+        create: yes
+
+    - name: ypserv securenets are configured
+      copy:
+        content: |
+          host          127.0.0.1
+          255.255.255.0 {{ static_ips['master'] | regex_replace('\.\d*$', '.0') }}
+        dest: /var/yp/securenets
+
+    - name: ypserv database is updated
+      make:
+        chdir: /var/yp
+
+    - name: ypserv service is activated
+      service:
+        name: ypserv
+        state: started
+        enabled: yes
+
+
+- hosts: slave
+  become: yes
+  tasks:
+    - name: ypbind is installed
+      yum:
+        name: ypbind
+        state: present
+
+    - name: yp is configured
+      template:
+        src: yp.conf.j2
+        dest: /etc/yp.conf
+
+    - name: nsswitch is configured
+      copy:
+        src: nsswitch.conf
+        dest: /etc/
+
+    - name: ypbind service is activated
+      service:
+        name: ypbind
+        state: started
+        enabled: yes
+
+    - name: hoge user is available
+      command: id hoge
+      changed_when: none
+
+
+- hosts: all
+  become: yes
+  tasks:
+    - name: idmapd is configured
+      template:
+        src: idmapd.conf.j2
+        dest: /etc/idmapd.conf
+
+
+- hosts: master
+  become: yes
+  tasks:
+    - name: shared directory is created
+      file:
+        path: /shared
+        state: directory
+
+    - name: shared directory is configured
+      template:
+        src: exports.j2
+        dest: /etc/exports
+
+    - name: nfs-server is activated
+      service:
+        name: nfs-server
+        state: started
+        enabled: yes
+
+    - name: hoge user's file is present in the shared directory
+      copy:
+        content: "Lorem ipsum"
+        dest: /shared/hoge.txt
+        owner: hoge
+        group: users
+
+
+- hosts: slave
+  become: yes
+  tasks:
+    - name: shared directory is configured and mounted
+      mount:
+        src: "{{ nfs_server }}:/"
+        path: /shared
+        fstype: nfs4
+        opts: rw,_netdev
+        state: "{{ item }}"
+      with_items:
+        - present
+        - mounted
+
+    - name: file is correctly shared
+      shell: test "$(stat -c '%U:%G' /shared/hoge.txt)" = "hoge:users"
+      changed_when: none

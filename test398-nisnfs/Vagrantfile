@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "centos/7"
+
+  config.vm.define "master" do |config|
+    config.vm.network "private_network", ip: "172.16.0.10"
+    config.vm.hostname = "master.cluster.example.com"
+  end
+
+  config.vm.define "slave" do |config|
+    config.vm.network "private_network", ip: "172.16.0.11"
+    config.vm.hostname = "slave.cluster.example.com"
+  end
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {
+      "nis_domain" => "mynisdomain",
+      "nis_server" => "master",
+      "nfs_domain" => "cluster.example.com",
+      "nfs_server" => "master",
+      "cluster_subnet_cidr" => "172.16.0.0/24",
+      "static_ips" => {
+        "master" => "172.16.0.10",
+        "slave" => "172.16.0.11"
+      }
+    }
+  end
+end
