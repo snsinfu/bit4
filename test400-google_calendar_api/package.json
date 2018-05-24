@@ -1,0 +1,11 @@
+{
+  "name": "test400-google_calendar_api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "googleapis": "27",
+    "request": "^2.87.0"
+  }
+}
