@@ -1,0 +1,8 @@
+- hosts: localhost
+  connection: local
+  become: no
+  vars_files:
+    - "{{ varsfile }}"
+  tasks:
+    - debug:
+        var: config_var
