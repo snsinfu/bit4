@@ -1,0 +1,89 @@
+- name: Add non-root user
+
+  hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: root
+
+  tasks:
+    - name: user is added
+      user:
+        name: user
+        group: users
+        shell: /bin/bash
+        password: '*'
+
+    - name: user uses the same key
+      authorized_key:
+        user: user
+        key: "{{ lookup('file', 'id_rsa.pub') }}"
+
+    - name: user is a password-less sudoer
+      copy:
+        content: "user ALL=(ALL) NOPASSWD: ALL"
+        dest: /etc/sudoers.d/user
+
+
+- name: Provision the system
+
+  hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: user
+  become: yes
+
+  tasks:
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: operational tools are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - htop
+        - mosh
+        - tmux
+
+      # https://docs.docker.com/install/linux/docker-ce/ubuntu/
+    - name: apt https repository requirements are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: apt signing key for docker repository is registered
+      apt_key:
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+      # https://github.com/docker/for-linux/issues/290
+    - name: docker repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} edge
+        state: present
+
+    - name: docker is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker is activated
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: user can use docker
+      user:
+        name: user
+        groups: docker
+        append: yes
