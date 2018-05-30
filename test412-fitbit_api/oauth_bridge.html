@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>OAuth</title>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      function set(message) {
+        var status = document.getElementById('status');
+        status.appendChild(document.createTextNode(message));
+      }
+      var req = new XMLHttpRequest();
+      req.addEventListener('load', event => set('OK'));
+      req.addEventListener('error', event => set('Error'));
+      req.addEventListener('abort', event => set('Error'));
+      req.open('POST', '/token');
+      req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      req.send(location.hash.substr(1));
+    });
+    </script>
+  </head>
+  <body>
+    <p id="status"></p>
+  </body>
+</html>

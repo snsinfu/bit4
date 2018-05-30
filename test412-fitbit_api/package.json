@@ -1,0 +1,14 @@
+{
+  "name": "test412-fitbit_api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "client-oauth2": "^4.2.1",
+    "express": "^4.16.3",
+    "moment": "^2.22.1",
+    "request": "^2.87.0"
+  }
+}
