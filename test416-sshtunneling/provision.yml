@@ -1,0 +1,29 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: sshd is configured
+      template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+      notify:
+        - restart sshd
+
+    - name: port-forwarding user is present
+      user:
+        name: forwarder
+        group: users
+        shell: /bin/true
+        state: present
+        password: '*'
+
+    - name: port-forwarding user's key is set
+      authorized_key:
+        user: forwarder
+        key: "{{ lookup('file', 'sshkey-forwarder.pub') }}"
+
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted

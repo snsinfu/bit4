@@ -1,0 +1,17 @@
+# Basic configurations
+ListenAddress {{ ansible_default_ipv4.address }}
+AddressFamily inet
+PrintMotd no
+Banner none
+DebianBanner no
+Subsystem sftp /usr/lib/openssh/sftp-server
+
+# Authentication
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+# Forwarding
+X11Forwarding yes
+GatewayPorts yes
+AllowAgentForwarding no
