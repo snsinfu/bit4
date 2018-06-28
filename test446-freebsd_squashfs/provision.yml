@@ -1,0 +1,49 @@
+- hosts: all
+
+  gather_facts: no
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python
+
+  pre_tasks:
+    - name: python is installed
+      raw: pkg install -y python
+      register: install_python
+      changed_when: "'INSTALLED' in install_python.stdout"
+
+    - setup:
+
+  tasks:
+    - name: squashfuse is installed
+      pkgng:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - squashfs-tools
+        - fusefs-squashfuse
+
+    - name: user can mount filesystem
+      sysctl:
+        name: vfs.usermount
+        value: 1
+        state: present
+        reload: yes
+
+    - name: devfs is enabled
+      lineinfile:
+        path: /etc/rc.conf
+        line: 'devfs_system_ruleset="system"'
+
+    - name: operators have fuse access
+      copy:
+        content: |
+          [system=10]
+          add path 'fuse*' mode 0660 group operator
+        dest: /etc/devfs.rules
+
+    - name: this user is an operator
+      userk:
+        name: "{{ ansible_user }}"
+        groups: operator
+        append: yes
