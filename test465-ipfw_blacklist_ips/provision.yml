@@ -1,0 +1,42 @@
+- hosts: all
+
+  gather_facts: no
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3
+
+  pre_tasks:
+    - name: python is installed
+      raw: pkg install -y python3
+      register: install_python
+      changed_when: "'INSTALLED' in install_python.stdout"
+
+    - name: ansible is set up
+      setup:
+
+  tasks:
+    - name: sysctl configuration is present
+      copy:
+        src: config/sysctl.conf
+        dest: /etc/sysctl.conf
+
+    - name: ipsum file is present
+      copy:
+        src: config/ipsum.txt
+        dest: /etc/ipsum.txt
+
+    - name: ipfw script is present
+      template:
+        src: config/ipfw.rules.j2
+        dest: /etc/ipfw.rules
+
+    - name: rc.conf is present
+      template:
+        src: config/rc.conf.j2
+        dest: /etc/rc.conf
+
+    - name: loader.conf is present
+      copy:
+        src: config/loader.conf
+        dest: /boot/loader.conf

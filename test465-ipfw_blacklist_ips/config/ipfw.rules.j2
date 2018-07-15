@@ -1,0 +1,47 @@
+#!/bin/sh -eu
+
+PIF="{{ ansible_default_ipv4.interface }}"
+
+DHCPOUT=67
+DHCPIN=68
+SSH=22
+DNS=53
+HTTP=80
+HTTPS=443
+NTP=123
+
+ipfw -qf flush
+
+ipfw -q table ipsum create type addr
+ipfw -q table ipsum flush
+xargs ipfw -q table ipsum add < /etc/ipsum.txt
+
+alias ADD="ipfw -q add"
+
+ADD 010 allow all from any to any via lo0
+ADD 100 check-state
+
+ADD 110 allow tcp from any to any $DNS     out via $PIF keep-state setup
+ADD 110 allow udp from any to any $DNS     out via $PIF keep-state
+ADD 110 allow tcp from any to any $HTTP    out via $PIF keep-state setup
+ADD 110 allow tcp from any to any $HTTPS   out via $PIF keep-state setup
+ADD 110 allow udp from any to any $NTP     out via $PIF keep-state
+ADD 110 allow udp from any to any $DHCPOUT out via $PIF
+
+ADD 120 deny all from 'table(ipsum)'  to any in via $PIF
+ADD 120 deny all from 192.168.0.0/16  to any in via $PIF
+ADD 120 deny all from 172.16.0.0/12   to any in via $PIF
+#   120 deny all from 10.0.0.0/8      to any in via $PIF  # virtualbox gateway is 10.0.2.1
+ADD 120 deny all from 127.0.0.0/8     to any in via $PIF
+ADD 120 deny all from 0.0.0.0/8       to any in via $PIF
+ADD 120 deny all from 169.254.0.0/16  to any in via $PIF
+ADD 120 deny all from 192.0.2.0/24    to any in via $PIF
+ADD 120 deny all from 204.152.64.0/23 to any in via $PIF
+ADD 120 deny all from 224.0.0.0/3     to any in via $PIF
+ADD 121 deny all from any to any frag        in via $PIF
+ADD 121 deny tcp from any to any established in via $PIF
+
+ADD 130 allow tcp from any to me $SSH    in via $PIF keep-state setup
+ADD 130 allow udp from any to me $DHCPIN in via $PIF
+
+ADD 999 deny log all from any to any

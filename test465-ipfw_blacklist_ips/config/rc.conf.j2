@@ -1,0 +1,17 @@
+hostname="freebsd"
+ifconfig_DEFAULT="SYNCDHCP"
+
+firstboot_freebsd_update_enable="YES"
+firstboot_pkgs_enable="YES"
+firstboot_pkgs_list="sudo rsync virtualbox-ose-additions-nox11"
+vboxguest_enable="YES"
+vboxservice_enable="YES"
+
+firewall_enable="YES"
+firewall_script="/etc/ipfw.rules"
+sshd_enable="YES"
+sendmail_enable="NO"
+sendmail_submit_enable="NO"
+sendmail_outbound_enable="NO"
+sendmail_msp_queue_enable="NO"
+syslogd_flags="-ss"
