@@ -1,0 +1,56 @@
+- hosts: all
+  gather_facts: no
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3
+    ansible_user: root
+
+  pre_tasks:
+    - name: python is installed
+      raw: pkg install -y python3
+      register: install_python
+      changed_when: "'INSTALLED' in install_python.stdout"
+
+    - name: ansible is set up
+      setup:
+
+  tasks:
+    - name: timezone is set
+      timezone:
+        name: Asia/Tokyo
+
+    - name: system services are configured
+      template:
+        src: config/rc.conf.j2
+        dest: /etc/rc.conf
+
+    - name: login user is created
+      user:
+        name: auser
+        group: wheel
+        password: '*'
+        shell: /bin/sh
+
+    - name: login user uses the given ssh key
+      authorized_key:
+        user: auser
+        key: "{{ lookup('file', 'ssh_key.pub') }}"
+
+    - name: login user is a password-less sudoer
+      copy:
+        content: "auser ALL=(ALL) NOPASSWD: ALL"
+        dest: /usr/local/etc/sudoers.d/auser
+
+
+- hosts: all
+  become: no
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3
+    ansible_user: auser
+
+  tasks:
+    - name: puncher-server is up to date
+      copy:
+        src: puncher-server-freebsd
+        dest: puncher-server
