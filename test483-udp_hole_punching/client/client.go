@@ -22,19 +22,25 @@ func Start(source, server, key string) error {
 		return err
 	}
 
-	conn, err := net.DialUDP("udp", sourceAddr, peerAddr)
+	conn, err := net.ListenUDP("udp", sourceAddr)
 	if err != nil {
 		return err
 	}
 
 	go func() {
 		log.Print("Punching through...")
+		count := 0
 
 		for range time.NewTicker(time.Second).C {
-			if _, err := conn.Write([]byte("Hello!")); err != nil {
+			if _, err := conn.WriteToUDP([]byte("Hello!"), peerAddr); err != nil {
 				log.Printf("Hole-punch failed: %s", err)
 				conn.Close()
 				return
+			}
+
+			count++
+			if count & (count - 1) == 0 {
+				log.Printf("%d hole-punching packets sent", count)
 			}
 		}
 	}()
@@ -44,7 +50,7 @@ func Start(source, server, key string) error {
 	buf := make([]byte, 128)
 
 	for {
-		n, err := conn.Read(buf)
+		n, _, err := conn.ReadFromUDP(buf)
 		if err != nil {
 			return err
 		}
