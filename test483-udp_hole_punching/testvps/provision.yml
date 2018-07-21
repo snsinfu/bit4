@@ -24,6 +24,11 @@
         src: config/rc.conf.j2
         dest: /etc/rc.conf
 
+    - name: sudo is installed
+      pkgng:
+        name: sudo
+        state: present
+
     - name: login user is created
       user:
         name: auser
@@ -50,7 +55,11 @@
     ansible_user: auser
 
   tasks:
-    - name: puncher-server is up to date
+    - name: puncher tools are up to date
       copy:
-        src: puncher-server-freebsd
-        dest: puncher-server
+        src: "{{ item }}"
+        dest: .
+        mode: 0755
+      with_items:
+        - puncher
+        - puncher-server
