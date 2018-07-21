@@ -65,3 +65,12 @@ resource "vultr_firewall_rule" "ssh" {
   from_port         = 22
   to_port           = 22
 }
+
+resource "vultr_firewall_rule" "puncher" {
+  firewall_group_id = "${vultr_firewall_group.primary.id}"
+  cidr_block        = "0.0.0.0/0"
+  protocol          = "udp"
+  from_port         = 1111
+  to_port           = 1111
+}
+
