@@ -22,33 +22,35 @@ func Start(source, server, key string) error {
 		return err
 	}
 
-	log.Print("Punching through...")
-
 	conn, err := net.DialUDP("udp", sourceAddr, peerAddr)
 	if err != nil {
 		return err
 	}
 
-	conn.Write([]byte("."))
+	go func() {
+		log.Print("Punching through...")
 
-	for i := 0; i < 3; i++ {
-		time.Sleep(time.Second)
-		if _, err := conn.Write([]byte("Hello!")); err != nil {
-			return err
+		for range time.NewTicker(time.Second).C {
+			if _, err := conn.Write([]byte("Hello!")); err != nil {
+				log.Printf("Hole-punch failed: %s", err)
+				conn.Close()
+				return
+			}
 		}
-	}
+	}()
 
-	log.Print("Receiving message...")
+	log.Print("Waiting for a message...")
 
 	buf := make([]byte, 128)
-	n, err := conn.Read(buf)
-	if err != nil {
-		return err
+
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("Got message %q", buf[:n])
 	}
-
-	log.Printf("Got message %q", buf[:n])
-
-	return nil
 }
 
 func rendezvous(source, server *net.UDPAddr, key string) (*net.UDPAddr, error) {
