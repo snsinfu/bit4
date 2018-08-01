@@ -8,7 +8,6 @@ CXXFLAGS =          \
   -pedantic         \
   -Wall             \
   -Wextra           \
-  -Wmost            \
   -Wconversion      \
   -Wsign-conversion \
   -Wshadow          \

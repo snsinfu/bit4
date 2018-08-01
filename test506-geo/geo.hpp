@@ -189,17 +189,17 @@ namespace geo
     template<typename T, index_t N>
     class vector : public basic_coords<T, N>
     {
-        using basic_coords = basic_coords<T, N>;
+        using basic_coords_ = basic_coords<T, N>;
 
     public:
-        using typename basic_coords::value_type;
-        using typename basic_coords::iterator;
-        using typename basic_coords::const_iterator;
-        using basic_coords::dimension;
-        using basic_coords::basic_coords;
-        using basic_coords::begin;
-        using basic_coords::end;
-        using basic_coords::operator[];
+        using typename basic_coords_::value_type;
+        using typename basic_coords_::iterator;
+        using typename basic_coords_::const_iterator;
+        using basic_coords_::dimension;
+        using basic_coords_::basic_coords_;
+        using basic_coords_::begin;
+        using basic_coords_::end;
+        using basic_coords_::operator[];
 
         // Addition works component-wise.
         vector& operator+=(vector const& v) noexcept
@@ -383,17 +383,17 @@ namespace geo
     template<typename T, index_t N>
     class point : public basic_coords<T, N>
     {
-        using basic_coords = basic_coords<T, N>;
+        using basic_coords_ = basic_coords<T, N>;
 
     public:
-        using typename basic_coords::value_type;
-        using typename basic_coords::iterator;
-        using typename basic_coords::const_iterator;
-        using basic_coords::dimension;
-        using basic_coords::basic_coords;
-        using basic_coords::begin;
-        using basic_coords::end;
-        using basic_coords::operator[];
+        using typename basic_coords_::value_type;
+        using typename basic_coords_::iterator;
+        using typename basic_coords_::const_iterator;
+        using basic_coords_::dimension;
+        using basic_coords_::basic_coords_;
+        using basic_coords_::begin;
+        using basic_coords_::end;
+        using basic_coords_::operator[];
         using vector_type = vector<T, N>;
 
         // to_vector returns a vector whose components are the coordinate values
