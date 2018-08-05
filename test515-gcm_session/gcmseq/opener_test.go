@@ -17,7 +17,7 @@ func TestNewOpener_CreatesOpener(t *testing.T) {
 		t.Fatalf("opener is nil")
 	}
 
-	// Blackbox tests
+	// Whitebox tests
 	if !bytes.Equal(opener.iv, iv) {
 		t.Errorf("IV is not set: %x is set, want %x", opener.iv, iv)
 	}

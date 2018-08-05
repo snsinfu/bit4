@@ -17,7 +17,7 @@ func TestNewSealer_CreatesSealer(t *testing.T) {
 		t.Fatalf("sealer is nil")
 	}
 
-	// Blackbox tests
+	// Whitebox tests
 	if !bytes.Equal(sealer.iv, iv) {
 		t.Errorf("IV is not set: %x is set, want %x", sealer.iv, iv)
 	}
