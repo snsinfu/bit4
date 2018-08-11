@@ -1,0 +1,4 @@
+cron:
+  - description: "tick"
+    url: /tick
+    schedule: every 1 mins

@@ -1,0 +1,6 @@
+indexes:
+  - kind: tick
+    properties:
+      - name: source
+      - name: timestamp
+        direction: desc
