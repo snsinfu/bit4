@@ -1,0 +1,9 @@
+runtime: python37
+entrypoint: python -m sanic --host 0.0.0.0 --port $PORT main.app
+
+instance_class: F1
+
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
