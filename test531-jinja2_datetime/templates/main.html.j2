@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>Datetime</title>
+  </head>
+  <body>
+    <h1>Datetime</h1>
+# for timepoint in timepoints:
+#  if timepoint is midnight:
+    <p><time datetime="{{ timepoint.date() }}">{{ timepoint | format_date }}</time></p>
+#  else
+    <p><time datetime="{{ timepoint }}">{{ timepoint | format_time }}</time></p>
+#  endif
+# endfor
+  </body>
+</html>
