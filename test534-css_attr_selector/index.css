@@ -1,0 +1,23 @@
+p[x-attr ~= red] {
+  color: #900;
+}
+
+p[x-attr ~= green] {
+  color: #090;
+}
+
+p[x-attr ~= blue] {
+  color: #009;
+}
+
+p[x-attr ~= red-green] {
+  color: #990;
+}
+
+p[x-attr ~= green-blue] {
+  color: #099;
+}
+
+p[x-attr ~= blue-red] {
+  color: #909;
+}
