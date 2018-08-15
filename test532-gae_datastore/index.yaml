@@ -1,0 +1,6 @@
+indexes:
+  - kind: tick
+    properties:
+      - name: requester
+      - name: timepoint
+        direction: desc
