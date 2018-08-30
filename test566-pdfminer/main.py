@@ -2,7 +2,7 @@ import re
 import signal
 import sys
 
-from pdfminer.layout import LTText
+from pdfminer.layout import LTContainer, LTText
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
@@ -12,15 +12,19 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfdevice import PDFDevice
 
 
+MAX_PAGE = 20
+
 DOI_REGEX = r"doi[:/]?\s*(\d+\.\d+/[a-z0-9-._;()/]+)"
 DOIURL_REGEX = r"doi.org/(\d+\.\d+/[a-z0-9-._;()/]+)"
 ARXIV_REGEX = r"arxiv:(\d+\.\d+)"
 
-TEXT_MOJIBAKES = [("兾", "/")]
+DOI_GARBAGE_REGEXES = [
+    r"(\.)$",
+    r"(;publishedonline.*)$"
+]
 
-DOI_GARBAGES = [
-    "\.$"
-    ";publishedonline"
+TEXT_MOJIBAKES = [
+    ("兾", "/")
 ]
 
 
@@ -45,7 +49,10 @@ def extract_article_id(file):
     device = PDFPageAggregator(resource_manager)
     interpreter = PDFPageInterpreter(resource_manager, device)
 
-    for page in PDFPage.create_pages(document):
+    for page_index, page in enumerate(PDFPage.create_pages(document)):
+        if page_index == MAX_PAGE:
+            break
+
         interpreter.process_page(page)
         page_layout = device.get_result()
 
@@ -82,11 +89,11 @@ def standardize_text(text):
 
 
 def cleanup_article_id(article_id):
-    for garbage in DOI_GARBAGES:
-        pos = article_id.rfind(garbage)
-        if pos != -1:
-            article_id = article_id[:pos]
-
+    for garbage in DOI_GARBAGE_REGEXES:
+        match = re.search(garbage, article_id)
+        if match:
+            beg, end = match.span()
+            article_id = article_id[:beg] + article_id[end:]
     return article_id
 
 
@@ -97,6 +104,9 @@ def extract_text_blocks(layout):
     def is_text(item):
         return isinstance(item, LTText)
 
+    def is_container(item):
+        return isinstance(item, LTContainer)
+
     for item in layout:
         if is_text(item):
             max_distance = 3 * item.width
@@ -105,6 +115,9 @@ def extract_text_blocks(layout):
                     yield text
                     text = ""
             text += item.get_text()
+        elif is_container(item):
+            for text in extract_text_blocks(item):
+                yield text
         else:
             if len(text) != 0:
                 yield text
