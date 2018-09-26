@@ -1,0 +1,55 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: linuxbrew requirements are installed
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "@Development Tools"
+        - curl
+        - file
+        - git
+
+    - name: linuxbrew group is present
+      group:
+        name: linuxbrew
+        state: present
+
+    - name: linuxbrew directory is present and made sgid-shared
+      file:
+        path: /home/linuxbrew
+        state: directory
+        owner: root
+        group: linuxbrew
+        mode: 02775
+
+    - name: linuxbrew directory is configured to allow group writes
+      acl:
+        path: /home/linuxbrew
+        entity: linuxbrew
+        etype: group
+        permissions: rwx
+        state: present
+        default: yes
+
+    - name: vagrant user is a linuxbrew user
+      user:
+        name: vagrant
+        group: linuxbrew
+        append: yes
+
+- hosts: all
+  become: no
+  tasks:
+    - name: linuxbrew is installed
+      shell: |
+        PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+        curl -fsSL "https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh" | sh
+      args:
+        creates: /home/linuxbrew/.linuxbrew/bin/brew
+
+    - name: linuxbrew PATHs are added to bash_profile
+      lineinfile:
+        path: .bash_profile
+        line: PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
