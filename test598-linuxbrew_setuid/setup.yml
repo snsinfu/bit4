@@ -1,0 +1,64 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: linuxbrew requirements are installed
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "@Development Tools"
+        - curl
+        - file
+        - git
+
+    - name: linuxbrew group is present
+      group:
+        name: linuxbrew
+        state: present
+
+    - name: linuxbrew user is present
+      user:
+        name: linuxbrew
+        group: linuxbrew
+        state: present
+
+    - name: linuxbrew directory is present
+      file:
+        path: /home/linuxbrew
+        state: directory
+        owner: linuxbrew
+        group: linuxbrew
+        mode: 0755
+
+    - name: linuxbrew is installed
+      shell: |
+        PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+        curl -fsSL "https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh" | sh
+      args:
+        creates: /home/linuxbrew/.linuxbrew/bin/brew
+      become: yes
+      become_user: linuxbrew
+
+    - name: linuxbrew PATHs are added to bash_profile
+      lineinfile:
+        path: .bash_profile
+        line: PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+      become: no
+
+    - name: brew setuid trampoline is upladed
+      copy:
+        src: brew.c
+        dest: ./
+
+    - name: brew setuid trampoline is built
+      shell: |
+        gcc brew.c -o brew
+      args:
+        creates: brew
+
+    - name: brew setuid trampoline is owned by the linuxbrew user
+      file:
+        path: brew
+        owner: linuxbrew
+        group: linuxbrew
+        mode: 06755
