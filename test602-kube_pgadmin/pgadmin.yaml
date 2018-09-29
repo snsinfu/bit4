@@ -1,0 +1,47 @@
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+
+metadata:
+  name: pgadmin
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+        - image: dpage/pgadmin4:3
+          name: pgadmin
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: nobody@example.com
+            - name: PGADMIN_DEFAULT_PASSWORD
+              value: password
+            - name: PGADMIN_PORT
+              value: "80"
+          ports:
+            - containerPort: 80
+
+---
+kind: Service
+apiVersion: v1
+
+metadata:
+  name: pgadmin
+  labels:
+    app: pgadmin
+
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+  selector:
+    app: pgadmin
