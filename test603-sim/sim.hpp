@@ -1,8 +1,31 @@
 #ifndef INCLUDED_SIM_HPP
 #define INCLUDED_SIM_HPP
 
+// sim {
+//   class array_view
+//   class vector
+//   class point
+//
+//   class forcefield
+//   class system
+//
+//   class composite_forcefield
+//   class pairwise_forcefield
+//   class sequential_pair_forcefield
+//
+//   struct harmonic_potential
+//   struct spring_potential
+//   struct lennard_jones_potential
+//   struct softcore_potential
+//   struct softcore_lennard_jones_potential
+//
+//   simulate_newtonian_dynamics()
+//   simulate_langevin_dynamics()
+//   simulate_brownian_dynamics()
+// }
+
 //------------------------------------------------------------------------------
-// array_view
+// vendor - array_view
 //------------------------------------------------------------------------------
 
 #include <cstddef>
