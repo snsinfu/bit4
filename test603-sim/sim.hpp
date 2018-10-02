@@ -244,7 +244,7 @@ namespace sim
 #include <utility>
 
 
-namespace geo
+namespace sim { namespace geo
 {
     // index is the integral type used for indexing vector/point coordinate.
     using index = std::size_t;
@@ -712,7 +712,7 @@ namespace geo
     {
         return p.distance(q);
     }
-}
+}}
 
 
 //------------------------------------------------------------------------------
@@ -725,7 +725,7 @@ namespace geo
 #include <vector>
 
 
-namespace geo
+namespace sim { namespace geo
 {
     // neighbor_searcher is a data structure for efficiently searching pairs of
     // points that are within a fixed "cutoff" distance in the three-dimensional
@@ -873,7 +873,7 @@ namespace geo
         std::vector<hash_bin> bins_;
         std::vector<index_type> hash_deltas_;
     };
-}
+}}
 
 
 //------------------------------------------------------------------------------
@@ -885,11 +885,13 @@ namespace geo
 
 namespace sim
 {
+    enum { dimension = 3 };
+
     using index = std::size_t;
     using scalar = double;
 
-    using vector = geo::vector<scalar, 3>;
-    using point = geo::point<scalar, 3>;
+    using vector = geo::vector<scalar, dimension>;
+    using point = geo::point<scalar, dimension>;
 
     using geo::dot;
     using geo::norm;
