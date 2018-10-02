@@ -256,486 +256,316 @@ namespace sim
 
 
 //------------------------------------------------------------------------------
+// basic types
+//------------------------------------------------------------------------------
+
+#include <cstddef>
+
+
+namespace sim
+{
+    // index is the integral type used to index arrays.
+    using index = std::size_t;
+
+    // scalar is the floating-point type of choice.
+    using scalar = double;
+
+    // dimension is the spatial dimension, which is 3.
+    enum { dimension = 3 };
+}
+
+
+//------------------------------------------------------------------------------
 // geometry
 //------------------------------------------------------------------------------
 
 #include <cmath>
-#include <cstddef>
 #include <istream>
-#include <iterator>
 #include <ostream>
-#include <utility>
 
 
-namespace sim { namespace geo
+namespace sim
 {
-    // index is the integral type used for indexing vector/point coordinate.
-    using index = std::size_t;
-
     namespace detail
     {
-        // identity is the identity metafunction. This is used to get around
-        // ambiguous template type deduction errors.
-        template<typename T>
-        struct identity
+        // coordinates hold three-dimensional cartesian coordinate values.
+        struct coordinates
         {
-            using type = T;
+            sim::scalar x = 0;
+            sim::scalar y = 0;
+            sim::scalar z = 0;
+
+            // Default constructor initializes coordinates to zero.
+            coordinates() = default;
+
+            // Constructor initializes coordinates to specified values.
+            coordinates(sim::scalar x, sim::scalar y, sim::scalar z)
+                : x{x}, y{y}, z{z}
+            {
+            }
+
+            // Index 0, 1 and 2 correspond to x, y and z, respectively.
+            inline sim::scalar& operator[](sim::index idx)
+            {
+                sim::scalar* coords[] = {
+                    &x,
+                    &y,
+                    &z
+                };
+                return *coords[idx];
+            }
+
+            // Index 0, 1 and 2 correspond to x, y and z, respectively.
+            inline sim::scalar const& operator[](sim::index idx) const
+            {
+                sim::scalar const* coords[] = {
+                    &x,
+                    &y,
+                    &z
+                };
+                return *coords[idx];
+            }
         };
 
-        template<typename T>
-        using identity_t = typename identity<T>::type;
-
-        // type_sequence holds a compile-time sequence of types.
-        template<typename...>
-        struct type_sequence;
-
-        // repeat creates a type_sequence of N copies of T.
-        template<typename T, index N, typename... Ts>
-        struct repeat
+        // Coordinates are formatted as space-delimited floating-point values.
+        template<typename Char, typename Tr>
+        std::basic_ostream<Char, Tr>& operator<<(
+            std::basic_ostream<Char, Tr>& os,
+            coordinates const& coords
+        )
         {
-            using type = typename repeat<T, N - 1, T, Ts...>::type;
-        };
+            using sentry_type = typename std::basic_ostream<Char, Tr>::sentry;
 
-        template<typename T, typename... Ts>
-        struct repeat<T, 0, Ts...>
-        {
-            using type = type_sequence<Ts...>;
-        };
-
-        template<typename T, index N>
-        using repeat_t = typename repeat<T, N>::type;
-    }
-
-    // basic_coords is a static container of N coordinate values. This is the
-    // base class of vector and point.
-    template<typename T, index N, typename = detail::repeat_t<T, N>>
-    class basic_coords;
-
-    template<typename T, index N, typename... Ts>
-    class basic_coords<T, N, detail::type_sequence<Ts...>>
-    {
-    public:
-        // scalar_type is the type T of coordinate values.
-        using scalar_type = T;
-
-        // iterator is the type of an iterator used to iterate over coordinate
-        // values.
-        using iterator = scalar_type*;
-
-        // const_iterator is the type of an iterator used to iterate over
-        // coordinate values with only read access.
-        using const_iterator = scalar_type const*;
-
-        // dimension is the number N of coordinate values.
-        static constexpr index dimension = N;
-
-        // Default constructor initializes all coordinate values to zero.
-        basic_coords() = default;
-
-        // This constructor takes exactly N coordinate values.
-        basic_coords(Ts... coords) noexcept
-            : coords_{coords...}
-        {
-        }
-
-        // begin returns a random access iterator pointing to the first
-        // coordinate value.
-        iterator begin() noexcept
-        {
-            return &coords_[0];
-        }
-
-        const_iterator begin() const noexcept
-        {
-            return &coords_[0];
-        }
-
-        // end returns a random access iterator pointing to past the last
-        // coordinate value.
-        iterator end() noexcept
-        {
-            return &coords_[0] + dimension;
-        }
-
-        const_iterator end() const noexcept
-        {
-            return &coords_[0] + dimension;
-        }
-
-        // Indexing operator returns a reference to the i-th coordinate value.
-        // Behavior is undefined if the index is out of bounds.
-        scalar_type& operator[](index i)
-        {
-            return coords_[i];
-        }
-
-        scalar_type const& operator[](index i) const
-        {
-            return coords_[i];
-        }
-
-    private:
-        scalar_type coords_[dimension] {};
-    };
-
-    // Equality comparison `u == v` compares the coordinate values for *exact*
-    // floating-point equality.
-    template<typename T, index N>
-    bool operator==(basic_coords<T, N> const& u, basic_coords<T, N> const& v) noexcept
-    {
-        for (index i = 0; i < N; ++i) {
-            if (u[i] != v[i]) {
-                return false;
+            if (sentry_type sentry{os}) {
+                Char const delim = os.widen(' ');
+                os << coords.x << delim << coords.y << delim << coords.z;
             }
-        }
-        return true;
-    }
 
-    // Inequality comparison `u != v` compares the coordinate values for *exact*
-    // floating-point inequality.
-    template<typename T, index N>
-    bool operator!=(basic_coords<T, N> const& u, basic_coords<T, N> const& v) noexcept
-    {
-        return !(u == v);
-    }
-
-    // Stream-out operator for basic_coords prints the coordinate values
-    // delimited by spaces.
-    template<typename Char, typename Tr, typename T, index N>
-    std::basic_ostream<Char, Tr>& operator<<(
-        std::basic_ostream<Char, Tr>& os,
-        basic_coords<T, N> const& coords
-    )
-    {
-        using sentry_type = typename std::basic_ostream<Char, Tr>::sentry;
-
-        if (sentry_type sentry{os}) {
-            auto const delim = os.widen(' ');
-
-            for (index i = 0; i < N; ++i) {
-                if (i != 0) {
-                    os << delim;
-                }
-                os << coords[i];
-            }
+            return os;
         }
 
-        return os;
-    }
-
-    // Stream-in operator for basic_coords scans coordinate values delimited by
-    // spaces.
-    template<typename Char, typename Tr, typename T, index N>
-    std::basic_istream<Char, Tr>& operator>>(
-        std::basic_istream<Char, Tr>& is,
-        basic_coords<T, N>& coords
-    )
-    {
-        using sentry_type = typename std::basic_istream<Char, Tr>::sentry;
-
-        if (sentry_type sentry{is}) {
-            for (index i = 0; i < N; ++i) {
-                is >> coords[i];
-            }
-        }
-
-        return is;
-    }
-
-    // vector is a linear vector in the N-dimensional Euclidean space.
-    template<typename T, index N>
-    class vector : public basic_coords<T, N>
-    {
-        using basic_coords_ = basic_coords<T, N>;
-
-    public:
-        using typename basic_coords_::scalar_type;
-        using typename basic_coords_::iterator;
-        using typename basic_coords_::const_iterator;
-        using basic_coords_::dimension;
-        using basic_coords_::basic_coords_;
-        using basic_coords_::begin;
-        using basic_coords_::end;
-        using basic_coords_::operator[];
-
-        // Addition works component-wise.
-        vector& operator+=(vector const& v) noexcept
+        // Coordinates are formatted as space-delimited floating-point values.
+        template<typename Char, typename Tr>
+        std::basic_istream<Char, Tr>& operator>>(
+            std::basic_istream<Char, Tr>& is,
+            coordinates& coords
+        )
         {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] += v[i];
+            using sentry_type = typename std::basic_istream<Char, Tr>::sentry;
+
+            if (sentry_type sentry{is}) {
+                is >> coords.x >> coords.y >> coords.z;
             }
+
+            return is;
+        }
+    }
+
+    // vector is a three-dimensional vector with cartesian coordinates.
+    struct vector : detail::coordinates
+    {
+        using detail::coordinates::coordinates;
+
+        // Component-wise addition.
+        inline sim::vector& operator+=(sim::vector const& other) noexcept
+        {
+            x += other.x;
+            y += other.y;
+            z += other.z;
             return *this;
         }
 
-        // Subtraction works component-wise.
-        vector& operator-=(vector const& v) noexcept
+        // Component-wise subtraction.
+        inline sim::vector& operator-=(sim::vector const& other) noexcept
         {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] -= v[i];
-            }
+            x -= other.x;
+            y -= other.y;
+            z -= other.z;
             return *this;
         }
 
-        // Multiplication broadcasts to all components.
-        vector& operator*=(scalar_type a) noexcept
+        // Scalar multiplication is broadcast to all components.
+        inline sim::vector& operator*=(sim::scalar mult) noexcept
         {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] *= a;
-            }
+            x *= mult;
+            y *= mult;
+            z *= mult;
             return *this;
         }
 
-        // Division broadcasts to all components. Behavior is undefined if a is
-        // zero.
-        vector& operator/=(scalar_type a)
+        // Scalar division is broadcast to all components.
+        inline sim::vector& operator/=(sim::scalar divisor)
         {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] /= a;
-            }
-            return *this;
+            return *this *= 1 / divisor;
         }
 
-        // dot returns the dot product of this vector and v.
-        scalar_type dot(vector const& v) const noexcept
+        // dot returns the dot product of this vector and other.
+        inline sim::scalar dot(sim::vector const& other) const noexcept
         {
-            scalar_type sum = 0;
-            for (index i = 0; i < dimension; ++i) {
-                sum += (*this)[i] * v[i];
-            }
-            return sum;
+            return (
+                x * other.x +
+                y * other.y +
+                z * other.z
+            );
         }
 
-        // squared_norm returns the squared Euclidean norm of this vector. This
-        // function is faster to compute than norm.
-        scalar_type squared_norm() const noexcept
+        // squared_norm returns the squared Euclidean norm of this vector.
+        inline sim::scalar squared_norm() const noexcept
         {
             return dot(*this);
         }
 
         // norm returns the Euclidean norm of this vector.
-        scalar_type norm() const noexcept
+        inline sim::scalar norm() const noexcept
         {
             return std::sqrt(squared_norm());
         }
 
-        // cross returns the cross product of this vector and v. Compilation
-        // fails if this function is called on a non-three-dimensional vector.
-        vector cross(vector const& v) const noexcept
+        // cross returns the cross product of this vector and rhs.
+        inline sim::vector cross(sim::vector const& rhs) const noexcept
         {
-            static_assert(
-                dimension == 3,
-                "cross product is defined only for three-dimensional vectors"
-            );
-            return vector{
-                (*this)[1] * v[2] - (*this)[2] * v[1],
-                (*this)[2] * v[0] - (*this)[0] * v[2],
-                (*this)[0] * v[1] - (*this)[1] * v[0]
+            return sim::vector {
+                y * rhs.z - z * rhs.y,
+                z * rhs.x - x * rhs.z,
+                x * rhs.y - y * rhs.x
             };
         }
 
         // normalize returns the unit vector that is parallel to this vector.
         // Behavior is undefined if this vector is zero.
-        vector normalize() const
+        inline sim::vector normalize() const
         {
-            return *this * (1 / norm());
+            return sim::vector{*this} /= norm();
         }
     };
 
-    // Identity `+v` returns a copy of vec.
-    template<typename T, index N>
-    vector<T, N> operator+(vector<T, N> const& v) noexcept
+    inline sim::vector operator+(sim::vector const& vec) noexcept
     {
-        return v;
-    }
-
-    // Negation `-v` returns a negated vector.
-    template<typename T, index N>
-    vector<T, N> operator-(vector<T, N> const& v) noexcept
-    {
-        vector<T, N> neg{v};
-        for (T& coord : neg) {
-            coord = -coord;
-        }
-        return neg;
-    }
-
-    // Addition `u + v` returns a vector whose coordinates are the element-wise
-    // sum of u and v.
-    template<typename T, index N>
-    vector<T, N> operator+(vector<T, N> const& u, vector<T, N> const& v) noexcept
-    {
-        return vector<T, N>{u} += v;
-    }
-
-    // Subtraction `u - v` returns a vector whose coordinates are the
-    // element-wise difference of u and v.
-    template<typename T, index N>
-    vector<T, N> operator-(vector<T, N> const& u, vector<T, N> const& v) noexcept
-    {
-        return vector<T, N>{u} -= v;
-    }
-
-    // Multiplication by scalar `v * a` returns a vector v scaled by a.
-    template<typename T, index N>
-    vector<T, N> operator*(vector<T, N> const& v, detail::identity_t<T> a) noexcept
-    {
-        return vector<T, N>{v} *= a;
-    }
-
-    // Multiplication by scalar `a * v` returns a vector v scaled by a.
-    template<typename T, index N>
-    vector<T, N> operator*(detail::identity_t<T> a, vector<T, N> const& v) noexcept
-    {
-        return vector<T, N>{v} *= a;
-    }
-
-    // Division by scalar `v / a` returns a vector v scaled by 1/a. Behavior is
-    // undefined if a is zero.
-    template<typename T, index N>
-    vector<T, N> operator/(vector<T, N> const& v, detail::identity_t<T> a)
-    {
-        return vector<T, N>{v} /= a;
-    }
-
-    // dot returns the dot product of a pair of vectors. This is the same as the
-    // member function `u.dot(v)`.
-    template<typename T, index N>
-    T dot(vector<T, N> const& u, vector<T, N> const& v) noexcept
-    {
-        return u.dot(v);
-    }
-
-    // squared_norm returns the squared Euclidean norm of a vector. This is the
-    // same as the member function `v.squared_norm()`.
-    template<typename T, index N>
-    T squared_norm(vector<T, N> const& v) noexcept
-    {
-        return v.squared_norm();
-    }
-
-    // norm returns the Euclidean norm of a vector. This is the same as the
-    // member function `v.norm()`.
-    template<typename T, index N>
-    T norm(vector<T, N> const& v) noexcept
-    {
-        return v.norm();
-    }
-
-    // cross returns the cross product of a pair of three-dimensional vectors.
-    // This is the same as the member function `u.cross(v)`.
-    template<typename T>
-    vector<T, 3> cross(vector<T, 3> const& u, vector<T, 3> const& v) noexcept
-    {
-        return u.cross(v);
-    }
-
-    // normalize returns the unit vector parallel to v. Behavior is undefined if
-    // v is a zero vector.  This is the same as the member function
-    // `v.normalize()`.
-    template<typename T, index N>
-    vector<T, N> normalize(vector<T, N> const& v)
-    {
-        return v.normalize();
-    }
-
-    // point is a geometric point in the N-dimensional Euclidean space.
-    template<typename T, index N>
-    class point : public basic_coords<T, N>
-    {
-        using basic_coords_ = basic_coords<T, N>;
-
-    public:
-        using typename basic_coords_::scalar_type;
-        using typename basic_coords_::iterator;
-        using typename basic_coords_::const_iterator;
-        using basic_coords_::dimension;
-        using basic_coords_::basic_coords_;
-        using basic_coords_::begin;
-        using basic_coords_::end;
-        using basic_coords_::operator[];
-        using vector_type = geo::vector<T, N>;
-
-        // vector returns the coordinate vector of this point.
-        vector_type vector() const noexcept
-        {
-            return *this - point{};
-        }
-
-        // Addition of a vector displaces this point by v.
-        point& operator+=(vector_type const& v) noexcept
-        {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] += v[i];
-            }
-            return *this;
-        }
-
-        // Subtraction of a vector displaces this point by -v.
-        point& operator-=(vector_type const& v) noexcept
-        {
-            for (index i = 0; i < dimension; ++i) {
-                (*this)[i] -= v[i];
-            }
-            return *this;
-        }
-
-        // squared_distance returns the squared Euclidean distance to p. This
-        // function is faster to
-        // compute than distance.
-        scalar_type squared_distance(point const& p) const noexcept
-        {
-            return (*this - p).squared_norm();
-        }
-
-        // distance returns the Euclidean distance to p.
-        scalar_type distance(point const& p) const noexcept
-        {
-            return (*this - p).norm();
-        }
-
-    };
-
-    // Addition `p + v` returns the point pointed from p by v.
-    template<typename T, index N>
-    point<T, N> operator+(point<T, N> const& p, vector<T, N> const& v) noexcept
-    {
-        return point<T, N>{p} += v;
-    }
-
-    // Subtraction `p - v` returns the point that points to p by v.
-    template<typename T, index N>
-    point<T, N> operator-(point<T, N> const& p, vector<T, N> const& v) noexcept
-    {
-        return point<T, N>{p} -= v;
-    }
-
-    // Subtraction `p - q ` returns the displacement vector originates at q and
-    // pointing to p.
-    template<typename T, index N>
-    vector<T, N> operator-(point<T, N> const& p, point<T, N> const& q) noexcept
-    {
-        vector<T, N> vec;
-        for (index i = 0; i < N; ++i) {
-            vec[i] = p[i] - q[i];
-        }
         return vec;
     }
 
-    // squared_distance returns the squared Euclidean distance between two
-    // points. This function is faster to compute than distance.
-    template<typename T, index N>
-    T squared_distance(point<T, N> const& p, point<T, N> const& q) noexcept
+    inline sim::vector operator-(sim::vector const& vec) noexcept
     {
-        return p.squared_distance(q);
+        return {-vec.x, -vec.y, -vec.z};
     }
 
-    // distance returns the Euclidean distance between two points.
-    template<typename T, index N>
-    T distance(point<T, N> const& p, point<T, N> const& q) noexcept
+    inline sim::vector operator+(sim::vector const& lhs, sim::vector const& rhs) noexcept
     {
-        return p.distance(q);
+        return sim::vector{lhs} += rhs;
     }
-}}
+
+    inline sim::vector operator-(sim::vector const& lhs, sim::vector const& rhs) noexcept
+    {
+        return sim::vector{lhs} -= rhs;
+    }
+
+    inline sim::vector operator*(sim::vector const& vec, sim::scalar mult) noexcept
+    {
+        return sim::vector{vec} *= mult;
+    }
+
+    inline sim::vector operator*(sim::scalar mult, sim::vector const& vec) noexcept
+    {
+        return sim::vector{vec} *= mult;
+    }
+
+    inline sim::vector operator/(sim::vector const& vec, sim::scalar divisor)
+    {
+        return sim::vector{vec} /= divisor;
+    }
+
+    inline sim::scalar dot(sim::vector const& lhs, sim::vector const& rhs) noexcept
+    {
+        return lhs.dot(rhs);
+    }
+
+    inline sim::scalar squared_norm(sim::vector const& vec) noexcept
+    {
+        return vec.squared_norm();
+    }
+
+    inline sim::scalar norm(sim::vector const& vec) noexcept
+    {
+        return vec.norm();
+    }
+
+    inline sim::vector cross(sim::vector const& lhs, sim::vector const& rhs) noexcept
+    {
+        return lhs.cross(rhs);
+    }
+
+    inline sim::vector normalize(sim::vector const& vec) noexcept
+    {
+        return vec.normalize();
+    }
+
+    struct point : detail::coordinates
+    {
+        using detail::coordinates::coordinates;
+
+        // vector returns the coordinate vector of this point.
+        inline sim::vector vector() const noexcept
+        {
+            return sim::vector{x, y, z};
+        }
+
+        // Adding a vector displaces the point.
+        inline sim::point& operator+=(sim::vector const& disp) noexcept
+        {
+            x += disp.x;
+            y += disp.y;
+            z += disp.z;
+            return *this;
+        }
+
+        // Subtracting a vector displaces the point.
+        inline sim::point& operator-=(sim::vector const& disp) noexcept
+        {
+            x -= disp.x;
+            y -= disp.y;
+            z -= disp.z;
+            return *this;
+        }
+
+        // squared_distance returns the squared Euclidean distance between this
+        // point and other.
+        inline sim::scalar squared_distance(sim::point const& other) const noexcept
+        {
+            return (vector() - other.vector()).squared_norm();
+        }
+
+        // distance returns the Euclidean distance between this point and other.
+        inline sim::scalar distance(sim::point const& other) const noexcept
+        {
+            return (vector() - other.vector()).norm();
+        }
+    };
+
+    inline sim::point operator+(sim::point const& pt, sim::vector const& disp) noexcept
+    {
+        return sim::point{pt} += disp;
+    }
+
+    inline sim::point operator-(sim::point const& pt, sim::vector const& disp) noexcept
+    {
+        return sim::point{pt} -= disp;
+    }
+
+    inline sim::vector operator-(sim::point const& pa, sim::point const& pb) noexcept
+    {
+        return pa.vector() - pb.vector();
+    }
+
+    inline sim::scalar squared_distance(sim::point const& pa, sim::point const& pb) noexcept
+    {
+        return pa.squared_distance(pb);
+    }
+
+    inline sim::scalar distance(sim::point const& pa, sim::point const& pb) noexcept
+    {
+        return pa.distance(pb);
+    }
+}
 
 
 //------------------------------------------------------------------------------
@@ -748,33 +578,28 @@ namespace sim { namespace geo
 #include <vector>
 
 
-namespace sim { namespace geo
+namespace sim
 {
     // neighbor_searcher is a data structure for efficiently searching pairs of
     // points that are within a fixed "cutoff" distance in the three-dimensional
     // space.
-    template<typename T>
     class neighbor_searcher
     {
     public:
-        using scalar_type = T;
-        using point_type = geo::point<scalar_type, 3>;
-        using index_type = std::size_t;
-
         // Constructor takes the cutoff distance and the number of bins used for
         // hashing points.
         //
         // The optimal number of bins depends on the actual distribution of
         // points. A rule-of-thumb number for a dense system is the number of
         // points divided by 20.
-        neighbor_searcher(scalar_type dcut, index_type bins)
+        neighbor_searcher(sim::scalar dcut, sim::index bins)
             : dcut_(dcut), bins_(bins)
         {
             // Pre-compute the hash index differences between adjacent bins. We
             // use a linear hash function so the differences are the same (i.e.,
             // reusable) for all bins.
 
-            index_type const index_deltas[] = {bins - 1, bins, bins + 1};
+            sim::index const index_deltas[] = {bins - 1, bins, bins + 1};
 
             for (auto dx : index_deltas) {
                 for (auto dy : index_deltas) {
@@ -793,16 +618,16 @@ namespace sim { namespace geo
 
         // set_points clears internal hash table and assigns given points to the
         // hash table.
-        void set_points(std::vector<point_type> const& points)
+        void set_points(std::vector<sim::point> const& points)
         {
             for (hash_bin& bin : bins_) {
                 bin.members.clear();
             }
 
-            for (index_type idx = 0; idx < points.size(); ++idx) {
-                point_type const point = points[idx];
-                hash_bin& bin = bins_[locate_bin(point)];
-                bin.members.push_back({idx, point});
+            for (sim::index idx = 0; idx < points.size(); ++idx) {
+                sim::point const pt = points[idx];
+                hash_bin& bin = bins_[locate_bin(pt)];
+                bin.members.push_back({idx, pt});
             }
         }
 
@@ -812,12 +637,12 @@ namespace sim { namespace geo
         template<typename OutputIterator>
         void search(OutputIterator out) const
         {
-            index_type const bin_count = bins_.size();
+            sim::index const bin_count = bins_.size();
 
-            for (index_type center = 0; center < bin_count; ++center) {
+            for (sim::index center = 0; center < bin_count; ++center) {
                 hash_bin const& center_bin = bins_[center];
 
-                for (index_type const delta : hash_deltas_) {
+                for (sim::index const delta : hash_deltas_) {
                     hash_bin const& other_bin = bins_[(center + delta) % bin_count];
 
                     search_among(center_bin, other_bin, out);
@@ -830,16 +655,16 @@ namespace sim { namespace geo
         {
             struct member
             {
-                index_type index;
-                point_type point;
+                sim::index index;
+                sim::point point;
             };
             std::vector<member> members;
         };
 
         // Prime hash coefficients.
-        static constexpr index_type x_stride = 73856093;
-        static constexpr index_type y_stride = 19349669;
-        static constexpr index_type z_stride = 83492791;
+        static constexpr sim::index x_stride = 73856093;
+        static constexpr sim::index y_stride = 19349669;
+        static constexpr sim::index z_stride = 83492791;
 
         // search_among searches for pairs of neighbor points in given bins. It
         // outputs index pairs to out. Each index pair (i,j) satisfies i < j
@@ -851,7 +676,7 @@ namespace sim { namespace geo
             OutputIterator& out
         ) const
         {
-            scalar_type const dcut2 = dcut_ * dcut_;
+            sim::scalar const dcut2 = dcut_ * dcut_;
 
             for (auto member_i : other_bin.members) {
                 for (auto member_j : center_bin.members) {
@@ -859,7 +684,7 @@ namespace sim { namespace geo
                         continue;
                     }
 
-                    if (geo::squared_distance(member_i.point, member_j.point) > dcut2) {
+                    if (sim::squared_distance(member_i.point, member_j.point) > dcut2) {
                         continue;
                     }
 
@@ -869,60 +694,33 @@ namespace sim { namespace geo
         }
 
         // locate_bin returns the hash index for a point.
-        inline index_type locate_bin(point_type point) const
+        inline sim::index locate_bin(sim::point pt) const
         {
             // Floating-point to *unsigned* integer conversion is costly.
-            auto const to_index_type = [](scalar_type x) {
-                return static_cast<index_type>(static_cast<std::ptrdiff_t>(x));
+            auto const to_index_type = [](sim::scalar x) {
+                return static_cast<sim::index>(static_cast<std::ptrdiff_t>(x));
             };
 
             auto const freq = 1 / dcut_;
-            auto const x = to_index_type(std::nearbyint(freq * point[0]));
-            auto const y = to_index_type(std::nearbyint(freq * point[1]));
-            auto const z = to_index_type(std::nearbyint(freq * point[2]));
+            auto const x = to_index_type(std::nearbyint(freq * pt.x));
+            auto const y = to_index_type(std::nearbyint(freq * pt.y));
+            auto const z = to_index_type(std::nearbyint(freq * pt.z));
 
             return linear_hash(x, y, z);
         }
 
         // linear_hash returns the index into the hash table bins_ for given
         // three dimensional bin index (x,y,z).
-        inline index_type linear_hash(index_type x, index_type y, index_type z) const
+        inline sim::index linear_hash(sim::index x, sim::index y, sim::index z) const
         {
             return (x * x_stride + y * y_stride + z * z_stride) % bins_.size();
         }
 
     private:
-        scalar_type dcut_;
+        sim::scalar dcut_;
         std::vector<hash_bin> bins_;
-        std::vector<index_type> hash_deltas_;
+        std::vector<sim::index> hash_deltas_;
     };
-}}
-
-
-//------------------------------------------------------------------------------
-// basic types
-//------------------------------------------------------------------------------
-
-#include <cstddef>
-
-
-namespace sim
-{
-    enum { dimension = 3 };
-
-    using index = std::size_t;
-    using scalar = double;
-
-    using vector = geo::vector<scalar, dimension>;
-    using point = geo::point<scalar, dimension>;
-
-    using geo::dot;
-    using geo::norm;
-    using geo::squared_norm;
-    using geo::cross;
-    using geo::normalize;
-    using geo::squared_distance;
-    using geo::distance;
 }
 
 
