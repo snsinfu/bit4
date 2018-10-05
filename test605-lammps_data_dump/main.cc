@@ -14,12 +14,17 @@ int main()
 
     const size_t atom_count = 90;
 
+    const int atom_type_count = 1;
+    const int atom_type = 1;
+    const int bond_type_count = 1;
+    const int bond_type = 1;
+
     std::vector<double> xs(atom_count);
     std::vector<double> ys(atom_count);
     std::vector<double> zs(atom_count);
 
     std::mt19937_64 engine;
-    std::uniform_real_distribution<double> initial_coord;
+    std::uniform_real_distribution<double> initial_coord{-0.5, 0.5};
 
     for (size_t i = 0; i < atom_count; i++) {
         xs.at(i) = initial_coord(engine);
@@ -49,13 +54,19 @@ int main()
     data << atom_count << " atoms\n";
     data << bond_count << " bonds\n";
     data << '\n';
+    data << atom_type_count << " atom types\n";
+    data << bond_type_count << " bond types\n";
+    data << '\n';
+    data << "-1 1 xlo xhi\n";
+    data << "-1 1 ylo yhi\n";
+    data << "-1 1 zlo zhi\n";
+    data << '\n';
     data << "Atoms\n";
+    data << '\n';
 
     for (size_t i = 0; i < atom_count; i++) {
-        const int atom_type = 1;
-
         data
-            << i
+            << i + 1
             << '\t'
             << atom_type
             << '\t'
@@ -69,21 +80,20 @@ int main()
 
     data << '\n';
     data << "Bonds\n";
+    data << '\n';
 
     int bond_id = 1;
 
     for (const std::pair<size_t, size_t>& segment : bonded_segments) {
-        for (size_t atom_id = segment.first; atom_id < segment.second; atom_id++) {
-            const int bond_type = 1;
-
+        for (size_t atom_idx = segment.first; atom_idx < segment.second; atom_idx++) {
             data
                 << bond_id
                 << '\t'
                 << bond_type
                 << '\t'
-                << atom_id
+                << atom_idx + 1
                 << '\t'
-                << atom_id + 1
+                << atom_idx + 2
                 << '\n';
 
             bond_id++;
