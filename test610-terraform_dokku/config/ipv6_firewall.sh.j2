@@ -1,0 +1,24 @@
+#!/bin/sh -eu
+
+PIF={{ ansible_default_ipv6.interface }}
+
+ip6tables -P INPUT ACCEPT
+ip6tables -P OUTPUT ACCEPT
+ip6tables -P FORWARD ACCEPT
+
+for chain in filter nat mangle raw security; do
+    ip6tables -t $chain -F
+    ip6tables -t $chain -X
+done
+
+case "$1" in
+start) ;;
+stop)  exit 0
+esac
+
+ip6tables -P INPUT DROP
+ip6tables -P OUTPUT DROP
+ip6tables -P FORWARD DROP
+
+ip6tables -A INPUT  -j ACCEPT -i lo
+ip6tables -A OUTPUT -j ACCEPT -o lo

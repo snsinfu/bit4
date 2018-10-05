@@ -1,0 +1,39 @@
+#!/bin/sh -eu
+
+PIF={{ ansible_default_ipv4.interface }}
+
+SSH=22
+DHCPRECV=67
+HTTP=80
+HTTPS=443
+
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+
+for chain in filter nat mangle raw security; do
+    iptables -t $chain -F
+    iptables -t $chain -X
+done
+
+case "$1" in
+start) ;;
+stop)  exit 0
+esac
+
+iptables -P INPUT DROP
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD DROP
+
+iptables -A INPUT  -j ACCEPT -i lo
+iptables -A OUTPUT -j ACCEPT -o lo
+
+iptables -A INPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
+iptables -A OUTPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+
+# Allowed inbound packets
+iptables -A INPUT -j ACCEPT -p icmp                         -i $PIF
+iptables -A INPUT -j ACCEPT -p tcp -m tcp --dport $HTTP     -i $PIF -m state --state NEW
+iptables -A INPUT -j ACCEPT -p tcp -m tcp --dport $HTTPS    -i $PIF -m state --state NEW
+iptables -A INPUT -j ACCEPT -p tcp -m tcp --dport $SSH      -i $PIF -m state --state NEW
+iptables -A INPUT -j ACCEPT -p udp -m udp --dport $DHCPRECV -i $PIF -m state --state NEW

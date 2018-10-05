@@ -1,0 +1,12 @@
+[Unit]
+Description=IPv6 firewall
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/ipv6_firewall.sh start
+ExecStop=/etc/ipv6_firewall.sh stop
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

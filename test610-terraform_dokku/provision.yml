@@ -1,0 +1,146 @@
+- hosts: all
+  tasks:
+
+    # Upgrade system.
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: system is up to date
+      apt:
+        upgrade: yes
+
+    # Setup IPv4 firewall.
+
+    - name: ipv4_firewall service is installed
+      copy:
+        src: config/ipv4_firewall.service
+        dest: /etc/systemd/system/
+
+    - name: ipv4_firewall script is installed
+      template:
+        src: config/ipv4_firewall.sh.j2
+        dest: /etc/ipv4_firewall.sh
+        mode: 0744
+      notify:
+        - ipv4_firewall is restarted
+
+    - name: ipv4_firewall is activated
+      service:
+        name: ipv4_firewall
+        state: started
+        enabled: yes
+
+    # Setup IPv6 firewall.
+
+    - name: ipv6_firewall service is installed
+      copy:
+        src: config/ipv6_firewall.service
+        dest: /etc/systemd/system/
+
+    - name: ipv6_firewall script is installed
+      template:
+        src: config/ipv6_firewall.sh.j2
+        dest: /etc/ipv6_firewall.sh
+        mode: 0744
+      notify:
+        - ipv6_firewall is restarted
+
+    - name: ipv6_firewall is activated
+      service:
+        name: ipv6_firewall
+        state: started
+        enabled: yes
+
+    # Configure services.
+
+    - name: sshd is configured
+      template:
+        src: config/sshd_config.j2
+        dest: /etc/ssh/sshd_config
+      notify:
+        - sshd is restarted
+
+    # Install Docker CE.
+    # https://docs.docker.com/install/linux/docker-ce/ubuntu/
+
+    - name: apt https repository requirements are satisfied
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg2
+        - software-properties-common
+
+    - name: docker repository key is registered
+      apt_key:
+        id: 9dc858229fc7dd38854ae2d88d81803c0ebfcd88
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: docker repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: docker is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker is activated
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # Install Dokku.
+
+    - name: packagecloud repository key is registered
+      apt_key:
+        id: 418a7f2fb0e1e6e7eabf6fe8c2e73424d59097ab
+        url: https://packagecloud.io/gpg.key
+        state: present
+
+    - name: dokku repository is registered
+      apt_repository:
+        repo: deb https://packagecloud.io/dokku/dokku/debian/ {{ ansible_lsb.codename }} main
+        state: present
+
+    - name: dokku web configuration is disabled
+      debconf:
+        name: dokku
+        question: dokku/web_config
+        vtype: boolean
+        value: false
+
+    - name: dokku access key is inserted
+      copy:
+        src: id_rsa.pub
+        dest: /root/.ssh/id_rsa.pub
+
+    - name: dokku is installed
+      apt:
+        name: dokku
+        state: present
+
+  handlers:
+    - name: sshd is restarted
+      service:
+        name: sshd
+        state: restarted
+
+    - name: ipv4_firewall is restarted
+      service:
+        name: ipv4_firewall
+        state: restarted
+
+    - name: ipv6_firewall is restarted
+      service:
+        name: ipv6_firewall
+        state: restarted

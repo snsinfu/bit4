@@ -1,0 +1,12 @@
+.env
+id_rsa
+id_rsa.pub
+known_hosts
+hosts.ini
+
+_*.ok
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+
+*.retry

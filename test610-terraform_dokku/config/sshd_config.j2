@@ -1,0 +1,16 @@
+ListenAddress {{ ansible_default_ipv4.address }}
+AddressFamily inet
+PrintMotd no
+VersionAddendum none
+
+PermitRootLogin yes
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+
+AllowAgentForwarding no
+X11Forwarding no
+GatewayPorts no
+AcceptEnv LANG LC_*
+
+Subsystem sftp /usr/lib/openssh/sftp-server
