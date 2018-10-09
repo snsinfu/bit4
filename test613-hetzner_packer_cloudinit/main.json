@@ -1,0 +1,32 @@
+{
+    "variables": {
+        "hcloud_token": "{{ env `HCLOUD_TOKEN` }}"
+    },
+
+    "builders": [
+        {
+            "type": "hcloud",
+            "token": "{{ user `hcloud_token` }}",
+            "location": "fsn1",
+            "server_type": "cx11",
+            "source_image": "debian-9",
+            "image_name": "main-be48fcc4",
+            "ssh_username": "root"
+        }
+    ],
+
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": "rm /root/.ssh/authorized_keys"
+        }
+    ],
+
+    "post-processors": [
+        {
+            "type": "manifest",
+            "output": "manifest.json",
+            "strip_path": true
+        }
+    ]
+}
