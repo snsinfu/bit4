@@ -1,0 +1,18 @@
+# clang-format v8.0.0 + D33029
+# https://reviews.llvm.org/D33029
+
+Language:                                       Cpp
+BasedOnStyle:                                   webkit
+
+AllowShortFunctionsOnASingleLine:               None
+AllowAllParametersOfDeclarationOnNextLine:      false
+AlwaysBreakTemplateDeclarations:                Yes
+BinPackArguments:                               false
+BinPackParameters:                              false
+ColumnLimit:                                    100
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle:                           true
+NamespaceIndentation:                           All
+SpaceAfterTemplateKeyword:                      false
+PenaltyBreakBeforeFirstCallParameter:           0
+DanglingParenthesis:                            true
