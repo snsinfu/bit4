@@ -50,7 +50,12 @@ TEST_CASE("neighbor_searcher")
     std::set_difference(expected.begin(), expected.end(), actual.begin(), actual.end(), std::back_inserter(diff));
     for (auto p : diff) {
         std::clog << p.first << ':' << p.second << '\t';
-        std::clog << points[p.first].vector() / dcut << " [" << searcher.locate_bin(points[p.first]) << "]\t";
-        std::clog << points[p.second].vector() / dcut << " [" << searcher.locate_bin(points[p.second]) << "]\n";
+
+        auto pi = points[p.first];
+        auto pj = points[p.second];
+        std::clog << md::distance(pi, pj) << '\t';
+
+        std::clog << pi << " [" << searcher.locate_bin(pi) << "]\t";
+        std::clog << pj << " [" << searcher.locate_bin(pj) << "]\n";
     }
 }
