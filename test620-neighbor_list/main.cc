@@ -12,6 +12,15 @@ struct point
 };
 
 
+double distance(point p, point q)
+{
+    auto const dx = p.x - q.x;
+    auto const dy = p.y - q.y;
+    auto const dz = p.z - q.z;
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+
 unsigned hash(unsigned x, unsigned y, unsigned z, unsigned nbins)
 {
     constexpr unsigned x_stride = 73856093;
@@ -63,4 +72,7 @@ int main()
     std::cout << "p: " << locate(p, dcut, nbins) << '\n';
     std::cout << "q: " << locate(q, dcut, nbins) << '\n';
     std::cout << "r: " << locate(r, dcut, nbins) << '\n';
+
+    std::cout << "p-q: " << distance(p, q) << '\n';
+    std::cout << "p-r: " << distance(p, r) << '\n';
 }
