@@ -65,14 +65,27 @@ int main()
     }
     std::cout << '\n';
 
-    point const p = {0.431838, 2.15173, -1.02672};
-    point const q = {0.228886, 2.3595, -0.445631};
-    point const r = {0.690411, 2.8247, -1.12345};
+    point const p = {0.326633, -1.03745, -0.0764704};
+    point const q = {0.236804, -1.13701, 0.0440195};
+    point const r = {0.384521, -1.14729, -0.138036};
 
-    std::cout << "p: " << locate(p, dcut, nbins) << '\n';
-    std::cout << "q: " << locate(q, dcut, nbins) << '\n';
-    std::cout << "r: " << locate(r, dcut, nbins) << '\n';
+    auto const pbin = locate(p, dcut, nbins);
+    auto const qbin = locate(q, dcut, nbins);
+    auto const rbin = locate(r, dcut, nbins);
 
-    std::cout << "p-q: " << distance(p, q) << '\n';
-    std::cout << "p-r: " << distance(p, r) << '\n';
+    std::cout << '\n';
+
+    std::cout << "bin(p): " << pbin << '\n';
+    std::cout << "bin(q): " << qbin << '\n';
+    std::cout << "bin(r): " << rbin << '\n';
+
+    std::cout << '\n';
+
+    std::cout << "bin(q) - bin(p): " << (qbin + nbins - pbin) % nbins << '\n';
+    std::cout << "bin(r) - bin(p): " << (rbin + nbins - pbin) % nbins << '\n';
+
+    std::cout << '\n';
+
+    std::cout << "d(p,q): " << distance(p, q) << '\n';
+    std::cout << "d(p,r): " << distance(p, r) << '\n';
 }
