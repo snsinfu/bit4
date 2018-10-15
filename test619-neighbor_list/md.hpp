@@ -702,10 +702,15 @@ namespace md
                 return static_cast<md::index>(static_cast<std::ptrdiff_t>(x));
             };
 
+            // Need to offset floating-point value to avoid negative number.
+            // Negative int is converted to unsigned int by adding 2^n, which
+            // interferes with a mod operation in the hash function.
+            constexpr md::scalar offset = (1L << 30) - 1;
+
             auto const freq = 1 / dcut_;
-            auto const x = to_index_type(std::nearbyint(freq * pt.x));
-            auto const y = to_index_type(std::nearbyint(freq * pt.y));
-            auto const z = to_index_type(std::nearbyint(freq * pt.z));
+            auto const x = to_index_type(offset + freq * pt.x);
+            auto const y = to_index_type(offset + freq * pt.y);
+            auto const z = to_index_type(offset + freq * pt.z);
 
             return linear_hash(x, y, z);
         }
