@@ -79,8 +79,14 @@ namespace md
 
             for (md::index center = 0; center < bin_count; center++) {
                 for (md::index const delta : nearby_deltas_) {
+                    auto nearby = center + delta;
+
+                    if (nearby >= bin_count) {
+                        nearby -= bin_count;
+                    }
+
                     hash_bin const& center_bin = bins_[center];
-                    hash_bin const& nearby_bin = bins_[(center + delta) % bin_count];
+                    hash_bin const& nearby_bin = bins_[nearby];
 
                     search_among(center_bin, nearby_bin, out);
                 }
@@ -110,10 +116,10 @@ namespace md
         {
             auto const dcut2 = dcut_ * dcut_;
 
-            for (auto member_i : bin_a.members) {
-                for (auto member_j : bin_b.members) {
+            for (auto member_j : bin_b.members) {
+                for (auto member_i : bin_a.members) {
                     if (member_i.index >= member_j.index) {
-                        continue;
+                        break;
                     }
 
                     if (md::squared_distance(member_i.point, member_j.point) > dcut2) {
