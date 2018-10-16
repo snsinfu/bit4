@@ -77,24 +77,7 @@ namespace md
         {
             md::index const bin_count = bins_.size();
 
-            // Cache optimization
-            md::index const block_size = 4;
-            md::index const block_count = bin_count / block_size;
-            md::index const residual_start = block_size * block_count;
-
-            for (md::index block = 0; block < residual_start; block += block_size) {
-                for (md::index const delta : nearby_deltas_) {
-                    for (md::index offset = 0; offset < block_size; offset++) {
-                        md::index const center = block + offset;
-                        hash_bin const& center_bin = bins_[center];
-                        hash_bin const& nearby_bin = bins_[(center + delta) % bin_count];
-
-                        search_among(center_bin, nearby_bin, out);
-                    }
-                }
-            }
-
-            for (md::index center = residual_start; center < bin_count; center++) {
+            for (md::index center = 0; center < bin_count; center++) {
                 for (md::index const delta : nearby_deltas_) {
                     hash_bin const& center_bin = bins_[center];
                     hash_bin const& nearby_bin = bins_[(center + delta) % bin_count];
