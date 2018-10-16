@@ -1281,84 +1281,6 @@ namespace md
 
 
 //------------------------------------------------------------------------------
-// sphere_surface_forcefield
-//------------------------------------------------------------------------------
-
-namespace md
-{
-    template<typename Derived>
-    class sphere_surface_forcefield : public virtual md::forcefield
-    {
-    public:
-        void set_radius(md::scalar radius)
-        {
-            radius_ = radius;
-        }
-
-        md::scalar compute_energy(md::system const& system) override
-        {
-            md::scalar sum = 0;
-            auto const positions = system.position_array();
-
-            for (md::index i = 0; i < system.particle_count(); i++) {
-                auto const r = positions[i] - center_;
-                auto const pot = derived().sphere_outward_potential(system, i);
-
-                sum += pot.evaluate_energy(r);
-            }
-
-            return sum;
-        }
-
-        void compute_force(md::system const& system, md::array_view<md::vector> forces) override
-        {
-            auto const positions = system.position_array();
-
-            for (md::index i = 0; i < system.particle_count(); i++) {
-                auto const r = positions[i] - center_;
-                auto const pot = derived().sphere_outward_potential(system, i);
-
-                forces[i] += pot.evaluate_force(r);
-            }
-        }
-
-    private:
-        inline Derived& derived()
-        {
-            return static_cast<Derived&>(*this);
-        }
-
-        md::point center_;
-        md::scalar radius_;
-    };
-
-    template<typename Potential>
-    void force_sphere_surface(md::system& sys, md::scalar radius, Potential pot)
-    {
-        class impl : public md::sphere_surface_forcefield<impl>
-        {
-        public:
-            impl(md::scalar radius, Potential pot)
-                : pot_{pot}
-            {
-                this->set_radius(radius);
-            }
-
-            inline Potential sphere_outward_potential(md::system const&, md::index) const
-            {
-                return pot_;
-            }
-
-        private:
-            Potential pot_;
-        };
-
-        sys.add_forcefield(std::make_shared<impl>(radius, pot));
-    }
-}
-
-
-//------------------------------------------------------------------------------
 // neighbor_pair_forcefield
 //------------------------------------------------------------------------------
 
@@ -1683,6 +1605,137 @@ namespace md
             return coef * u3 * r;
         }
     };
+
+
+    //
+    // u(r) = 0
+    //
+    struct null_potential
+    {
+        inline md::scalar evaluate_energy(md::vector) const
+        {
+            return 0;
+        }
+
+        inline md::vector evaluate_force(md::vector) const
+        {
+            return {};
+        }
+    };
+}
+
+
+//------------------------------------------------------------------------------
+// sphere_surface_forcefield
+//------------------------------------------------------------------------------
+
+namespace md
+{
+    template<typename Derived>
+    class sphere_surface_forcefield : public virtual md::forcefield
+    {
+    public:
+        void set_radius(md::scalar radius)
+        {
+            radius_ = radius;
+        }
+
+        md::scalar compute_energy(md::system const& system) override
+        {
+            md::scalar sum = 0;
+            auto const positions = system.position_array();
+
+            for (md::index i = 0; i < system.particle_count(); i++) {
+                auto const r = positions[i] - center_;
+
+                auto const c2 = radius_ * radius_;
+                auto const r2 = r.squared_norm();
+
+                if (r2 == 0) {
+                    continue;
+                }
+                auto const surface_r = r * (1 - c2 / r2);
+
+                if (r2 < c2) {
+                    auto const pot = derived().sphere_inward_potential(system, i);
+                    sum += pot.evaluate_energy(surface_r);
+                } else {
+                    auto const pot = derived().sphere_outward_potential(system, i);
+                    sum += pot.evaluate_energy(surface_r);
+                }
+            }
+
+            return sum;
+        }
+
+        void compute_force(md::system const& system, md::array_view<md::vector> forces) override
+        {
+            auto const positions = system.position_array();
+
+            for (md::index i = 0; i < system.particle_count(); i++) {
+                auto const r = positions[i] - center_;
+
+                auto const c2 = radius_ * radius_;
+                auto const r2 = r.squared_norm();
+
+                if (r2 == 0) {
+                    continue;
+                }
+                auto const surface_r = r * (1 - c2 / r2);
+
+                if (r2 < c2) {
+                    auto const pot = derived().sphere_inward_potential(system, i);
+                    forces[i] += pot.evaluate_force(surface_r);
+                } else {
+                    auto const pot = derived().sphere_outward_potential(system, i);
+                    forces[i] += pot.evaluate_force(surface_r);
+                }
+            }
+        }
+
+        md::null_potential sphere_inward_potential(md::system const&, md::index) const
+        {
+            return {};
+        }
+
+        md::null_potential sphere_outward_potential(md::system const&, md::index) const
+        {
+            return {};
+        }
+
+    private:
+        inline Derived& derived()
+        {
+            return static_cast<Derived&>(*this);
+        }
+
+        md::point center_;
+        md::scalar radius_;
+    };
+
+    template<typename Potential>
+    void force_sphere_surface(md::system& sys, md::scalar radius, Potential pot)
+    {
+        class impl : public md::sphere_surface_forcefield<impl>
+        {
+        public:
+            impl(md::scalar radius, Potential pot)
+                : pot_{pot}
+            {
+                this->set_radius(radius);
+            }
+
+            inline Potential sphere_outward_potential(md::system const&, md::index) const
+            {
+                return pot_;
+            }
+
+        private:
+            Potential pot_;
+        };
+
+        sys.add_forcefield(std::make_shared<impl>(radius, pot));
+    }
 }
 
 
