@@ -19,9 +19,9 @@ namespace md
     {
     public:
         // Prime coefficients used for coordinate hashing.
-        static constexpr md::index x_stride = 73856093;
-        static constexpr md::index y_stride = 19349669;
-        static constexpr md::index z_stride = 83492791;
+        static constexpr md::index x_stride = 1;
+        static constexpr md::index y_stride = 30;
+        static constexpr md::index z_stride = 30 * 30;
 
         // Constructor takes the cutoff distance and the number of bins used for
         // hashing points.
