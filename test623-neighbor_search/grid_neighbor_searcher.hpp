@@ -101,10 +101,10 @@ namespace md
             auto const dcut2 = dcut_ * dcut_;
 
             for (auto const& cell : grid_) {
-                for (md::index a = 0; a < cell.adjacent_count; a++) {
-                    auto const& adj = grid_[cell.adjacent_cells[a]];
+                for (auto const mi : cell.members) {
+                    for (md::index a = 0; a < cell.adjacent_count; a++) {
+                        auto const& adj = grid_[cell.adjacent_cells[a]];
 
-                    for (auto const mi : cell.members) {
                         for (auto const mj : adj.members) {
                             if (mi.index >= mj.index) {
                                 continue;
