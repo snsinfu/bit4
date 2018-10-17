@@ -12,10 +12,10 @@
 #include "hashing_neighbor_searcher.hpp"
 
 
-constexpr md::scalar cutoff_distance = 0.1;
-constexpr md::index point_count = 1000;
-constexpr md::index hash_bin_count = 300;
-constexpr int bench_count = 1000;
+constexpr md::scalar cutoff_distance = 0.05;
+constexpr md::index point_count = 10000;
+constexpr md::index hash_bin_count = 3000;
+constexpr int bench_count = 100;
 
 
 md::index hash_pairs(std::vector<std::pair<md::index, md::index>> const& pairs)

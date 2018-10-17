@@ -15,14 +15,44 @@
 
 namespace md
 {
+    namespace detail
+    {
+        inline bool is_prime(md::index num)
+        {
+            if (num % 2 == 0 || num % 3 == 0) {
+                return false;
+            }
+
+            for (md::index iter = 6; iter < num / 2; iter++) {
+                if (num % (iter - 1) == 0 || num % (iter + 1) == 0) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        inline md::index next_prime(md::index num)
+        {
+            for (md::index iter = (num / 6 + 1) * 6; ; iter += 6) {
+                if (detail::is_prime(iter - 1)) {
+                    return iter - 1;
+                }
+                if (detail::is_prime(iter + 1)) {
+                    return iter + 1;
+                }
+            }
+        }
+    }
+
     // hashing_neighbor_searcher is a data structure for searching pairs of
     // neighboring points in O(N) complexity.
     class hashing_neighbor_searcher
     {
         // Hash coefficients.
-        static constexpr md::index x_stride = 1;
-        static constexpr md::index y_stride = 30;
-        static constexpr md::index z_stride = 30 * 30;
+        static constexpr md::index x_stride = 14888219;
+        static constexpr md::index y_stride = 27002429;
+        static constexpr md::index z_stride = 130893767;
 
     public:
         // Constructor takes the cutoff distance and the number of bins used for
@@ -32,7 +62,7 @@ namespace md
         // points. A rule-of-thumb number for a dense system is the number of
         // points divided by 20.
         hashing_neighbor_searcher(md::scalar dcut, md::index bins)
-            : dcut_(dcut), bins_(bins)
+            : dcut_(dcut), bins_(bins = detail::next_prime(bins))
         {
             md::index const coord_deltas[] = {
                 bins - 1,
@@ -76,11 +106,18 @@ namespace md
                 bin.members.clear();
             }
 
+            static bool first = false;
+
             for (md::index idx = 0; idx < points.size(); ++idx) {
                 md::point const pt = points[idx];
+                if (first) {
+                    std::cout << locate_bin(pt) << '\t' << pt << '\n';
+                }
                 hash_bin& bin = bins_[locate_bin(pt)];
                 bin.members.push_back({idx, pt});
             }
+
+            first = false;
         }
 
         // search searches for neighbor pairs in the hash table and outputs
