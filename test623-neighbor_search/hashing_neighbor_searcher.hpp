@@ -10,6 +10,8 @@
 #include "point.hpp"
 #include "types.hpp"
 
+#include <boost/container/static_vector.hpp>
+
 
 namespace md
 {
@@ -17,12 +19,12 @@ namespace md
     // neighboring points in O(N) complexity.
     class hashing_neighbor_searcher
     {
-    public:
-        // Prime coefficients used for coordinate hashing.
+        // Hash coefficients.
         static constexpr md::index x_stride = 1;
         static constexpr md::index y_stride = 30;
         static constexpr md::index z_stride = 30 * 30;
 
+    public:
         // Constructor takes the cutoff distance and the number of bins used for
         // hashing points.
         //
@@ -32,26 +34,38 @@ namespace md
         hashing_neighbor_searcher(md::scalar dcut, md::index bins)
             : dcut_(dcut), bins_(bins)
         {
-            // Pre-compute the hash index differences between adjacent bins. We
-            // use a linear hash function so the differences are the same (i.e.,
-            // reusable) for all bins.
+            md::index const coord_deltas[] = {
+                bins - 1,
+                bins,
+                bins + 1
+            };
+            std::vector<md::index> hash_deltas;
 
-            md::index const index_deltas[] = {bins - 1, bins, bins + 1};
-
-            for (auto dx : index_deltas) {
-                for (auto dy : index_deltas) {
-                    for (auto dz : index_deltas) {
-                        nearby_deltas_.push_back(linear_hash(dx, dy, dz));
+            for (auto const dx : coord_deltas) {
+                for (auto const dy : coord_deltas) {
+                    for (auto const dz : coord_deltas) {
+                        hash_deltas.push_back(linear_hash(dx, dy, dz));
                     }
                 }
             }
 
-            std::sort(nearby_deltas_.begin(), nearby_deltas_.end());
-
-            nearby_deltas_.erase(
-                std::unique(nearby_deltas_.begin(), nearby_deltas_.end()),
-                nearby_deltas_.end()
+            std::sort(hash_deltas.begin(), hash_deltas.end());
+            hash_deltas.erase(
+                std::unique(hash_deltas.begin(), hash_deltas.end()),
+                hash_deltas.end()
             );
+
+            for (md::index center = 0; center < bins; center++) {
+                auto& neighbors = bins_[center].neighbors;
+
+                for (auto const delta : hash_deltas) {
+                    auto const neighbor = (center + delta) % bins;
+
+                    if (neighbor >= center) {
+                        neighbors.push_back(neighbor);
+                    }
+                }
+            }
         }
 
         // set_points clears internal hash table and assigns given points to the
@@ -75,20 +89,9 @@ namespace md
         template<typename OutputIterator>
         void search(OutputIterator out) const
         {
-            md::index const bin_count = bins_.size();
-
-            for (md::index center = 0; center < bin_count; center++) {
-                for (md::index const delta : nearby_deltas_) {
-                    auto nearby = center + delta;
-
-                    if (nearby >= bin_count) {
-                        nearby -= bin_count;
-                    }
-
-                    hash_bin const& center_bin = bins_[center];
-                    hash_bin const& nearby_bin = bins_[nearby];
-
-                    search_among(center_bin, nearby_bin, out);
+            for (auto const& center_bin : bins_) {
+                for (auto const neighbor : center_bin.neighbors) {
+                    search_among(center_bin, bins_[neighbor], out);
                 }
             }
         }
@@ -102,11 +105,9 @@ namespace md
                 md::point point;
             };
             std::vector<member> members;
+            std::vector<md::index> neighbors;
         };
 
-        // search_among searches for pairs of neighbor points in given bins. It
-        // outputs index pairs to out. Each index pair (i,j) satisfies i < j
-        // and no duplicate pairs are output.
         template<typename OutputIterator>
         inline void search_among(
             hash_bin const& bin_a,
@@ -118,7 +119,7 @@ namespace md
 
             for (auto member_j : bin_b.members) {
                 for (auto member_i : bin_a.members) {
-                    if (member_i.index >= member_j.index) {
+                    if (member_i.index == member_j.index) {
                         break;
                     }
 
@@ -126,7 +127,10 @@ namespace md
                         continue;
                     }
 
-                    *out++ = std::make_pair(member_i.index, member_j.index);
+                    *out++ = std::make_pair(
+                        std::min(member_i.index, member_j.index),
+                        std::max(member_i.index, member_j.index)
+                    );
                 }
             }
         }
@@ -156,7 +160,6 @@ namespace md
     private:
         md::scalar dcut_;
         std::vector<hash_bin> bins_;
-        std::vector<md::index> nearby_deltas_;
     };
 }
 
