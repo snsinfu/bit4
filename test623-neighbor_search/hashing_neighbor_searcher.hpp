@@ -50,9 +50,9 @@ namespace md
     class hashing_neighbor_searcher
     {
         // Hash coefficients.
-        static constexpr md::index x_stride = 14888219;
-        static constexpr md::index y_stride = 27002429;
-        static constexpr md::index z_stride = 130893767;
+        static constexpr md::index x_stride = 3929498747;
+        static constexpr md::index y_stride = 0;
+        static constexpr md::index z_stride = 1008281837;
 
     public:
         // Constructor takes the cutoff distance and the number of bins used for
@@ -62,7 +62,8 @@ namespace md
         // points. A rule-of-thumb number for a dense system is the number of
         // points divided by 20.
         hashing_neighbor_searcher(md::scalar dcut, md::index bins)
-            : dcut_(dcut), bins_(bins = detail::next_prime(bins))
+            // : dcut_(dcut), bins_(bins = detail::next_prime(bins))
+            : dcut_(dcut), bins_(bins)
         {
             md::index const coord_deltas[] = {
                 bins - 1,
@@ -106,17 +107,29 @@ namespace md
                 bin.members.clear();
             }
 
-            static bool first = false;
-
             for (md::index idx = 0; idx < points.size(); ++idx) {
                 md::point const pt = points[idx];
-                if (first) {
-                    std::cout << locate_bin(pt) << '\t' << pt << '\n';
-                }
                 hash_bin& bin = bins_[locate_bin(pt)];
                 bin.members.push_back({idx, pt});
             }
 
+            static bool first = true;
+            if (first) {
+                std::vector<int> counts;
+
+                for (auto& bin : bins_) {
+                    counts.push_back(int(bin.members.size()));
+                }
+
+                std::sort(counts.begin(), counts.end());
+
+                std::cout << "Min: " << counts.front() << '\n';
+                std::cout << "25%: " << counts.at(counts.size() / 4) << '\n';
+                std::cout << "50%: " << counts.at(counts.size() / 2) << '\n';
+                std::cout << "75%: " << counts.at(counts.size() * 3 / 4) << '\n';
+                std::cout << "Max: " << counts.back() << '\n';
+
+            }
             first = false;
         }
 

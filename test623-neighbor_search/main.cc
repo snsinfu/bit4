@@ -14,7 +14,7 @@
 
 constexpr md::scalar cutoff_distance = 0.05;
 constexpr md::index point_count = 10000;
-constexpr md::index hash_bin_count = 3000;
+constexpr md::index hash_bin_count = point_count / 16;
 constexpr int bench_count = 100;
 
 
