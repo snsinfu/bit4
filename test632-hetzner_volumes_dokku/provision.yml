@@ -1,0 +1,70 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: dokku group exists
+      group:
+        name: dokku
+        state: present
+
+    - name: dokku user exists
+      user:
+        name: dokku
+        group: dokku
+        state: present
+
+    - name: dokku device has ext4 filesystem
+      filesystem:
+        fstype: ext4
+        dev: "{{ dokku_device }}"
+
+    - name: dokku device mount point is present
+      file:
+        path: /srv/dokku
+        state: directory
+
+    - name: dokku device is mounted
+      mount:
+        src: "{{ dokku_device}}"
+        path: /srv/dokku
+        fstype: ext4
+        state: mounted
+
+    - name: dokku home directory exists
+      file:
+        path: "{{ item }}/home/dokku"
+        owner: dokku
+        group: dokku
+        state: directory
+      with_items:
+        -
+        - /srv/dokku
+
+    - name: dokku storage directory exists
+      file:
+        path: "{{ item }}/var/lib/dokku"
+        state: directory
+      with_items:
+        -
+        - /srv/dokku
+
+    - name: docker storage directory exists
+      file:
+        path: "{{ item }}/var/lib/docker"
+        mode: 0711
+        state: directory
+      with_items:
+        -
+        - /srv/dokku
+
+    - name: dokku device paths are bound
+      mount:
+        src: "/srv/dokku{{ item }}"
+        path: "{{ item }}"
+        fstype: none
+        opts: defaults,bind
+        state: mounted
+      with_items:
+        - /home/dokku
+        - /var/lib/dokku
+        - /var/lib/docker

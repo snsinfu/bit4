@@ -1,0 +1,7 @@
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+*.retry
+ssh_key
+ssh_key.pub
+hosts.yml

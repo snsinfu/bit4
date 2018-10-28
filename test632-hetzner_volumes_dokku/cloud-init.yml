@@ -1,0 +1,7 @@
+#cloud-config
+
+system_info:
+  default_user:
+    name: hetzner
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
