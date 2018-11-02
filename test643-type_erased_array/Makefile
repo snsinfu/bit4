@@ -1,5 +1,5 @@
 CXXFLAGS = \
-  -std=c++14 \
+  -std=c++11 \
   -pedantic \
   -Wall \
   -Wextra \
@@ -10,8 +10,8 @@ CXXFLAGS = \
 
 .PHONY: all clean
 
-all: main
-	@:
+run: main
+	@./main
 
 clean:
 	rm -f main
