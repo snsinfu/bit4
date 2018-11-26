@@ -16,7 +16,7 @@ std::uint8_t zigzag_encode(std::int8_t n)
 std::int8_t zigzag_decode(std::uint8_t n)
 {
     auto const v = std::uint8_t(n >> 1);
-    return std::int8_t((n & 1) ? std::int8_t(~v) : v);
+    return (n & 1) ? -std::int8_t(v + 1) : std::int8_t(v);
 }
 
 
