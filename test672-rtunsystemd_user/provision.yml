@@ -1,0 +1,54 @@
+- hosts: all
+  become: no
+
+  # Key info.
+  # https://unix.stackexchange.com/q/251211/136627
+  # https://www.freedesktop.org/software/systemd/man/systemd.service.html
+  # https://www.freedesktop.org/software/systemd/man/loginctl.htm#
+  # https://www.freedesktop.org/software/systemd/man/systemd.special.html
+
+  tasks:
+    - name: dev tools are installed
+      apt:
+        name:
+          - git
+          - golang
+        state: present
+      become: yes
+
+    - name:
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - etc
+        - bin
+        - .config/systemd/user
+
+    - name: rtun project is fetched
+      command: go get -d github.com/snsinfu/reverse-tunnel/...
+
+    - name: rtun is built
+      command: go build -o bin/rtun github.com/snsinfu/reverse-tunnel/agent/cmd
+
+    - name: rtun service file is installed
+      copy:
+        src: rtun.service
+        dest: .config/systemd/user/
+
+    - name: rtun config file is installed
+      copy:
+        src: rtun.yml
+        dest: etc/
+        loginctl enable-linger
+
+    - name: rtun service is activated
+      systemd:
+        name: rtun
+        scope: user
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: linger is enabled
+      command: loginctl enable-linger

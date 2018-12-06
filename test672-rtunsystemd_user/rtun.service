@@ -1,0 +1,12 @@
+[Unit]
+Description=Rtun forwarding agent
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/vagrant/bin/rtun -f /home/vagrant/etc/rtun.yml
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
