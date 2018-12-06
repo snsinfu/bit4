@@ -40,7 +40,6 @@
       copy:
         src: rtun.yml
         dest: etc/
-        loginctl enable-linger
 
     - name: rtun service is activated
       systemd:
