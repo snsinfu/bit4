@@ -1,0 +1,12 @@
+[Unit]
+Description=Rtun forwarding agent
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/bin/rtun -f %h/etc/rtun.yml
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
