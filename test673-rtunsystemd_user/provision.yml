@@ -2,28 +2,19 @@
   become: no
 
   tasks:
-    - name: dev tools are installed
-      apt:
-        name:
-          - git
-          - golang
-        state: present
-      become: yes
-
-    - name:
+    - name: required directories are present
       file:
         path: "{{ item }}"
         state: directory
       with_items:
-        - etc
         - bin
         - .config/systemd/user
 
-    - name: rtun project is fetched
-      command: go get -d github.com/snsinfu/reverse-tunnel/...
-
-    - name: rtun is built
-      command: go build -o bin/rtun github.com/snsinfu/reverse-tunnel/agent/cmd
+    - name: rtun is installed
+      get_url:
+        url: https://github.com/snsinfu/reverse-tunnel/releases/download/v1.1.0/rtun-amd64-linux
+        dest: bin/rtun
+        mode: 0755
 
     - name: rtun service file is installed
       copy:
@@ -33,7 +24,7 @@
     - name: rtun config file is installed
       copy:
         src: rtun.yml
-        dest: etc/
+        dest: .rtun.yml
 
     - name: rtun service is activated
       systemd:
