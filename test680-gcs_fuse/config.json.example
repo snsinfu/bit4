@@ -1,0 +1,12 @@
+{
+    "google_project":   "your-existing-project",
+    "google_zone":      "us-central1-c",
+    "machine_type":     "f1-micro",
+    "machine_image":    "ubuntu-os-cloud/ubuntu-1804-lts",
+    "storage_bucket":   "your-bucket-to-create",
+    "storage_location": "US",
+    "ssh_user":         "username",
+    "ssh_pubkeys": [
+        "ssh-ed25519 AAAA..."
+    ]
+}

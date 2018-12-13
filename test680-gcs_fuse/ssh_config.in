@@ -1,0 +1,7 @@
+UserKnownHostsFile known_hosts
+PasswordAuthentication no
+IdentitiesOnly yes
+
+Host server
+User ${ssh_user}
+HostName ${server_address}

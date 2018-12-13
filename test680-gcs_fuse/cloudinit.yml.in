@@ -1,0 +1,20 @@
+#cloud-config
+
+timezone: UTC
+
+write_files:
+  - path: /etc/ssh/sshd_config
+    content: |
+      PrintMotd no
+      AllowUsers ${ssh_user}
+      PermitRootLogin no
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      UsePAM yes
+      Subsystem sftp /usr/lib/openssh/sftp-server
+
+ssh_authorized_keys: ${ssh_pubkeys}
+
+system_info:
+  default_user:
+    name: ${ssh_user}

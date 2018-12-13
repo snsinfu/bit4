@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount GCS bucket
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/gcsfuse --foreground {{storage_bucket}} %h/bucket
+Restart=always
+
+[Install]
+WantedBy=default.target

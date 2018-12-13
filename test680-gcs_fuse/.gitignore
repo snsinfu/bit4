@@ -1,0 +1,13 @@
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+
+_init.ok
+_resources.ok
+_provision.ok
+
+ssh_config
+known_hosts
+provision/bucket.service
+
+config.json
