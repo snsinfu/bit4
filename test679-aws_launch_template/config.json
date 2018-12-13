@@ -1,0 +1,11 @@
+{
+    "cloud_region": "us-east-2",
+    "instance_type": "t3.medium",
+    "image_owner": "099720109477",
+    "image_name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*",
+    "max_price": "0.0416",
+    "ssh_user": "sinfu",
+    "ssh_pubkeys": [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJWUiMskFjfqw8/MRUUaM39MZ9deRUVIQ5bPxti6B/09"
+    ]
+}
