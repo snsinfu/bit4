@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd $(dirname $(realpath $0))
+
+icecast -c icecast.xml 2>&1 | multilog t s1048576 n16 ./log
