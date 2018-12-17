@@ -1,0 +1,1 @@
+@reboot /usr/local/bin/svscan $HOME/service

@@ -1,0 +1,8 @@
+FREEBSD_VERSION = "12.0-RELEASE"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "freebsd/FreeBSD-#{FREEBSD_VERSION}"
+  config.vm.provision :shell, privileged: false, path: "provision.sh"
+  config.vm.synced_folder ".", "/vagrant", type: "rsync"
+  config.ssh.shell = "/bin/sh"
+end
