@@ -30,12 +30,10 @@ In this example the dummy service `caster` depends on `icecast`. This is
 expressed in the service script of `caster` as follows:
 
     #!/bin/sh
-    sv start icecast || exit 1
+    sv start ../icecast || exit 1
     ...
 
-This ensures `icecast` to have started before `caster`. Here note that the
-service name is specified without service directory path. To support this
-`SVDIR` needs be set in the supervisor process.
+This ensures `icecast` to have started before `caster`.
 
 See: http://smarden.org/runit/faq.html#depends
 
@@ -43,15 +41,13 @@ See: http://smarden.org/runit/faq.html#depends
 
 Use user's crontab to let supervisors start at boot time:
 
-    SVDIR=/home/vagrant/service
-    @reboot runsvdir $SVDIR
-
-Note the `SVDIR` environment variable. This is not required to just launch
-`svdir`s but it makes the life easier when specifying dependencies as shown
-above.
+    @reboot runsvdir ~/service
 
 Execute the same command in a fresh tmux session and detach the session to
 launch supervisors without actual reboot.
+
+Note: The example above discards any error messages from `runsvdir`. Maybe the
+output should be piped to `svlogd` and logged somewhere.
 
 ## Service management
 

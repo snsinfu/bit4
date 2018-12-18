@@ -1,2 +1,1 @@
-SVDIR=/home/vagrant/service
-@reboot runsvdir $SVDIR
+@reboot runsvdir ~/service
