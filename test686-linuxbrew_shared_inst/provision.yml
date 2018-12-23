@@ -1,0 +1,88 @@
+- hosts: all
+  tasks:
+    #
+    # System-level tasks
+    #
+    - name: linuxbrew system requirements are set up
+      become: yes
+      become_user: root
+      block:
+        - name: linuxbrew requirements are installed
+          yum:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - "@Development Tools"
+            - curl
+            - file
+            - git
+
+        # We will allow group members to run brew command.
+        - name: linuxbrew group is present
+          group:
+            name: linuxbrew
+            state: present
+
+        - name: linuxbrew group member can brew via sudo
+          copy:
+            content: |
+              %linuxbrew,!linuxbrew ALL=(linuxbrew) NOPASSWD: /bin/bash -c brew
+              %linuxbrew,!linuxbrew ALL=(linuxbrew) NOPASSWD: /bin/bash -c brew *
+            dest: /etc/sudoers.d/linuxbrew
+
+        # Linuxbrew is installed as "linuxbrew" user. This will enable bottles
+        # built by the linuxbrew project.
+        - name: linuxbrew user is present
+          user:
+            name: linuxbrew
+            group: linuxbrew
+            state: present
+            create_home: yes
+
+        # Linuxbrew binaries are installed with 0555 mode. However, linuxbrew's
+        # home directory must also allow reading by other users to actually
+        # allow the binaries to be executable by other users. See [1].
+        #
+        # [1]: https://unix.stackexchange.com/a/150062/136627
+        - name: linuxbrew user's home directory is accessible by others
+          file:
+            path: /home/linuxbrew
+            state: directory
+            owner: linuxbrew
+            group: linuxbrew
+            mode: 0755
+
+    #
+    # Linuxbrew user-level tasks
+    #
+    - name: linuxbrew is set up for the linuxbrew user
+      become: yes
+      become_user: linuxbrew
+      block:
+        - name: linuxbrew is installed
+          shell: |
+            curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh | sh
+          args:
+            creates: /home/linuxbrew/.linuxbrew/bin/brew
+
+        - name: linuxbrew PATHs are added to linuxbrew's bash_profile
+          lineinfile:
+            path: /home/linuxbrew/.bash_profile
+            line: PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+            create: yes
+
+    #
+    # Vagrant user-level tasks
+    #
+    - name: linuxbrew is usable by the vagrant user
+      become: no
+      block:
+        - name: brew command is made to be called via sudo
+          lineinfile:
+            path: .bash_profile
+            line: alias brew="sudo -iu linuxbrew brew"
+
+        - name: linuxbrew PATHs are added to my bash_profile
+          lineinfile:
+            path: .bash_profile
+            line: PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
