@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Chromecast</title>
+
+    <link rel="stylesheet" href="index.css">
+    <script defer src="index.js"></script>
+    <script defer src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+  </head>
+  <body>
+    <h1>Chromecast</h1>
+
+    <div class="cast">
+      <label for="media-url">Media URL</label>
+      <input type="text" id="media-url">
+      <button id="connect-btn" disabled>Connect</button>
+      <button id="cast-btn" disabled>Cast</button>
+    </div>
+  </body>
+</html>

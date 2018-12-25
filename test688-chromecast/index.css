@@ -1,0 +1,60 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-size: 11pt;
+  line-height: 1.5;
+}
+
+h1 {
+  text-align: center;
+}
+
+div.cast {
+  display: block;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 8px;
+  padding-left: 108px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+}
+
+div.cast > * {
+  line-height: 1.5;
+  font-size: 11pt;
+}
+
+div.cast > label {
+  margin-left: -100px;
+  display: inline-block;
+  padding: 3px 2px;
+  float: left;
+}
+
+div.cast > input {
+  width: 100%;
+  display: block;
+  padding: 2px;
+  margin-bottom: 8px;
+  border: 1px solid #666;
+  border-radius: 3px;
+}
+
+div.cast > button {
+  width: 100px;
+  display: inline-block;
+}
+
+button {
+  border: 1px solid #666;
+  border-radius: 3px;
+  color: #222;
+  cursor: pointer;
+}
+
+button[disabled] {
+  color: #888;
+  cursor: not-allowed;
+}
