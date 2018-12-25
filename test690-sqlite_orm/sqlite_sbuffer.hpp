@@ -1,0 +1,31 @@
+#ifndef SQLITE_SBUFFER_HPP
+#define SQLITE_SBUFFER_HPP
+
+#include <msgpack.hpp>
+#include <sqlite_orm.h>
+
+
+namespace sqlite_orm
+{
+    template<>
+    struct type_printer<msgpack::sbuffer> : public blob_printer
+    {
+    };
+
+    template<>
+    struct statement_binder<msgpack::sbuffer>
+    {
+        int bind(sqlite3_stmt* stmt, int index, msgpack::sbuffer const& value)
+        {
+            return sqlite3_bind_blob(
+                stmt,
+                index,
+                value.data(),
+                static_cast<int>(value.size()),
+                SQLITE_TRANSIENT
+            );
+        }
+    };
+}
+
+#endif
