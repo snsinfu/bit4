@@ -74,3 +74,6 @@
 [submodule "deps/catchorg/Catch2"]
 	path = deps/catchorg/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "deps/fnc12/sqlite_orm"]
+	path = deps/fnc12/sqlite_orm
+	url = https://github.com/fnc12/sqlite_orm.git
