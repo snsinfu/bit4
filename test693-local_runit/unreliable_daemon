@@ -1,0 +1,13 @@
+#!/bin/sh
+
+rand() {
+    sleep 1
+    echo $(($(date +%s) % $1))
+}
+
+while [ $(rand 7) -gt 0 ]; do
+    date
+    sleep $(rand 5)
+done
+
+echo FAILED!
