@@ -223,8 +223,7 @@ namespace
             md::vec span = domain.upper_bound - domain.lower_bound;
             pt.x += uniform(random) * span.x;
             pt.y += uniform(random) * span.y;
-            pt.z += 0.5 * span.z;
-            //pt.z += uniform(random) * span.z;
+            pt.z += uniform(random) * span.z;
             return pt;
         });
 
