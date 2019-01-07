@@ -234,14 +234,16 @@ namespace
 
 int main()
 {
+    constexpr double dcut = 0.03;
+
     md::box domain{
         .lower_bound = {0, 0, 0},
         .upper_bound = {1, 1, 1}
     };
-    md::periodic_neighbor_searcher searcher{domain, 0.1};
+    md::periodic_neighbor_searcher searcher{domain, dcut};
 
     std::mt19937 random;
-    std::vector<md::vec> const points = generate_points(domain, 25, random);
+    std::vector<md::vec> const points = generate_points(domain, 3000, random);
     searcher.set_points(points);
 
     std::set<std::pair<int, int>> expected;
@@ -252,7 +254,7 @@ int main()
             r.y = std::remainder(r.y, 1);
             r.z = std::remainder(r.z, 1);
 
-            if (r.norm() < 0.1) {
+            if (r.norm() < dcut) {
                 expected.insert(std::make_pair(i, j));
             }
         }
@@ -261,7 +263,6 @@ int main()
     std::set<std::pair<int, int>> actual;
     searcher.search([&](int i, int j) {
         actual.insert(std::make_pair(i, j));
-        std::cout << i << '\t' << j << '\n';
     });
 
     if (actual == expected) {
