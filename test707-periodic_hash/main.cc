@@ -48,8 +48,8 @@ int main()
     std::vector<point> points;
 
     std::mt19937 random;
-    std::uniform_real_distribution<double> x_dist{dneigh, width - dneigh};
-    std::uniform_real_distribution<double> y_dist{dneigh, height - dneigh};
+    std::uniform_real_distribution<double> x_dist{0, width};
+    std::uniform_real_distribution<double> y_dist{0, height};
 
     std::generate_n(std::back_inserter(points), npoints, [&] {
         return point{x_dist(random), y_dist(random)};
