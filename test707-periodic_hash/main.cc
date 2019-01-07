@@ -12,33 +12,20 @@
 
 int main()
 {
-    // Broad-phase neighbor search in a 2D periodic box
-    //
-    // We divide the periodic box into a grid. We make the side of a grid cell
-    // larger than or equal to dneigh, the neighbor distance. This way, all
-    // the neighbor points of a point (center point) is contained in the cell
-    // containing the center point and its surrounding cells.
-    //
-    //  +--+--+--+--+--+--+--+
-    //  |  |  |//|//|//|  |  |
-    //  +--+--+--+--+--+--+--+
-    //  |  |  |//|**|//|  |  |    ** center point
-    //  +--+--+--+--+--+--+--+    // surrounding cells
-    //  |  |  |//|//|//|  |  |
-    //  +--+--+--+--+--+--+--+
+    // Broad-phase neighbor search in a 2D periodic box, with hashed bins
+    // instead of grid bins. Compare with test702.
 
     constexpr double width = 2;
     constexpr double height = 1;
     constexpr double dneigh = 0.07;
     constexpr std::size_t npoints = 10000;
-    constexpr std::size_t nbuckets = 392;
-    constexpr std::uint32_t x_prime = 1;
-    constexpr std::uint32_t y_prime = 28;
+    constexpr std::size_t nbuckets = 2000;
+    constexpr std::uint32_t x_prime = 860278967;
+    constexpr std::uint32_t y_prime = 817926563;
 
-    // The cells need to be uniform for our neighbor search strategy to work.
-    // However, dneigh does not always divide the box width and height. So we
-    // "round up" dneigh to a valid value. Note that the cell does not need to
-    // be square as long as the sides are not shorter than dneigh.
+    // We again utilize the concept of uniform grid cells. This time we hash
+    // cells into buckets. Hashing greatly improves performance if points are
+    // sparse or dimension is >= 3.
 
     auto const x_interval = width / std::floor(width / dneigh);
     auto const y_interval = height / std::floor(height / dneigh);
@@ -61,14 +48,18 @@ int main()
     std::vector<point> points;
 
     std::mt19937 random;
-    std::uniform_real_distribution<double> x_dist{0+dneigh, width-dneigh};
-    std::uniform_real_distribution<double> y_dist{0+dneigh, height-dneigh};
+    std::uniform_real_distribution<double> x_dist{dneigh, width - dneigh};
+    std::uniform_real_distribution<double> y_dist{dneigh, height - dneigh};
 
     std::generate_n(std::back_inserter(points), npoints, [&] {
         return point{x_dist(random), y_dist(random)};
     });
 
-    // Construct buckets.
+    // Construct buckets. Each bucket contains the indices of the points and
+    // the indices of "surrounding" buckets. Here bucket A is surrounded by
+    // bucket B when a cell in the bucket A is surrounded by one or more cells
+    // in the bucket B. We use a linear hash so that this relation is preserved
+    // on hashing.
 
     struct bucket {
         std::vector<std::size_t> members;
@@ -76,7 +67,7 @@ int main()
     };
     std::vector<bucket> buckets(nbuckets);
 
-    auto const hash_coords = [=](int x, int y) {
+    auto const linear_hash = [=](int x, int y) {
         std::uint64_t hash = 0;
         hash += std::uint64_t(x) * x_prime;
         hash += std::uint64_t(y) * y_prime;
@@ -87,15 +78,26 @@ int main()
     for (std::size_t bucket_index = 0; bucket_index < nbuckets; bucket_index++) {
         std::set<std::size_t> neighbors;
 
-        for (int const dx : {-1, 0, 1}) {
-            for (int const dy : {-1, 0, 1}) {
-                auto const hx = (dx + x_cells) % x_cells;
-                auto const hy = (dy + y_cells) % y_cells;
-                neighbors.insert((bucket_index + hash_coords(hx, hy)) % nbuckets);
+        for (int const dx : {int(nbuckets) - 1, 0, 1}) {
+            for (int const dy : {int(nbuckets) - 1, 0, 1}) {
+                neighbors.insert((bucket_index + linear_hash(dx, dy)) % nbuckets);
             }
         }
 
         buckets[bucket_index].neighbors.assign(neighbors.begin(), neighbors.end());
+    }
+
+    // Validate symmetry of the neighborhood relation.
+
+    for (std::size_t bucket_index = 0; bucket_index < nbuckets; bucket_index++) {
+        for (std::size_t neighbor_index : buckets[bucket_index].neighbors) {
+            auto const it = std::find(
+                buckets[neighbor_index].neighbors.begin(),
+                buckets[neighbor_index].neighbors.end(),
+                bucket_index
+            );
+            assert(it != buckets[neighbor_index].neighbors.end());
+        }
     }
 
     // Assign points to the buckets.
@@ -107,7 +109,7 @@ int main()
     for (std::size_t point_index = 0; point_index < points.size(); point_index++) {
         auto const x = truncate(points[point_index].x / x_interval);
         auto const y = truncate(points[point_index].y / y_interval);
-        auto const bucket_index = hash_coords(x, y);
+        auto const bucket_index = linear_hash(x, y);
         buckets[bucket_index].members.push_back(point_index);
     }
 
@@ -129,18 +131,8 @@ int main()
 
             for (auto const i : bucket.members) {
                 for (auto const j : neighbor.members) {
-                    //// Prevent double counting by enforcing i < j.
-                    //if (i >= j) {
-                    //    continue;
-                    //}
-                    //assert(i < j);
-                    if (i == j) {
-                        continue;
-                    }
-
-                    if (distance(points[i], points[j]) < dneigh) {
-                        // found_pairs.emplace(i, j);
-                        found_pairs.emplace(std::min(i, j), std::max(i, j));
+                    if (i < j && distance(points[i], points[j]) < dneigh) {
+                        found_pairs.emplace(i, j);
                     }
                 }
             }
@@ -153,9 +145,9 @@ int main()
 
     std::set<std::pair<std::size_t, std::size_t>> expected_pairs;
 
-    for (std::size_t j = 0; j < points.size(); j++) {
-        for (std::size_t i = 0; i < j; i++) {
-            if (distance(points[i], points[j]) < dneigh) {
+    for (std::size_t i = 0; i < points.size(); i++) {
+        for (std::size_t j = 0; j < points.size(); j++) {
+            if (i < j && distance(points[i], points[j]) < dneigh) {
                 expected_pairs.emplace(i, j);
             }
         }
