@@ -1,7 +1,7 @@
 Perf results with full core usage (full module usage for Bulldozer system):
 
 | CPU                 | Arch      | Time    | Frequency  | IPC  |
-+---------------------+-----------+---------+------------+------+
+| ------------------- | --------- | ------- | ---------- | ---- |
 | Xeon E3-1226 v3     | Haswell   |  68.0 s | 3.492 GHz  | 1.07 |
 | Xeon E5-2687W v3    | Haswell   |  44.6 s | 3.959 GHz  | 1.43 |
 | Xeon E5-2687W v4    | Broadwell |  61.0 s | 3.156 GHz  | 1.31 |
