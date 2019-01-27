@@ -1,0 +1,82 @@
+- hosts: all
+  become: yes
+
+  tasks:
+
+    # Install Docker
+    # https://docs.docker.com/install/linux/docker-ce/debian/
+
+    - name: apt https repository requirements are installed
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - gnupg2
+          - software-properties-common
+        state: present
+
+    - name: docker repository key is registered
+      apt_key:
+        id: 9dc858229fc7dd38854ae2d88d81803c0ebfcd88
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: docker repository is registered
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: docker is installed
+      apt:
+        name: docker-ce
+        state: present
+
+    - name: docker is activated
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: docker-py is installed
+      apt:
+        name: python-docker
+        state: present
+
+    - name: vagrant user can use docker
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+
+    # Ansible 2.7: reset_connection cannot be used in handlers.
+    # https://github.com/ansible/ansible/issues/50306
+
+    - name: connection is reset to make privileges changes take effect
+      meta: reset_connection
+
+
+- hosts: all
+  become: no
+
+  tasks:
+    - name: multiuser image source is up
+      copy:
+        src: multiuser_image
+        dest: .
+        mode: preserve
+
+    - name: multiuser image is built
+      docker_image:
+        path: multiuser_image
+        name: multiuser
+
+    - name: multiuser home directory is up
+      copy:
+        src: multiuser_home
+        dest: .
+
+    - name: multiuser container startup script is up
+      copy:
+        src: start.sh
+        dest: .
+        mode: 0755
