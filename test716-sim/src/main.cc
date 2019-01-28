@@ -13,7 +13,7 @@ int main()
     simulation_config config;
 
     if (std::ifstream file{"config.json"}) {
-        config = load_simulation_config(file);
+        config = simulation_config::load_json(file);
     }
     config.validate();
 
