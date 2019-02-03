@@ -14,7 +14,6 @@
 
 using std::size_t;
 using std::uint32_t;
-using std::uint64_t;
 
 
 int main()
@@ -43,15 +42,38 @@ int main()
         return vec{x_coord(random), y_coord(random)};
     });
 
-    // Define the hash table parameters
+    // Estimate density
 
-    const auto optimal_occupancy = 5.5; // FIXME
-    const auto n_optimal_buckets = static_cast<uint32_t>(n_points / optimal_occupancy);
+    double y_mean = 0;
+    double y_meansq = 0;
+
+    for (const auto& point : points) {
+        y_mean += point.y;
+        y_meansq += point.y * point.y;
+    }
+
+    y_mean /= n_points;
+    y_meansq /= n_points;
+
+    const auto y_stddev = std::sqrt(y_meansq - y_mean * y_mean);
+    const auto est_y_span = 3 * y_stddev;
+    const auto est_density = n_points / (x_span * est_y_span);
+
+    // Define the hash table parameters
 
     const auto x_bins = fasttrunc_uint(x_span / dcut);
     const auto x_dcut = x_span / static_cast<double>(x_bins);
     const auto y_dcut = dcut;
-    const auto y_bins = (n_optimal_buckets + x_bins - 1) / x_bins;
+
+    const auto min_occupancy = 5.0; // Too small occupancy degrades performance
+    const auto est_occupancy = est_density * x_dcut * y_dcut;
+    const auto plan_occupancy = std::max(est_occupancy, min_occupancy);
+
+    const auto plan_n_buckets = static_cast<uint32_t>(n_points / plan_occupancy);
+    const auto y_bins = (plan_n_buckets + x_bins - 1) / x_bins;
+
+    std::clog << "est_occupancy: " << est_occupancy << '\n';
+    std::clog << "plan_occupancy: " << plan_occupancy << '\n';
 
     const auto n_buckets = x_bins * y_bins;
 
@@ -95,13 +117,20 @@ int main()
         buckets[bucket_index].members.push_back({point, index});
     }
 
-    std::cout << "\noccupancy:\n";
+    std::clog << "\noccupancy:\n";
 
     int col = 0;
     for (const auto& bucket : buckets) {
-        std::cout << bucket.members.size() << "\t\n"[++col % 8 == 0];
+        std::clog << bucket.members.size() << "\t\n"[++col % 8 == 0];
     }
     if (col % 8 != 0) {
-        std::cout << '\n';
+        std::clog << '\n';
     }
+
+    double mean_occupancy = 0;
+    for (const auto& bucket : buckets) {
+        mean_occupancy += static_cast<double>(bucket.members.size());
+    }
+    mean_occupancy /= n_buckets;
+    std::clog << "\nmean_occupancy: " << mean_occupancy << '\n';
 }
