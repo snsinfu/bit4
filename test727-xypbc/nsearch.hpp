@@ -10,7 +10,8 @@
 #include <cstdint>
 #include <vector>
 
-#include <point.hpp>
+#include "array_view.hpp"
+#include "point.hpp"
 
 
 namespace detail
@@ -97,7 +98,7 @@ namespace detail
     }
 
     // Computes the standard deviation of points over each axis.
-    inline cxx::vector stddev_points(const std::vector<cxx::point>& points)
+    inline cxx::vector stddev_points(cxx::array_view<const cxx::point> points)
     {
         cxx::vector mean;
         cxx::vector mean_sq;
@@ -133,7 +134,7 @@ public:
     using index_type = std::uint32_t;
 
     xy_periodic_neighbor_searcher(
-        const std::vector<cxx::point>& points, double dcut, cxx::vector period
+        cxx::array_view<const cxx::point> points, double dcut, cxx::vector period
     )
     : dcut_{dcut}, period_{period}
     {
@@ -173,7 +174,7 @@ private:
 
     // Initializes periodic bin layout based on dcut_ and peroid_ members and
     // point distribution.
-    void init_bins(const std::vector<cxx::point>& points)
+    void init_bins(cxx::array_view<const cxx::point> points)
     {
         x_bins_ = detail::define_bins(period_.x, dcut_);
         y_bins_ = detail::define_bins(period_.y, dcut_);
@@ -181,7 +182,7 @@ private:
     }
 
     // Estimates the optimal binning of z axis based on point distribution.
-    detail::bin_layout estimate_z_bins(const std::vector<cxx::point>& points)
+    detail::bin_layout estimate_z_bins(cxx::array_view<const cxx::point> points)
     {
         constexpr double min_bin_occupancy = 4.0;
         constexpr double span_per_stddev = 3.5;
@@ -246,7 +247,7 @@ private:
     }
 
     // Assigns points to buckets.
-    void assign_points(const std::vector<cxx::point>& points)
+    void assign_points(cxx::array_view<const cxx::point> points)
     {
         for (index_type index = 0; index < points.size(); index++) {
             const auto point = points[index];
@@ -322,7 +323,7 @@ public:
         return neighbors_.end();
     }
 
-    void update(const std::vector<cxx::point>& points)
+    void update(cxx::array_view<const cxx::point> points)
     {
         if (!check_consistency(points)) {
             rebuild(points);
@@ -330,7 +331,7 @@ public:
     }
 
 private:
-    bool check_consistency(const std::vector<cxx::point>& points) const
+    bool check_consistency(cxx::array_view<const cxx::point> points) const
     {
         if (points.size() != prev_points_.size()) {
             return false;
@@ -355,7 +356,7 @@ private:
         return true;
     }
 
-    void rebuild(const std::vector<cxx::point>& points)
+    void rebuild(cxx::array_view<const cxx::point> points)
     {
         // Heuristic: 1.2 gives fairly good performance.
         constexpr double skin_factor = 1.2;

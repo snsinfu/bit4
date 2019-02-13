@@ -32,4 +32,4 @@ clean:
 main: main.cc
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ main.cc
 
-main: nsearch.hpp
+main: array_view.hpp nsearch.hpp point.hpp
