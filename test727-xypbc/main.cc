@@ -42,14 +42,14 @@ int main()
 {
     using std::uint32_t;
 
-    const uint32_t n_points = 10000;
-    const cxx::vector period = {1.0, 2.3, 0};
-    const double dcut = 0.13;
+    const uint32_t n_points = 4000;
+    const cxx::vector period = {4.5, 1.5, 0};
+    const double dcut = 0.3;
 
     std::vector<cxx::point> points;
     std::mt19937 random;
     std::generate_n(std::back_inserter(points), n_points, [&] {
-        std::uniform_real_distribution<double> coord{-2.4, 4.5};
+        std::uniform_real_distribution<double> coord{0, 13.5};
         return cxx::point{coord(random), coord(random), coord(random)};
     });
 
