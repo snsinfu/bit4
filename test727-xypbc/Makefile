@@ -28,3 +28,8 @@ run: main
 
 clean:
 	rm -f $(ARTIFACTS)
+
+main: main.cc
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -o $@ main.cc
+
+main: nsearch.hpp
