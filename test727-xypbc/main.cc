@@ -8,9 +8,8 @@
 #include <utility>
 #include <vector>
 
-#include <point.hpp>
-
 #include "nsearch.hpp"
+#include "point.hpp"
 
 
 struct pair_hash
@@ -31,10 +30,12 @@ double timeit(Op op)
 {
     using clock = std::chrono::steady_clock;
     const auto start = clock::now();
-    op();
+    for (int i = 0; i < 100; i++) {
+        op();
+    }
     const auto end = clock::now();
     const auto time = end - start;
-    return std::chrono::duration_cast<std::chrono::duration<double>>(time).count();
+    return std::chrono::duration_cast<std::chrono::duration<double>>(time).count() / 100;
 }
 
 
