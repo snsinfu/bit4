@@ -1,0 +1,52 @@
+\documentclass[main.tex]{subfiles}
+\begin{document}
+\section{Methods}
+
+\subsection{Lorem ipsum}
+
+Dolor sit amet\cite{LoremIpsum2018}.
+
+\begin{align}
+    p\left(x \mid \alpha, \beta \right)
+     & = \frac{
+             1
+         }{
+             B(\alpha, \beta)
+         }
+         x^{\alpha - 1} {(1 - x)}^{\beta - 1}
+    \\
+    \log p\left(x \mid \alpha, \beta \right)
+     & = - \log B(\alpha, \beta)
+       + (\alpha - 1) \log x
+       + (\beta - 1) \log (1 - x)
+\end{align}
+
+\subsection{Lorem ipsum}
+
+Dolor sit amet.
+
+\begin{table}[H]
+    \centering
+
+    \begin{tabular}{cccc}
+        \hline
+        X & a & b & c \tabularnewline
+        \hline
+        \hline
+        A & 1 & 2 & 3 \tabularnewline
+        B & 4 & 5 & 6 \tabularnewline
+        C & 7 & 8 & 9 \tabularnewline
+        \hline
+    \end{tabular}
+
+    \caption{Dolor sit amet.}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \subfloat[]{\includegraphics[width=0.5\textwidth]{ipsum.pdf}}
+    \subfloat[]{\includegraphics[width=0.3\textwidth]{ipsum.pdf}}
+    \caption{Lorem ipsum.}
+\end{figure}
+
+\end{document}

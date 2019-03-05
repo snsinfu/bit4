@@ -1,0 +1,51 @@
+\RequirePackage[l2tabu, orthodox]{nag}
+\RequirePackage[all, warning]{onlyamsmath}
+
+\documentclass[a4j, uplatex]{jsarticle}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[backend=biber, sorting=none, style=ieee]{biblatex}
+\usepackage{bm}
+\usepackage{float}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{numprint}
+\usepackage{siunitx}
+\usepackage{subfig}
+\usepackage{subfiles}
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+\addbibresource{references.bib}
+
+\begin{document}
+
+\title{Lorem ipsum}
+\author{dolor sit amet}
+\date{2018-02-28}
+\maketitle
+
+\begin{abstract}
+Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+\end{abstract}
+
+\tableofcontents
+
+\newpage\subfile{introduction}
+\newpage\subfile{methods}
+\newpage\subfile{results}
+\newpage\subfile{discussions}
+\newpage\subfile{conclusion}
+\newpage\printbibliography[title=References]
+
+\newpage
+\appendix
+\begin{refsection}
+\subfile{appendix}
+\printbibliography[title=References]
+\end{refsection}
+
+\end{document}
