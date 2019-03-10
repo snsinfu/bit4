@@ -22,7 +22,7 @@ def main():
     net = L.Activation("tanh")(net)
 
     net = AttachClock(clock_dim)(net)
-    net = Attention(keys=5, values=5, heads=5)(net)
+    net = Attention(keys=16, values=4, heads=5)(net)
 
     net = L.Flatten()(net)
     net = L.Dense(10)(net)
