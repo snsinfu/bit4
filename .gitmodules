@@ -77,3 +77,6 @@
 [submodule "deps/fnc12/sqlite_orm"]
 	path = deps/fnc12/sqlite_orm
 	url = https://github.com/fnc12/sqlite_orm.git
+[submodule "deps/micromd"]
+	path = deps/micromd
+	url = https://github.com/snsinfu/micromd.git
