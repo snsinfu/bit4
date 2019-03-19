@@ -19,7 +19,7 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("weights", type=str, default="weights.h5")
+    parser.add_argument("weights", type=str, nargs="?", default="weights.h5")
     return vars(parser.parse_args())
 
 
