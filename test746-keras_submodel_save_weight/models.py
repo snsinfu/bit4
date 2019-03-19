@@ -16,10 +16,13 @@ class IntClassifier(keras.Model):
         self.frontend_inner_dense = L.Dense(inner_dim)
         self.frontend_activation = L.ReLU()
         self.frontend_outer_dense = L.Dense(hidden_dim)
+        self.frontend_batchnorm = L.BatchNormalization()
+
         self.res_modules = [
             ResidualFC(hidden_dim, inner_dim, dropout=dropout)
             for _ in range(hidden_stacks)
         ]
+
         self.output_layer = L.Dense(classes, activation="sigmoid")
 
     def call(self, inputs):
@@ -28,6 +31,7 @@ class IntClassifier(keras.Model):
         net = self.frontend_inner_dense(net)
         net = self.frontend_activation(net)
         net = self.frontend_outer_dense(net)
+        net = self.frontend_batchnorm(net)
 
         for res_module in self.res_modules:
             net = res_module(net)
