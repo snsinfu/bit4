@@ -41,6 +41,8 @@ def test_model(model):
     numbers = [1000, 1200, 2000, 2004, 2006, 2019, 2020, 2100, 2400]
     X_test = np.array([encode_binary(n, bits=integer_bits) for n in numbers])
     y_pred = model.predict(X_test)
+
+    print("n\tpred\ttrue")
     for n, p in zip(numbers, y_pred):
         print(f"{n}\t{np.argmax(p)}\t{compute_year_label(n)}")
 
