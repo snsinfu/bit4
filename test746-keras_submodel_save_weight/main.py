@@ -25,15 +25,11 @@ def parse_args():
 def run(weights):
     model = IntClassifier(classes=4, hidden_dim=30, hidden_stacks=3, dropout=0.5)
 
-    try:
+    if os.access(weights, mode=os.R_OK):
         # call() is required to build layers before loading weights.
         model.call(L.Input((integer_bits,)))
         model.load_weights(weights)
-        trained = True
-    except OSError:
-        trained = False
-
-    if not trained:
+    else:
         train_leap_year(model)
         model.save_weights(weights)
 
