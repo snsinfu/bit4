@@ -23,6 +23,11 @@ use Mix.Config
 
 config :login_app, default_port: 4000
 config :login_app, server_signature: "LoginApp"
+config :login_app, session_encryption_salt: "jBEo0YbfPf2Q2SQnub+XdreU"
+config :login_app, session_signing_salt: "O7giw/AV+txqHtFby7UkFeWR"
+
+config :login_app,
+  session_secret: "SsAeottSXieSUhG9j1XNNMUkuvqHClyurR2+zGfhYpb5MZEHuQA1JLgY9SAjzT06"
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
