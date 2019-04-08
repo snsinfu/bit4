@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Signup</title>
+  </head>
+  <body>
+    <h1>Signup</h1>
+
+    <form method="post" action="/signup">
+      <input type="hidden" name="_csrf_token" value="<%= csrf_token %>">
+      <label for="username">Username</label>
+      <input type="text" name="username" value="">
+      <label for="password">Password</label>
+      <input type="password" name="password" value="">
+      <input type="submit" value="Signup">
+    </form>
+  </body>
+</html>

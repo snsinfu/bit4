@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home</title>
+  </head>
+  <body>
+    <h1>Home</h1>
+    <%= if Map.has_key?(session, "username") do %>
+    <p>You are <%= session["username"] %>.</p>
+    <p><a href="/logout">Logout</a></p>
+    <% else %>
+    <p><a href="/login">Login</a> | <a href="/signup">Signup</a></p>
+    <% end %>
+  </body>
+</html>
