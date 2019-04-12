@@ -7,6 +7,9 @@ def main():
     with tables.open_file("a.h5", mode="w") as store:
         build(store)
 
+    with tables.open_file("a.h5") as store:
+        read(store)
+
 
 def build(store):
     features = np.random.randint(12345, size=(10000, 3))
@@ -33,6 +36,17 @@ def build(store):
 
     features_store[:] = features
     label_store[:] = label
+
+
+def read(store):
+    features = store.get_node("/foo/bar/features")
+    label = store.get_node("/foo/bar/label")
+    indices = np.arange(features.shape[0])
+
+    selected_indices = indices[label[:] == 0]
+    selected_data = features[selected_indices, :]
+    print(type(selected_data))  # In-memory ndarray. Beware the size!
+    print(selected_data.shape)
 
 
 if __name__ == "__main__":
