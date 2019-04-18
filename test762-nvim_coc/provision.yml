@@ -1,0 +1,56 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: yarn apt repository key is added
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+    - name: yarn apt repository is added
+      apt_repository:
+        repo: deb https://dl.yarnpkg.com/debian/ stable main
+        state: present
+
+    - name: coc requirements are installed
+      apt:
+        name:
+          - nodejs
+          - yarn
+        state: present
+
+    # ccls looks better but it is cumbersome to build ccls on Ubuntu 18.04
+    - name: clangd is installed
+      apt:
+        name: clang-tools
+        state: present
+
+
+- hosts: all
+  become: no
+  tasks:
+    - name: bin directory is created
+      file:
+        name: bin
+        state: directory
+
+    - name: neovim nightly build is installed
+      get_url:
+        url: https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage
+        dest: bin/nvim
+        mode: 0500
+
+    - name: neovim config directory is present
+      file:
+        name: .config/nvim
+        state: directory
+        recurse: yes
+
+    - name: neovim config is up
+      copy:
+        src: init.vim
+        dest: .config/nvim/
+
+    - name: coc config is up
+      copy:
+        src: coc-settings.json
+        dest: .config/nvim/
