@@ -18,7 +18,7 @@ def main():
     model = keras.Sequential()
     model.add(L.Dense(10, activation="elu", input_dim=2))
     model.add(L.Dense(1, activation="sigmoid"))
-    model.compile(loss="binary_crossentropy", optimizer=keras.optimizers.Adam(lr=0.01))
+    model.compile(loss="binary_crossentropy", optimizer=keras.optimizers.Adam(lr=0.01), metrics=["accuracy"])
 
     trainer = Trainer(
         model,
@@ -85,10 +85,7 @@ class Trainer:
         self._callback_list.on_epoch_begin(self._epoch)
         epoch_logs = {}
 
-        if isinstance(X, (list, tuple)):
-            sample_size = len(X[0])
-        else:
-            sample_size = len(X)
+        sample_size = sizeof_input(X)
         batch_size = (sample_size + self._steps_per_epoch - 1) // self._steps_per_epoch
 
         for step in range(self._steps_per_epoch):
@@ -97,15 +94,15 @@ class Trainer:
 
             beg = step * batch_size
             end = min(beg + batch_size, sample_size)
-            batch_X = slice_batch(X, beg, end)
+            batch_X = slice_input(X, beg, end)
             if y is None:
                 batch_y = None
             else:
-                batch_y = slice_batch(y, beg, end)
+                batch_y = slice_input(y, beg, end)
 
-            # TODO: Handle multiple outputs and metrics.
-            loss = self._model.train_on_batch(batch_X, batch_y)
-            batch_logs["loss"] = loss
+            scalar_outputs = self._model.train_on_batch(batch_X, batch_y)
+            metrics = make_metrics_dict(self._model, scalar_outputs)
+            batch_logs.update(metrics)
 
             self._callback_list.on_batch_end(step, batch_logs)
 
@@ -127,10 +124,26 @@ class Trainer:
         return self._history.history
 
 
-def slice_batch(data, beg, end):
+def sizeof_input(data):
+    if isinstance(data, (list, tuple)):
+        sample_size = len(data[0])
+    else:
+        sample_size = len(data)
+    return sample_size
+
+
+def slice_input(data, beg, end):
     if isinstance(data, (list, tuple)):
         return [subdata[beg:end] for subdata in data]
     return data[beg:end]
+
+
+def make_metrics_dict(model, scalar_outputs):
+    if isinstance(scalar_outputs, list):
+        return dict(zip(model.metrics_names, scalar_outputs))
+    else:
+        name = model.metrics_names[0]
+        return {name: scalar_outputs}
 
 
 if __name__ == "__main__":
