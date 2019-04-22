@@ -28,11 +28,12 @@ def experiment_single_output():
 
     X = np.random.uniform(-3, 3, size=(10000, 2))
     y = X[:, 0] < X[:, 1]
-    loss = model.train_on_batch(X, y)
-    name, = model.metrics_names
+    scalar_outputs = model.train_on_batch(X, y)
+    metrics = make_metrics_dict(model, scalar_outputs)
 
     print("Single output")
-    print(f"{name}\t{loss:.3g}")
+    for name, value in metrics.items():
+        print(f"{name}\t{value:.3g}")
     print("")
 
 
@@ -44,10 +45,11 @@ def experiment_single_output_with_metric():
 
     X = np.random.uniform(-3, 3, size=(10000, 2))
     y = X[:, 0] < X[:, 1]
-    metric_outputs = model.train_on_batch(X, y)
+    scalar_outputs = model.train_on_batch(X, y)
+    metrics = make_metrics_dict(model, scalar_outputs)
 
-    print("Single output with metric")
-    for name, value in zip(model.metrics_names, metric_outputs):
+    print("Single output")
+    for name, value in metrics.items():
         print(f"{name}\t{value:.3g}")
     print("")
 
@@ -64,12 +66,21 @@ def experiment_multiple_outputs():
     X = np.random.uniform(-3, 3, size=(10000, 2))
     y1 = X[:, 0] < X[:, 1]
     y2 = X[:, 0] > X[:, 1]
-    metric_outputs = model.train_on_batch(X, [y1, y2])
+    scalar_outputs = model.train_on_batch(X, [y1, y2])
+    metrics = make_metrics_dict(model, scalar_outputs)
 
     print("Multiple outputs")
-    for name, value in zip(model.metrics_names, metric_outputs):
+    for name, value in metrics.items():
         print(f"{name}\t{value:.3g}")
     print("")
+
+
+def make_metrics_dict(model, scalar_outputs):
+    if isinstance(scalar_outputs, list):
+        return dict(zip(model.metrics_names, scalar_outputs))
+    else:
+        name = model.metrics_names[0]
+        return {name: scalar_outputs}
 
 
 if __name__ == "__main__":
