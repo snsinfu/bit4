@@ -30,7 +30,7 @@ def main():
     for epoch in trainer.epochs(10):
         X = np.random.uniform(-3, 3, size=(10000, 2))
         y = X[:, 0] < X[:, 1]
-        trainer.train(X, y)
+        trainer.train([X], [y])
 
     print(trainer.history)
 
@@ -85,19 +85,23 @@ class Trainer:
         self._callback_list.on_epoch_begin(self._epoch)
         epoch_logs = {}
 
-        batch_size = (len(X) + self._steps_per_epoch - 1) // self._steps_per_epoch
+        if isinstance(X, (list, tuple)):
+            sample_size = len(X[0])
+        else:
+            sample_size = len(X)
+        batch_size = (sample_size + self._steps_per_epoch - 1) // self._steps_per_epoch
 
         for step in range(self._steps_per_epoch):
             batch_logs = {"batch": step, "size": 1}
             self._callback_list.on_batch_begin(step, batch_logs)
 
             beg = step * batch_size
-            end = min(beg + batch_size, len(X))
-            batch_X = X[beg:end]
+            end = min(beg + batch_size, sample_size)
+            batch_X = slice_batch(X, beg, end)
             if y is None:
                 batch_y = None
             else:
-                batch_y = y[beg:end]
+                batch_y = slice_batch(y, beg, end)
 
             # TODO: Handle multiple outputs and metrics.
             loss = self._model.train_on_batch(batch_X, batch_y)
@@ -121,6 +125,12 @@ class Trainer:
     @property
     def history(self):
         return self._history.history
+
+
+def slice_batch(data, beg, end):
+    if isinstance(data, (list, tuple)):
+        return [subdata[beg:end] for subdata in data]
+    return data[beg:end]
 
 
 if __name__ == "__main__":
