@@ -115,7 +115,13 @@ class Trainer:
             self._callback_list.on_batch_end(step, batch_logs)
 
         if self._validation_data:
-            valid_metrics = self.eval_validation(batch_size)
+            if y is None:
+                valid_X = self._validation_data
+                valid_y = None
+            else:
+                valid_X, valid_y = self._validation_data
+            valid_metrics = self.test(valid_X, valid_y, batch_size)
+            valid_metrics = {f"val_{name}": val for name, val in valid_metrics.items()}
             epoch_logs.update(valid_metrics)
 
         # CallbackList replaces empty logs argument by a new local dict, rendering
@@ -129,34 +135,27 @@ class Trainer:
 
         return epoch_logs
 
-    def eval_validation(self, batch_size):
-        if isinstance(self._validation_data, tuple):
-            valid_X, valid_y = self._validation_data
-        else:
-            valid_X = self._validation_data
-            valid_y = None
-        valid_batches = generate_batches(valid_X, valid_y, batch_size)
-
+    def test(self, X, y=None, batch_size=32):
         steps = 0
-        valid_metrics = {}
+        test_metrics = {}
+        test_batches = generate_batches(X, y, batch_size)
 
-        for batch_X, batch_y in valid_batches:
+        for batch_X, batch_y in test_batches:
             scalar_outputs = self._model.test_on_batch(batch_X, batch_y)
             metrics = make_metrics_dict(self._model, scalar_outputs)
-            metrics = {f"val_{name}": val for name, val in metrics.items()}
 
-            if valid_metrics:
-                valid_metrics = {
-                    name: metrics[name] + valid_metrics[name] for name in metrics
+            if test_metrics:
+                test_metrics = {
+                    name: metrics[name] + test_metrics[name] for name in metrics
                 }
             else:
-                valid_metrics = metrics
+                test_metrics = metrics
             steps += 1
 
-        for name in valid_metrics:
-            valid_metrics[name] = valid_metrics[name] / steps
+        for name in test_metrics:
+            test_metrics[name] = test_metrics[name] / steps
 
-        return valid_metrics
+        return test_metrics
 
     @property
     def history(self):
