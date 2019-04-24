@@ -67,7 +67,6 @@ class Trainer:
         return do_training()
 
     def start(self, epochs):
-
         metrics_names = self._model.metrics_names
         if self._validation_data is not None:
             metrics_names.extend([f"val_{name}" for name in metrics_names])
@@ -115,34 +114,8 @@ class Trainer:
 
             self._callback_list.on_batch_end(step, batch_logs)
 
-        # Validation
         if self._validation_data:
-            if y is None:
-                valid_X = self._validation_data
-                valid_y = None
-            else:
-                valid_X, valid_y = self._validation_data
-            valid_batches = generate_batches(valid_X, valid_y, batch_size)
-
-            steps = 0
-            valid_metrics = {}
-
-            for step, (batch_X, batch_y) in enumerate(valid_batches):
-                scalar_outputs = self._model.test_on_batch(batch_X, batch_y)
-                metrics = make_metrics_dict(self._model, scalar_outputs)
-                metrics = {f"val_{name}": val for name, val in metrics.items()}
-
-                if step == 0:
-                    valid_metrics = metrics
-                else:
-                    valid_metrics = {
-                        name: metrics[name] + valid_metrics[name] for name in metrics
-                    }
-                steps += 1
-
-            for name in valid_metrics:
-                valid_metrics[name] = valid_metrics[name] / steps
-
+            valid_metrics = self.eval_validation(batch_size)
             epoch_logs.update(valid_metrics)
 
         # CallbackList replaces empty logs argument by a new local dict, rendering
@@ -155,6 +128,35 @@ class Trainer:
         self._epoch += 1
 
         return epoch_logs
+
+    def eval_validation(self, batch_size):
+        if isinstance(self._validation_data, tuple):
+            valid_X, valid_y = self._validation_data
+        else:
+            valid_X = self._validation_data
+            valid_y = None
+        valid_batches = generate_batches(valid_X, valid_y, batch_size)
+
+        steps = 0
+        valid_metrics = {}
+
+        for batch_X, batch_y in valid_batches:
+            scalar_outputs = self._model.test_on_batch(batch_X, batch_y)
+            metrics = make_metrics_dict(self._model, scalar_outputs)
+            metrics = {f"val_{name}": val for name, val in metrics.items()}
+
+            if valid_metrics:
+                valid_metrics = {
+                    name: metrics[name] + valid_metrics[name] for name in metrics
+                }
+            else:
+                valid_metrics = metrics
+            steps += 1
+
+        for name in valid_metrics:
+            valid_metrics[name] = valid_metrics[name] / steps
+
+        return valid_metrics
 
     @property
     def history(self):
