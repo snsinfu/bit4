@@ -45,13 +45,14 @@ def make_metrics_dict(model, scalar_outputs):
 
 
 class Trainer:
-    def __init__(self, model, steps_per_epoch, callbacks=None, **kwargs):
+    def __init__(
+        self, model, steps_per_epoch, validation_data=None, callbacks=None, **kwargs
+    ):
         self._model = model
         self._steps_per_epoch = steps_per_epoch
+        self._validation_data = validation_data
         self._callbacks = callbacks or []
         self._extra_params = kwargs
-
-        # TODO: Take validation data as argument.
 
     def epochs(self, epochs):
         def do_training():
@@ -66,10 +67,15 @@ class Trainer:
         return do_training()
 
     def start(self, epochs):
+
+        metrics_names = self._model.metrics_names
+        if self._validation_data is not None:
+            metrics_names.extend([f"val_{name}" for name in metrics_names])
+
         train_params = {
             "epochs": epochs,
             "steps": self._steps_per_epoch,
-            "metrics": self._model.metrics_names,
+            "metrics": metrics_names,
         }
         train_params.update(self._extra_params)
 
@@ -97,9 +103,9 @@ class Trainer:
 
         sample_size = sizeof_dataset(X)
         batch_size = (sample_size + self._steps_per_epoch - 1) // self._steps_per_epoch
-        batches = generate_batches(X, y, batch_size)
+        train_batches = generate_batches(X, y, batch_size)
 
-        for step, (batch_X, batch_y) in enumerate(batches):
+        for step, (batch_X, batch_y) in enumerate(train_batches):
             batch_logs = {"batch": step, "size": 1}
             self._callback_list.on_batch_begin(step, batch_logs)
 
@@ -109,13 +115,41 @@ class Trainer:
 
             self._callback_list.on_batch_end(step, batch_logs)
 
+        # Validation
+        if self._validation_data:
+            if y is None:
+                valid_X = self._validation_data
+                valid_y = None
+            else:
+                valid_X, valid_y = self._validation_data
+            valid_batches = generate_batches(valid_X, valid_y, batch_size)
+
+            steps = 0
+            valid_metrics = {}
+
+            for step, (batch_X, batch_y) in enumerate(valid_batches):
+                scalar_outputs = self._model.test_on_batch(batch_X, batch_y)
+                metrics = make_metrics_dict(self._model, scalar_outputs)
+                metrics = {f"val_{name}": val for name, val in metrics.items()}
+
+                if step == 0:
+                    valid_metrics = metrics
+                else:
+                    valid_metrics = {
+                        name: metrics[name] + valid_metrics[name] for name in metrics
+                    }
+                steps += 1
+
+            for name in valid_metrics:
+                valid_metrics[name] = valid_metrics[name] / steps
+
+            epoch_logs.update(valid_metrics)
+
         # CallbackList replaces empty logs argument by a new local dict, rendering
         # logs argument useless. So fill in something here. The "loss" item is filled
         # by the BaseLogger callback so let us use "loss" key. We cannot use arbitrary
         # dummy key because the History callback records everything in the dict.
         epoch_logs["loss"] = None
-
-        # TODO: Compure validation loss and metrics here.
 
         self._callback_list.on_epoch_end(self._epoch, epoch_logs)
         self._epoch += 1
