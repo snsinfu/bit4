@@ -54,3 +54,23 @@
       copy:
         src: xsession
         dest: .xsession
+
+    - name: Xdefaults is up
+      copy:
+        src: Xdefaults
+        dest: .Xdefaults
+
+    - name: awesome config directory is present
+      file:
+        path: .config/awesome
+        state: directory
+        recurse: yes
+
+    - name: awesome config files are up
+      copy:
+        src: "{{ item }}"
+        dest: .config/awesome
+      with_items:
+        - rc.lua
+        - theme.lua
+

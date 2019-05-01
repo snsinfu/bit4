@@ -1,0 +1,49 @@
+#-- font rendering ---------------------------------------------
+
+Xft.antialias:          1
+Xft.hinting:            1
+Xft.autohint:           0
+Xft.hintstyle:          hintslight
+
+#-- rxvt-unicode -----------------------------------------------
+
+# VT functionality
+URxvt*termName:         rxvt-unicode-256color
+URxvt*saveLines:        100
+URxvt*visualBell:       true
+URxvt*scrollBar:        false
+
+URxvt*iso14755:         false
+URxvt*iso14755_52:      false
+
+URxvt*internalBorder:   5
+
+# Rendering
+URxvt*font:             xft:terminal:regular:pixelsize=14
+URxvt*boldFont:         xft:terminal:bold:pixelsize=14
+URxvt*italicFont:       xft:terminal:italic:pixelsize=14
+URxvt*boldItalicFont:   xft:terminal:bold:italic:pixelsize=14
+URxvt*lineSpace:        4
+URxvt*letterSpace:      1
+
+URxvt*depth:            32
+URxvt*transparent:      false
+URxvt*background:       rgba:0080/0080/0080/aaaa
+URxvt*foreground:       #ffffff
+URxvt*cursorColor:      #808080
+URxvt*color0:           #202040
+URxvt*color1:           #ee2222
+URxvt*color2:           #22ee22
+URxvt*color3:           #eeee22
+URxvt*color4:           #4444ee
+URxvt*color5:           #ee22ee
+URxvt*color6:           #22eeee
+URxvt*color7:           #f0e0e0
+URxvt*color8:           #506060
+URxvt*color9:           #ff0000
+URxvt*color10:          #00ff00
+URxvt*color11:          #ffff00
+URxvt*color12:          #6666ff
+URxvt*color13:          #ff00ff
+URxvt*color14:          #00ffff
+URxvt*color15:          #ffffff
