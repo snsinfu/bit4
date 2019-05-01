@@ -1,0 +1,56 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: unneeded default packages are removed
+      apt:
+        name:
+          - byobu
+          - snap
+          - snapd
+          - ubuntu-advantage-tools  # commercial support
+        state: absent
+        purge: yes
+        autoremove: yes
+
+    - name: basic development and operational packages are installed
+      apt:
+        name:
+          - build-essential
+          - cmake
+          - tmux
+          - zsh
+        state: present
+
+    - name: X and basic desktop packages are installed
+      apt:
+        name:
+          - awesome
+          - fonts-liberation2
+          - rxvt-unicode
+          - xautolock
+          - xtrlock
+          - xorg
+          - xorg-dev
+        state: present
+
+
+- hosts: all
+  become: no
+  tasks:
+    - name: thingylaunch repository is cloned
+      git:
+        repo: https://github.com/gahr/thingylaunch
+        dest: thingylaunch
+        update: no
+
+    - name: thingylaunch is built and installed
+      shell: |
+        cmake . && make && mkdir -p ../bin && cp thingylaunch ../bin
+      args:
+        chdir: thingylaunch
+        creates: ../bin/thingylaunch
+
+    - name: xsession script is up
+      copy:
+        src: xsession
+        dest: .xsession

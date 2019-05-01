@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# On Debian-based system .xsession should be used instead of .xinitrc. This script
+# is exec'd at the end of Xsession.d script chain. Set IM envvars, launch default
+# programs and start window manager here.
+#
+# See:
+# - startx(1)
+# - Xsession(5)
+# - /etc/X11/xinit/xinitrc
+# - /etc/X11/Xsession.d/50x11-commondetermine-startup
+# - /etc/X11/Xsession.d/99x11-common_start
+
+xautolock -time 10 -locker "xtrlock -b" &
+awesome
