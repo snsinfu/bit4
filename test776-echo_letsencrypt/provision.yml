@@ -1,0 +1,25 @@
+- hosts: all
+  become: no
+
+  tasks:
+    - name: setcap is installed
+      apt:
+        name: libcap2-bin
+        state: present
+      become: yes
+
+    - name: server_app is up
+      copy:
+        src: _server_app
+        dest: server_app
+        mode: 0744
+
+    - name: server_app can bind to privileged port
+      command: setcap "cap_net_bind_service=+ep" server_app
+      become: yes
+
+    - name: start_server_app.bash is up
+      copy:
+        src: _start_server_app.bash
+        dest: start_server_app.bash
+        mode: 0744

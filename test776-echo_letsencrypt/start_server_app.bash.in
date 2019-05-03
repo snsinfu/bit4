@@ -1,0 +1,4 @@
+#!/bin/bash
+export LE_DOMAIN=${hostname}
+export LE_EMAIL=${email}
+./server_app
