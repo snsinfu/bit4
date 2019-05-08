@@ -1,0 +1,14 @@
+Source: hello
+Section: devel
+Priority: optional
+Maintainer: you <you@example.com>
+Standards-Version: 4.3.0.3
+Homepage: http://www.gnu.org/software/hello/
+
+Package: hello
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: GNU Hello
+ The GNU Hello program produces a familiar, friendly greeting. Yes,
+ this is another implementation of the classic program that prints
+ "Hello, world!" when you run it.

@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+
+package = hello
+tmproot = debian/tmp
+docdir = $(tmproot)/usr/share/doc/$(package)
+
+CFLAGS := $(shell dpkg-buildflags --get CFLAGS) -Wall
+LDFLAGS := $(shell dpkg-buildflags --get LDFLAGS)
+CPPFLAGS := $(shell dpkg-buildflags --get CPPFLAGS)
+
+.PHONY: build-arch build-indep binary binary-arch binary-indep clean
+
+build: build-arch build-indep
+	touch build
+
+build-arch:
+	./configure CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" --prefix=/usr
+	$(MAKE)
+
+build-indep:
+
+binary: binary-arch binary-indep
+
+binary-arch: build
+	rm -rf $(tmproot)
+	mkdir -p $(tmproot)/DEBIAN
+	mkdir -p $(docdir)
+	$(MAKE) prefix="$$(pwd)/$(tmproot)/usr" install
+	cp debian/copyright $(docdir)/copyright
+	cp debian/changelog $(docdir)/changelog.Debian
+	cp ChangeLog $(docdir)/changelog
+	rm $(tmproot)/usr/share/info/dir
+	gzip -9n $(docdir)/changelog.Debian
+	gzip -9n $(docdir)/changelog
+	gzip -9nr $(tmproot)/usr/share/info
+	gzip -9nr $(tmproot)/usr/share/man
+	strip $(tmproot)/usr/bin/hello
+	dpkg-shlibdeps $(tmproot)/usr/bin/hello
+	dpkg-gencontrol
+	dpkg --build debian/tmp ..
+
+binary-indep: build
+
+clean:
+	rm -f build
+	rm -rf debian/tmp
