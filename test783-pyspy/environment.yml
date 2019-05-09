@@ -1,0 +1,6 @@
+name: test783-pyspy
+
+dependencies:
+  - defaults::python=3.7
+  - pip:
+    - py-spy
