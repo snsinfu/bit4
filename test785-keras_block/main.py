@@ -18,7 +18,7 @@ def main():
     model.compile(
         loss="binary_crossentropy",
         optimizer=keras.optimizers.Adam(0.01),
-        metrics=["accuracy"],
+        metrics=["accuracy", "binary_crossentropy"],
     )
 
     X = np.random.uniform(-1, 1, size=(5000, 100, 2))
@@ -30,6 +30,9 @@ def main():
 
 
 # XXX: Is it really sufficient to override just [non_]trainable_weights?
+#
+# -> NO! Weight regulariaztion is not applied when nested. Overriding losses
+# property does not help. Why?
 
 class Module(L.Layer):
     def __init__(self, **kwargs):
@@ -41,6 +44,18 @@ class Module(L.Layer):
             if name not in self._tracked_layers:
                 self._tracked_layers[name] = value
         super().__setattr__(name, value)
+
+    @property
+    def losses(self):
+        l = super().losses
+        l = l + self._gather_child_attribute("losses")
+        return l
+
+    @property
+    def updates(self):
+        u = super().updates
+        u = u + self._gather_child_attribute("updates")
+        return u
 
     @property
     def trainable_weights(self):
@@ -108,7 +123,7 @@ class TCN(Module):
 
         self.filters = filters
         self.steps = LayerBlock()
-        self.steps.add(L.Dense(filters))
+        self.steps.add(L.Dense(filters, kernel_regularizer=keras.regularizers.l2(0.1)))
 
         for d in dilation_rates:
             step = LayerBlock(residual=True)
