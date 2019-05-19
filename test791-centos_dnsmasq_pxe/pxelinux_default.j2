@@ -1,0 +1,6 @@
+DEFAULT menu.c32
+
+LABEL 1
+  MENU LABEL ^Install CentOS 7
+  KERNEL images/centos7/vmlinuz
+  APPEND initrd=images/centos7/initrd.img ks=http://{{ pxe_server }}/installer/centos7/ks.cfg

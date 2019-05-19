@@ -1,0 +1,163 @@
+- hosts: all
+  become: yes
+
+  vars:
+    pxe_server: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+    iso_mirror: http://ftp.iij.ad.jp/pub/linux
+    iso_name: CentOS-7-x86_64-NetInstall-1810.iso
+    iso_hash: sha256:19d94274ef856c4dfcacb2e7cfe4be73e442a71dd65cc3fb6e46db826040b56e
+    root_password: testpassword
+
+  tasks:
+
+    # Installer disk
+
+    - name: centos installer disk image is downloaded
+      get_url:
+        url: "{{ iso_mirror }}/centos/7/isos/x86_64/{{ iso_name }}"
+        dest: "/srv/{{ iso_name }}"
+        checksum: "{{ iso_hash }}"
+
+    # Provide CentOS installer kernel via TFTP for PXE installation
+
+    - name: syslinux is installed
+      yum:
+        name: syslinux
+        state: present
+
+    - name: tftp root directory is created
+      file:
+        path: /srv/tftp
+        state: directory
+        setype: tftpdir_t
+
+    - name: syslinux pxe boot loader is copied to tftp root
+      copy:
+        src: "/usr/share/syslinux/{{ item }}"
+        dest: /srv/tftp
+        remote_src: yes
+      with_items:
+        - pxelinux.0
+        - menu.c32
+        - memdisk
+        - mboot.c32
+        - chain.c32
+        # https://wiki.centos.org/HowTos/PXE/PXE_Setup
+
+    - name: pxelinux config directory is present
+      file:
+        path: /srv/tftp/pxelinux.cfg
+        state: directory
+
+    - name: pxelinux config is up
+      template:
+        src: pxelinux_default.j2
+        dest: /srv/tftp/pxelinux.cfg/default
+
+    - name: installer kernel directory is present
+      file:
+        path: /srv/tftp/images/centos7
+        state: directory
+        recurse: yes
+
+    - name: installer kernel is copied to tftp directory
+      iso_extract:
+        image: "/srv/{{ iso_name }}"
+        files:
+          - images/pxeboot/vmlinuz
+          - images/pxeboot/initrd.img
+        dest: /srv/tftp/images/centos7
+
+    # https://docs.oracle.com/cd/E39368_01/E41137/html/ol-dnsmasq-conf.html
+    - name: tftp server may access to the tftp directory
+      sefcontext:
+        target: "/srv/tftp(/.*)?"
+        setype: tftpdir_t
+        state: present
+
+    - name: selinux file context is applied to tftp files
+      command: restorecon -Rv /srv/tftp
+      register: restorecon
+      changed_when: restorecon.stdout != ""
+
+    # Kickstart installer source
+
+    - name: www directory is created
+      file:
+        path: /srv/www
+        state: directory
+        setype: httpd_sys_content_t
+
+    - name: www installer root directory is created
+      file:
+        path: /srv/www/inst/centos7
+        state: directory
+        recurse: yes
+
+    - name: live os image is copied to installer directory
+      iso_extract:
+        image: "/srv/{{ iso_name }}"
+        files:
+          - LiveOS/squashfs.img
+        dest: /srv/www/inst/centos7
+
+    - name: kickstart config is up
+      template:
+        src: centos7_ks.cfg.j2
+        dest: /srv/www/inst/centos7/ks.cfg
+
+    # dnsmasq
+
+    - name: dnsmasq is installed
+      yum:
+        name: dnsmasq
+        state: present
+
+    - name: dnsmasq.conf is up
+      template:
+        src: dnsmasq.conf.j2
+        dest: /etc/dnsmasq.conf
+      notify:
+        - restart dnsmasq
+
+    - name: dnsmasq is activated
+      service:
+        name: dnsmasq
+        state: started
+        enabled: yes
+
+    # nginx
+
+    - name: epel is enabled
+      yum:
+        name: epel-release
+        state: present
+
+    - name: nginx is installed
+      yum:
+        name: nginx
+        state: present
+
+    - name: nginx.conf is up
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - restart nginx
+
+    - name: nginx is activated
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart dnsmasq
+      service:
+        name: dnsmasq
+        state: restarted
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted

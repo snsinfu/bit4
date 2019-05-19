@@ -1,0 +1,20 @@
+install
+liveimg --url http://{{ pxe_server }}/inst/centos7/squashfs.img
+text
+
+lang C
+timezone Asia/Tokyo --utc
+keyboard --vckeymap=us
+
+auth --enableshadow --passalgo=sha512
+rootpw --plaintext {{ root_password }}
+
+bootloader --append="nopti noibrs noibpb"
+part swap --fstype=swap --recommended
+part / --fstype=xfs --size=0 --grow
+
+reboot
+
+%packages
+%@Core
+%%end

@@ -1,0 +1,22 @@
+user             nginx;
+pid              /run/nginx.pid;
+error_log        /var/log/nginx/error.log;
+include          /usr/share/nginx/modules/*.conf;
+worker_processes auto;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include      /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    server {
+        listen 80;
+
+        location / {
+            root /srv/www;
+        }
+    }
+}
