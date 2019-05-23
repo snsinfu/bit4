@@ -1,0 +1,13 @@
+client
+dev    tun
+remote {{ hostvars[inventory_hostname].ansible_host }} {{ vpn_port }} udp
+
+remote-cert-tls  server
+auth             SHA256
+tls-version-min  1.2
+resolv-retry     infinite
+verify-x509-name "server" name
+key-direction    1
+nobind
+persist-key
+persist-tun

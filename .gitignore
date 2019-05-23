@@ -13,6 +13,7 @@ __pycache__
 *.ibc
 
 .env
+.vars.json
 
 .terraform
 terraform.tfstate

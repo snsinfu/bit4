@@ -1,0 +1,17 @@
+#!/bin/sh -ru
+
+LOOP=lo0
+ETH={{ ansible_default_ipv4.interface }}
+NAT=1
+
+ipfw -qf flush
+
+# NAT
+ipfw -q nat $NAT config if $ETH
+
+# Rules
+alias ADD="ipfw -q add"
+
+ADD 010 allow    all from any to any via $LOOP
+ADD 020 nat $NAT ip  from any to any via $ETH
+ADD 999 allow    all from any to any
