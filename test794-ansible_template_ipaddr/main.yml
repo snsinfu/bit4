@@ -1,0 +1,12 @@
+- hosts: localhost
+  connection: local
+
+  vars:
+    foo_net: 10.1.2.0/24
+
+  tasks:
+    - debug:
+        msg:
+          - "{{ foo_net | ipaddr(1) | ipaddr('address') }}"
+          - "{{ foo_net | ipaddr(16) | ipaddr('address') }}"
+          - "{{ foo_net | ipaddr(79) | ipaddr('address') }}"
