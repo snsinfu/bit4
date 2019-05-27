@@ -80,3 +80,6 @@
 [submodule "deps/micromd"]
 	path = deps/micromd
 	url = https://github.com/snsinfu/micromd.git
+[submodule "deps/BlueBrain/HighFive"]
+	path = deps/BlueBrain/HighFive
+	url = https://github.com/BlueBrain/HighFive.git
