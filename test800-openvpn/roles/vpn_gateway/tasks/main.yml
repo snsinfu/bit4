@@ -1,0 +1,11 @@
+- name: openvpn is installed
+  pkgng:
+    name:
+      - easy-rsa
+      - openvpn
+    state: present
+
+- include: ca.yml
+- include: server.yml
+- include: integration.yml
+- include: clients.yml

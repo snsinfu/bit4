@@ -1,0 +1,52 @@
+- name: client key and cert are built
+  expect:
+    command: easyrsa build-client-full client-{{ item }} nopass
+    responses:
+      "Enter pass phrase": "{{ ca_password }}"
+    chdir: /srv/certs
+    creates: /srv/certs/pki/issued/client-{{ item }}.crt
+  with_items: "{{ vpn_clients }}"
+
+- name: client openvpn directory is present
+  file:
+    path: /srv/vpn/clients
+    state: directory
+    mode: 0700
+
+- name: client openvpn config template is up
+  template:
+    src: client.ovpn.j2
+    dest: /srv/vpn/clients/client.ovpn
+
+- name: client openvpn config is created
+  shell: |
+    {
+      cat  client.ovpn
+      echo ""
+      echo "<tls-auth>"
+      cat  ../tls_auth.key
+      echo "</tls-auth>"
+      echo ""
+      echo "<ca>"
+      cat  ../ca.crt
+      echo "</ca>"
+      echo ""
+      echo "<cert>"
+      cat  ../../certs/pki/issued/client-{{ item }}.crt
+      echo "</cert>"
+      echo ""
+      echo "<key>"
+      cat  ../../certs/pki/private/client-{{ item }}.key
+      echo "</key>"
+    } > client-{{ item }}.ovpn
+  args:
+    chdir: /srv/vpn/clients
+    creates: /srv/vpn/clients/client-{{ item }}.ovpn
+  with_items: "{{ vpn_clients }}"
+
+- name: client openvpn files are pulled back
+  fetch:
+    src: "/srv/vpn/clients/client-{{ item }}.ovpn"
+    dest: output/
+    flat: yes
+  with_items: "{{ vpn_clients }}"

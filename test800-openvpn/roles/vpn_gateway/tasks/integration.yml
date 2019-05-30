@@ -1,0 +1,11 @@
+- name: NAT ipfw.rules is up
+  template:
+    src: ipfw.rules.j2
+    dest: /etc/ipfw.rules
+  notify:
+    - restart ipfw
+
+- name: vpn_rc.conf is up
+  template:
+    src: vpn_rc.conf.j2
+    dest: /etc/rc.conf.locals/vpn_rc.conf

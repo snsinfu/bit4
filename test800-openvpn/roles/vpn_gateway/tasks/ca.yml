@@ -1,0 +1,28 @@
+- name: certs directory is present
+  file:
+    path: /srv/certs
+    state: directory
+    mode: 0700
+
+- name: ca pki is initialized
+  command: easyrsa init-pki
+  args:
+    chdir: /srv/certs
+    creates: /srv/certs/pki
+
+- name: ca is built
+  expect:
+    command: easyrsa build-ca
+    responses:
+      "(Re-)?Enter New CA Key Passphrase": "{{ ca_password }}"
+      "Common Name": "{{ ca_name }}"
+    chdir: /srv/certs
+    creates: /srv/certs/pki/ca.crt
+
+- name: crl is generated
+  expect:
+    command: easyrsa gen-crl
+    responses:
+      "Enter pass phrase": "{{ ca_password }}"
+    chdir: /srv/certs
+    creates: /srv/certs/pki/crl.pem

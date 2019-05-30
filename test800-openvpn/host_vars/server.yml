@@ -1,0 +1,12 @@
+ansible_python_interpreter: /usr/local/bin/python3
+
+vpn_clients:
+  - alice
+  - bob
+
+vpn_netaddr: 10.145.28.0/24
+vpn_port: 974
+vpn_server_name: ON6evMjW9bzJAagt
+
+ca_name: example
+ca_password: example-vIO3MQdgvjbxTpXq6Mhq5FLfMFARvF6r

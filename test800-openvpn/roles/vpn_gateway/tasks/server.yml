@@ -1,0 +1,43 @@
+- name: server key and cert are built
+  expect:
+    command: easyrsa build-server-full server nopass
+    responses:
+      "Enter pass phrase": "{{ ca_password }}"
+    chdir: /srv/certs
+    creates: /srv/certs/pki/issued/server.crt
+
+- name: server DH params are generated
+  command: easyrsa gen-dh
+  args:
+    chdir: /srv/certs
+    creates: /srv/certs/pki/dh.pem
+
+- name: vpn directory is present
+  file:
+    path: /srv/vpn
+    state: directory
+    mode: 0700
+
+- name: certs and keys are deployed to vpn config directory
+  file:
+    src: "{{ item }}"
+    dest: "/srv/vpn/{{ item | basename }}"
+    state: link
+  with_items:
+    - /srv/certs/pki/ca.crt
+    - /srv/certs/pki/crl.pem
+    - /srv/certs/pki/issued/server.crt
+    - /srv/certs/pki/private/server.key
+    - /srv/certs/pki/dh.pem
+
+- name: tls-auth key is generated
+  command: openvpn --genkey --secret /srv/vpn/tls_auth.key
+  args:
+    creates: /srv/vpn/tls_auth.key
+
+- name: openvpn config is up
+  template:
+    src: openvpn.conf.j2
+    dest: /srv/vpn/openvpn.conf
+  notify:
+    - restart openvpn

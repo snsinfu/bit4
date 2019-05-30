@@ -1,0 +1,20 @@
+- name: ansible prerequisites are installed
+  pkgng:
+    name:
+      - py36-pexpect
+    state: present
+
+- name: srv directory is present
+  file:
+    path: /srv
+    state: directory
+
+- name: rc.conf.local is up
+  template:
+    src: rc.conf.local.j2
+    dest: /etc/rc.conf.local
+
+- name: rc.conf.locals directory is present
+  file:
+    path: /etc/rc.conf.locals
+    state: directory
