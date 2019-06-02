@@ -1,0 +1,4 @@
+- include: server_cert.yml
+- include: client_cert.yml
+- include: server.yml
+- include: client.yml

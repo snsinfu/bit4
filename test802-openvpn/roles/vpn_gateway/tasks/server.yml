@@ -1,0 +1,60 @@
+- name: openvpn is installed
+  pkgng:
+    name: openvpn
+    state: present
+
+- name: vpn directory is present
+  file:
+    path: /srv/vpn
+    state: directory
+    mode: 0700
+
+- name: ca certificate is deployed
+  file:
+    src: "{{ ca_cert }}"
+    dest: /srv/vpn/ca.crt
+    state: link
+
+- name: server key is deployed
+  file:
+    src: "{{ _server_privkey }}"
+    dest: /srv/vpn/server.key
+    state: link
+
+- name: server certificate is deployed
+  file:
+    src: "{{ _server_cert }}"
+    dest: /srv/vpn/server.crt
+    state: link
+
+- name: server dh is deployed
+  file:
+    src: "{{ _server_dh }}"
+    dest: /srv/vpn/dh.pem
+    state: link
+
+- name: tls-auth key is generated
+  command: openvpn --genkey --secret /srv/vpn/tls_auth.key
+  args:
+    creates: /srv/vpn/tls_auth.key
+
+- name: openvpn config is up
+  template:
+    src: openvpn.conf.j2
+    dest: /srv/vpn/openvpn.conf
+  notify:
+    - restart openvpn
+
+# Integration
+
+- name: nat ipfw.rules is up
+  template:
+    src: ipfw.rules.j2
+    dest: /etc/ipfw.rules
+  notify:
+    - restart ipfw
+
+- name: vpn_rc.conf is up
+  template:
+    src: vpn_rc.conf.j2
+    dest: /etc/rc.conf.locals/vpn_rc.conf

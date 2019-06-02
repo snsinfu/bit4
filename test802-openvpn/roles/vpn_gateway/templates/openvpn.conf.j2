@@ -1,0 +1,28 @@
+user  nobody
+group nobody
+
+dev    tun
+server {{ vpn_subnet | ipaddr(0) }} {{ vpn_subnet | ipaddr('netmask') }}
+proto  udp
+port   {{ vpn_port }}
+
+fragment 1300
+mssfix
+client-to-client
+
+ca   /srv/vpn/ca.crt
+cert /srv/vpn/server.crt
+key  /srv/vpn/server.key
+dh   /srv/vpn/dh.pem
+
+remote-cert-tls client
+keepalive       10 120
+auth            SHA256
+tls-version-min 1.2
+tls-auth        /srv/vpn/tls_auth.key
+key-direction   0
+topology        subnet
+max-clients     32
+duplicate-cn
+persist-key
+persist-tun

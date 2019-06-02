@@ -1,0 +1,45 @@
+# Client certificate
+
+- name: client cert facts are set
+  set_fact:
+    _clients_dir: "{{ ca_issue_dir }}/clients"
+
+- name: client cert directory is present
+  file:
+    path: "{{ _clients_dir }}"
+    state: directory
+    mode: 0700
+
+- name: client private key is created
+  openssl_privatekey:
+    path: "{{ _clients_dir }}/{{ item }}-private.pem"
+    mode: 0600
+  with_items: "{{ vpn_clients }}"
+
+- name: client csr is created
+  openssl_csr:
+    path: "{{ _clients_dir }}/{{ item }}.csr"
+    privatekey_path: "{{ _clients_dir }}/{{ item }}-private.pem"
+    common_name: "{{ item }}"
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - clientAuth
+  with_items: "{{ vpn_clients }}"
+
+- name: client certificate is issued
+  openssl_certificate:
+    path: "{{ _clients_dir }}/{{ item }}.crt"
+    csr_path: "{{ _clients_dir }}/{{ item }}.csr"
+    privatekey_path: "{{ _clients_dir }}/{{ item }}-private.pem"
+    provider: ownca
+    ownca_path: "{{ ca_cert }}"
+    ownca_privatekey_path: "{{ ca_privkey }}"
+    ownca_privatekey_passphrase: "{{ ca_pass }}"
+    select_crypto_backend: pyopenssl  # Ansible issue #55495
+  with_items: "{{ vpn_clients }}"
+
+- name: client certificate is valid
+  command: "openssl verify -CAfile {{ ca_cert }} {{ _clients_dir }}/{{ item }}.crt"
+  changed_when: none
+  with_items: "{{ vpn_clients }}"
