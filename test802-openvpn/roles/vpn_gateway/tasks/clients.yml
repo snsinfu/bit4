@@ -1,13 +1,16 @@
-- name: client key and cert are built
-  expect:
-    command: easyrsa build-client-full client-{{ item }} nopass
-    responses:
-      "Enter pass phrase": "{{ ca_password }}"
-    chdir: /srv/certs
-    creates: /srv/certs/pki/issued/client-{{ item }}.crt
+# Certificate
+
+- name: client certificate is issued
+  include_role:
+    name: own_ca.issue
+  vars:
+    cert_name: "client-{{ item }}"
+    cert_eku: clientAuth
   with_items: "{{ vpn_clients }}"
 
-- name: client openvpn directory is present
+# OpenVPN client configuration
+
+- name: clients directory is present
   file:
     path: /srv/vpn/clients
     state: directory
@@ -28,20 +31,20 @@
       echo "</tls-auth>"
       echo ""
       echo "<ca>"
-      cat  ../ca.crt
+      cat  {{ ca_cert }}
       echo "</ca>"
       echo ""
       echo "<cert>"
-      cat  ../../certs/pki/issued/client-{{ item }}.crt
+      cat  {{ ca_issue_dir }}/client-{{ item }}.crt
       echo "</cert>"
       echo ""
       echo "<key>"
-      cat  ../../certs/pki/private/client-{{ item }}.key
+      cat  {{ ca_issue_dir }}/client-{{ item }}-private.pem
       echo "</key>"
     } > client-{{ item }}.ovpn
   args:
     chdir: /srv/vpn/clients
-    creates: /srv/vpn/clients/client-{{ item }}.ovpn
+    creates: "/srv/vpn/clients/client-{{ item }}.ovpn"
   with_items: "{{ vpn_clients }}"
 
 - name: client openvpn files are pulled back

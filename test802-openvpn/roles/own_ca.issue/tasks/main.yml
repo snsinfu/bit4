@@ -1,0 +1,53 @@
+# Issue a password-less certificate using own CA.
+#
+# Input:
+#   cert_name
+#   cert_eku
+#   ca_cert
+#   ca_privkey
+#   ca_pass
+#   ca_issue_dir
+#
+# Output:
+#   _issue_privkey
+#   _issue_csr
+#   _issue_cert
+
+- debug:
+    msg: "Certificate <{{ cert_name }}>"
+
+- name: facts are set
+  set_fact:
+    _issue_privkey: "{{ ca_issue_dir }}/{{ cert_name }}-private.pem"
+    _issue_csr: "{{ ca_issue_dir }}/{{ cert_name }}.csr"
+    _issue_cert: "{{ ca_issue_dir }}/{{ cert_name }}.crt"
+
+- name: private key is created
+  openssl_privatekey:
+    path: "{{ _issue_privkey }}"
+    mode: 0600
+
+- name: csr is created
+  openssl_csr:
+    path: "{{ _issue_csr }}"
+    privatekey_path: "{{ _issue_privkey }}"
+    common_name: "{{ cert_name }}"
+    key_usage:
+      - digitalSignature
+    extended_key_usage:
+      - "{{ cert_eku }}"
+
+- name: certificate is issued
+  openssl_certificate:
+    path: "{{ _issue_cert }}"
+    csr_path: "{{ _issue_csr }}"
+    privatekey_path: "{{ _issue_privkey }}"
+    provider: ownca
+    ownca_path: "{{ ca_cert }}"
+    ownca_privatekey_path: "{{ ca_privkey }}"
+    ownca_privatekey_passphrase: "{{ ca_pass }}"
+    select_crypto_backend: pyopenssl  # Ansible issue #55495
+
+- name: certificate is valid
+  command: "openssl verify -CAfile {{ ca_cert }} {{ _issue_cert }}"
+  changed_when: none

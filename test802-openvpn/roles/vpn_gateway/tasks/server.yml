@@ -1,3 +1,26 @@
+# Certificate and DH parameter
+
+- name: server certificate is issued
+  include_role:
+    name: own_ca.issue
+  vars:
+    cert_name: "{{ vpn_server_name }}"
+    cert_eku: serverAuth
+
+- name: server cert facts are set
+  set_fact:
+    _server_privkey: "{{ _issue_privkey }}"
+    _server_cert: "{{ _issue_cert }}"
+    _server_dh: "{{ ca_issue_dir }}/server-dh.pem"
+
+- name: server dh is generated (this may take time)
+  openssl_dhparam:
+    size: "{{ vpn_server_dhsize}}"
+    path: "{{ _server_dh }}"
+    mode: 0600
+
+# Service
+
 - name: openvpn is installed
   pkgng:
     name: openvpn
@@ -15,7 +38,7 @@
     dest: /srv/vpn/ca.crt
     state: link
 
-- name: server key is deployed
+- name: server private key is deployed
   file:
     src: "{{ _server_privkey }}"
     dest: /srv/vpn/server.key
@@ -44,15 +67,6 @@
     dest: /srv/vpn/openvpn.conf
   notify:
     - restart openvpn
-
-# Integration
-
-- name: nat ipfw.rules is up
-  template:
-    src: ipfw.rules.j2
-    dest: /etc/ipfw.rules
-  notify:
-    - restart ipfw
 
 - name: vpn_rc.conf is up
   template:

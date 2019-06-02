@@ -16,7 +16,7 @@ TF_OPTIONS = \
 TERRAFORM = terraform-0.11
 
 
-.PHONY: all clean destroy provision client ssh
+.PHONY: all clean destroy provision reboot ssh
 
 all: _server.ok
 	@:
@@ -31,8 +31,8 @@ destroy:
 provision: _provision.ok
 	@:
 
-client: _provision.ok
-	ansible-playbook make_client.yml
+reboot: _ssh_config
+	ssh -F _ssh_config server reboot
 
 ssh: _ssh_config
 	ssh -F _ssh_config server

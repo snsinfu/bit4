@@ -1,16 +1,22 @@
-client
-dev    tun
-remote {{ hostvars[inventory_hostname].ansible_host }} {{ vpn_port }} udp
-
-fragment 1300
-mssfix
-
-remote-cert-tls  server
-auth             SHA256
-tls-version-min  1.2
-resolv-retry     infinite
-verify-x509-name "{{ vpn_server_name }}" name
-key-direction    1
-nobind
+# Client
+user              nobody
+group             nobody
 persist-key
 persist-tun
+
+# VPN definition
+client
+nobind
+remote            {{ hostvars[inventory_hostname].ansible_host }} {{ vpn_port }} udp
+dev               tun
+
+# Authentication
+tls-version-min   1.2
+auth              SHA256
+remote-cert-tls   server
+key-direction     1
+verify-x509-name  "{{ vpn_server_name }}" name
+
+# Misc.
+fragment          1300
+mssfix
