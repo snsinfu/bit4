@@ -19,7 +19,7 @@
 
 - name: backdoor client config is pulled back
   fetch:
-    src: "{{ clients_dir}}/backdoor_client.ovpn"
+    src: "{{ clients_dir }}/backdoor_client.ovpn"
     dest: output/
     flat: yes
 
@@ -43,3 +43,13 @@
     dest: output/
     flat: yes
   with_items: "{{ vpn_remote_clients }}"
+
+# Client revocation
+
+- name: revoked remote clients are maintained
+  include_role:
+    name: vpn_clients.revoke
+  vars:
+    client_name: remote_client-{{ item }}
+    crl_dir: /srv/vpn_crl
+  with_items: "{{ vpn_revoked_clients }}"

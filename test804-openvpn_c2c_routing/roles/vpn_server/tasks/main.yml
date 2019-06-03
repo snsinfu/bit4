@@ -48,6 +48,13 @@
   args:
     creates: /srv/vpn/tls_auth.key
 
+- name: revocation directory is present
+  file:
+    # Cannot be under /srv/vpn to make crl accessible by nobody user.
+    path: /srv/vpn_crl
+    state: directory
+    mode: 0755
+
 - name: openvpn config is up
   template:
     src: openvpn.conf.j2

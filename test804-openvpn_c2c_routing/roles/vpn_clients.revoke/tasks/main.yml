@@ -1,0 +1,13 @@
+# Inputs:
+#   client_name
+#   crl_dir
+
+- name: client certificate is loaded
+  openssl_certificate_info:
+    path: "{{ ca_issue_dir }}/{{ client_name }}.crt"
+  register: _cert_info
+
+- name: client access is revoked
+  copy:
+    content: ""
+    dest: "{{ crl_dir }}/{{ _cert_info['serial_number'] }}"
