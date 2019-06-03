@@ -9,8 +9,13 @@ persist-tun
 client
 remote            {{ vpn_server_addr }} {{ vpn_port }} udp
 dev               tun
-{% if is_gateway %}
-ifconfig          {{ vpn_gateway_addr }} {{ vpn_subnet | ipaddr('netmask') }}
+{% if static_ip is defined %}
+ifconfig          {{ static_ip }} {{ vpn_subnet | ipaddr('netmask') }}
+{% endif %}
+{% if extra_routes is defined %}
+{%   for route in extra_routes %}
+route             {{ route }}
+{%   endfor %}
 {% endif %}
 
 # Auth scheme

@@ -1,0 +1,4 @@
+ifconfig_vtnet0_ipv6="inet6 accept_rtadv"
+ipv6_activate_all_interfaces="YES"
+rtsold_enable="YES"
+rtsold_flags="-aF"

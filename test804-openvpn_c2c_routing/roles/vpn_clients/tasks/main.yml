@@ -8,18 +8,18 @@
     state: directory
     mode: 0700
 
-# Gateway client
+# Backdoor client
 
-- name: gateway client config is generated
+- name: backdoor client config is generated
   include_role:
     name: vpn_clients.create
   vars:
-    client_name: gateway_client
-    is_gateway: yes
+    client_name: backdoor_client
+    static_ip: "{{ backdoor_vpn_addr }}"
 
-- name: gateway client config is pulled back
+- name: backdoor client config is pulled back
   fetch:
-    src: "{{ clients_dir}}/gateway_client.ovpn"
+    src: "{{ clients_dir}}/backdoor_client.ovpn"
     dest: output/
     flat: yes
 
@@ -30,7 +30,11 @@
     name: vpn_clients.create
   vars:
     client_name: remote_client-{{ item }}
-    is_gateway: no
+    extra_routes:
+      - >
+        {{ backdoor_subnet | ipaddr(0) }}
+        {{ backdoor_subnet | ipaddr('netmask') }}
+        {{ backdoor_vpn_addr }}
   with_items: "{{ vpn_remote_clients }}"
 
 - name: remote client configs are pulled back
