@@ -28,6 +28,8 @@
 
 - name: private key is created
   openssl_privatekey:
+    type: ECC
+    curve: secp384r1
     path: "{{ ca_privkey }}"
     mode: 0600
     cipher: auto

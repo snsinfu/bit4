@@ -24,6 +24,8 @@
 
 - name: private key is created
   openssl_privatekey:
+    type: ECC
+    curve: secp384r1
     path: "{{ _issue_privkey }}"
     mode: 0600
 
