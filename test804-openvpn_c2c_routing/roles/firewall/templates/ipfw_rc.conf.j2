@@ -1,5 +1,7 @@
-# NAT gateway
 firewall_enable="YES"
-firewall_nat_enable="YES"
 firewall_script="/etc/ipfw.rules"
+
+{% if enable_nat_gateway %}
+firewall_nat_enable="YES"
 gateway_enable="YES"
+{% endif %}

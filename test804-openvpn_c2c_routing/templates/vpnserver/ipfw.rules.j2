@@ -1,0 +1,40 @@
+#!/bin/sh -eu
+
+LOOP="lo*"
+TUN="tun*"
+ETH={{ ansible_default_ipv4.interface }}
+NAT=1
+
+SSH=22
+DHCPRECV=67
+HTTP=80
+HTTPS=443
+VPN={{ vpn_port }}
+
+ipfw -qf flush
+
+# VPN NAT gateway
+ipfw -q nat $NAT config if $ETH
+
+# Firewall rules
+alias ADD="ipfw -q add"
+
+ADD 010 allow    all   from any to any                   via $LOOP
+ADD 010 allow    all   from any to any                   via $TUN
+ADD 020 deny     ip    from any to any not antispoof in
+ADD 030 nat $NAT ip    from any to any                   via $ETH
+ADD 100 check-state
+
+# Allowed outgoing packets
+ADD 110 allow    ip    from any to any               out via $ETH keep-state
+
+# Allowed incoming packets
+ADD 110 allow    icmp  from any to me                in  via $ETH
+ADD 110 allow    tcp   from any to me  $SSH          in  via $ETH keep-state setup
+ADD 110 allow    tcp   from any to me  $HTTP         in  via $ETH keep-state setup
+ADD 110 allow    tcp   from any to me  $HTTPS        in  via $ETH keep-state setup
+ADD 110 allow    udp   from any to me  $DHCPRECV     in  via $ETH
+ADD 110 allow    udp   from any to me  $VPN          in  via $ETH keep-state
+
+# Default to deny
+ADD 999 deny     all   from any to any
