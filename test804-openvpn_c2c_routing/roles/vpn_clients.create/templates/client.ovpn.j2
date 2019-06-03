@@ -1,4 +1,5 @@
 # Daemon
+nobind
 user              nobody
 group             nobody
 persist-key
@@ -6,7 +7,6 @@ persist-tun
 
 # VPN definition
 client
-nobind
 remote            {{ vpn_server_addr }} {{ vpn_port }} udp
 dev               tun
 {% if is_gateway %}
