@@ -10,7 +10,7 @@ persist-tun
 server            {{ vpn_subnet | ipaddr(0) }} {{ vpn_subnet | ipaddr('netmask') }}
 dev               tun
 topology          subnet
-proto             udp
+proto             udp4
 client-to-client
 
 # Crypto and authentication
@@ -27,8 +27,8 @@ auth              SHA256
 key-direction     0
 
 # Misc.
-keepalive         10 120
 fragment          1300
 mssfix
+keepalive         10 120
 max-clients       32
 duplicate-cn
