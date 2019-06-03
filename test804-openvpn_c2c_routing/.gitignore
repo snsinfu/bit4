@@ -1,0 +1,6 @@
+/output/
+/host_vars/*.yml
+_*
+.env
+.vars.json
+.DS_Store

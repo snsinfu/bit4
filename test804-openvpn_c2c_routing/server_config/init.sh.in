@@ -1,0 +1,49 @@
+#!/bin/sh
+
+# Disable sendmail because it severely slows down bootup. Other service
+# configurations should be done via Ansible.
+cat >> /etc/rc.conf << EOF
+sendmail_enable="NO"
+sendmail_submit_enable="NO"
+sendmail_outbound_enable="NO"
+sendmail_msp_queue_enable="NO"
+EOF
+
+# Disable root login and password auth.
+cat > /etc/ssh/sshd_config << EOF
+AddressFamily inet
+AllowGroups ssh_users
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+Subsystem sftp /usr/libexec/sftp-server
+EOF
+
+pw groupadd ssh_users
+
+# Admin user: Inject SSH pubkeys and allow password-less sudo.
+pw groupadd ${admin_user}
+pw useradd ${admin_user} -m -s /bin/sh -g ${admin_user} -G wheel,ssh_users
+
+cat > authorized_keys << EOF
+${ssh_pubkeys}
+EOF
+install -o ${admin_user} -g ${admin_user} -m 0700 -d              /home/${admin_user}/.ssh
+install -o ${admin_user} -g ${admin_user} -m 0600 authorized_keys /home/${admin_user}/.ssh
+rm authorized_keys
+
+cat > sudoers_admin << EOF
+${admin_user} ALL=(ALL) NOPASSWD: ALL
+EOF
+install -o root -g wheel -m 0750 -d            /usr/local/etc/sudoers.d
+install -o root -g wheel -m 0440 sudoers_admin /usr/local/etc/sudoers.d
+rm sudoers_admin
+
+# Install bootstrap packages and reboot. This startup script runs before the
+# network gets up, so do this asynchronously.
+(
+pkg update
+pkg install -y sudo python3
+reboot
+) &

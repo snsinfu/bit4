@@ -1,0 +1,32 @@
+# Daemon
+local             {{ ansible_default_ipv4.address }}
+port              {{ vpn_port }}
+user              nobody
+group             nobody
+persist-key
+persist-tun
+
+# VPN definition
+server            {{ vpn_subnet | ipaddr(0) }} {{ vpn_subnet | ipaddr('netmask') }}
+dev               tun
+topology          subnet
+proto             udp
+client-to-client
+
+# Crypto and authentication
+ca                /srv/vpn/ca.crt
+cert              /srv/vpn/server.crt
+key               /srv/vpn/server.key
+dh                /srv/vpn/dh.pem
+tls-auth          /srv/vpn/tls_auth.key
+tls-version-min   1.2
+remote-cert-tls   client
+auth              SHA256
+key-direction     0
+
+# Misc.
+keepalive         10 120
+fragment          1300
+mssfix
+max-clients       32
+duplicate-cn

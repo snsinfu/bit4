@@ -1,0 +1,18 @@
+# host-specific applications files are put into /srv
+
+- name: srv directory is present
+  file:
+    path: /srv
+    state: directory
+
+# rc.conf fragments from other roles are put into /etc/rc.conf.locals
+
+- name: rc.conf.locals directory is present
+  file:
+    path: /etc/rc.conf.locals
+    state: directory
+
+- name: rc.conf.local is up
+  template:
+    src: rc.conf.local.j2
+    dest: /etc/rc.conf.local

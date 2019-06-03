@@ -1,0 +1,42 @@
+# Daemon
+user              nobody
+group             nobody
+persist-key
+persist-tun
+
+# VPN definition
+client
+nobind
+remote            {{ vpn_server_addr }} {{ vpn_port }} udp
+dev               tun
+{% if is_gateway %}
+ifconfig          {{ vpn_gateway_addr }} {{ vpn_subnet | ipaddr('netmask') }}
+{% endif %}
+
+# Auth scheme
+tls-version-min   1.2
+remote-cert-tls   server
+verify-x509-name  "{{ vpn_server_name }}" name
+auth              SHA256
+key-direction     1
+
+# Misc.
+fragment          1300
+mssfix
+
+# Auth data
+<tls-auth>
+{{ tls_auth_content | trim }}
+</tls-auth>
+
+<ca>
+{{ ca_cert_content | trim }}
+</ca>
+
+<cert>
+{{ client_cert_content | trim }}
+</cert>
+
+<key>
+{{ client_privkey_content | trim }}
+</key>

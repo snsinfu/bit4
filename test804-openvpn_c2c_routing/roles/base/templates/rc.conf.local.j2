@@ -1,0 +1,4 @@
+# Our own framework of modularized rc.conf.
+for rc in /etc/rc.conf.locals/*; do
+  . ${rc}
+done

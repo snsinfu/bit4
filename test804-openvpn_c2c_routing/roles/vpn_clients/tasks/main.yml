@@ -1,0 +1,41 @@
+- name: facts are collected
+  set_fact:
+    clients_dir: /srv/vpn/clients
+
+- name: clients directory is present
+  file:
+    path: "{{ clients_dir }}"
+    state: directory
+    mode: 0700
+
+# Gateway client
+
+- name: gateway client config is generated
+  include_role:
+    name: vpn_clients.create
+  vars:
+    client_name: gateway_client
+    is_gateway: yes
+
+- name: gateway client config is pulled back
+  fetch:
+    src: "{{ clients_dir}}/gateway_client.ovpn"
+    dest: output/
+    flat: yes
+
+# Remote clients
+
+- name: remote client configs are generated
+  include_role:
+    name: vpn_clients.create
+  vars:
+    client_name: remote_client-{{ item }}
+    is_gateway: no
+  with_items: "{{ vpn_remote_clients }}"
+
+- name: remote client configs are pulled back
+  fetch:
+    src: "{{ clients_dir }}/remote_client-{{ item }}.ovpn"
+    dest: output/
+    flat: yes
+  with_items: "{{ vpn_remote_clients }}"

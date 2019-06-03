@@ -1,0 +1,60 @@
+- name: ansible module requirements are installed
+  pkgng:
+    name:
+      - py36-cryptography
+      - py36-openssl
+    state: present
+
+- name: ca facts are set
+  set_fact:
+    ca_privkey: "{{ ca_dir }}/ca-private.pem"
+    ca_csr: "{{ ca_dir }}/ca.csr"
+    ca_cert: "{{ ca_dir }}/ca.crt"
+    ca_issue_dir: "{{ ca_dir }}/issue"
+
+- name: ca directory is present
+  file:
+    path: "{{ ca_dir }}"
+    state: directory
+    mode: 0700
+
+- name: ca-issue directory is present
+  file:
+    path: "{{ ca_issue_dir }}"
+    state: directory
+    mode: 0700
+
+# CA's self-signed certificate
+
+- name: private key is created
+  openssl_privatekey:
+    path: "{{ ca_privkey }}"
+    mode: 0600
+    cipher: auto
+    passphrase: "{{ ca_pass }}"
+
+- name: csr is created
+  openssl_csr:
+    path: "{{ ca_csr }}"
+    privatekey_path: "{{ ca_privkey }}"
+    privatekey_passphrase: "{{ ca_pass }}"
+    common_name: "{{ ca_name }}"
+    key_usage:
+      - keyCertSign
+      - cRLSign
+    basic_constraints:
+      - "CA:TRUE"
+
+- name: certificate is issued
+  openssl_certificate:
+    path: "{{ ca_cert }}"
+    csr_path: "{{ ca_csr }}"
+    privatekey_path: "{{ ca_privkey }}"
+    privatekey_passphrase: "{{ ca_pass }}"
+    provider: selfsigned
+    selfsigned_not_before: "{{ ca_invalid_before | asn1_time }}"
+    selfsigned_not_after: "{{ ca_invalid_after | asn1_time }}"
+    select_crypto_backend: pyopenssl  # XXX: Ansible issue #55495
+
+# TODO: CRL maintenance
+# https://github.com/ansible/ansible/issues/53789

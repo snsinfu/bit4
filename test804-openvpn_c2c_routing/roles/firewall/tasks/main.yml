@@ -1,0 +1,10 @@
+- name: firewall script is up
+  template:
+    src: ipfw.rules.j2
+    dest: /etc/ipfw.rules
+    mode: 0600
+
+- name: ipfw_rc.conf is up
+  template:
+    src: ipfw_rc.conf.j2
+    dest: /etc/rc.conf.locals/ipfw_rc.conf

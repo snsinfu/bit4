@@ -1,0 +1,49 @@
+# Input:
+#   clients_dir
+#   client_name
+
+# Certificate
+
+- name: certificate is issued
+  include_role:
+    name: own_ca.issue
+  vars:
+    cert_name: "{{ client_name }}"
+    cert_eku: clientAuth
+
+- name: certificate facts are collected
+  set_fact:
+    client_cert: "{{ _issue_cert }}"
+    client_privkey: "{{ _issue_privkey }}"
+
+# Config
+
+- name: tls auth key is loaded
+  slurp:
+    src: /srv/vpn/tls_auth.key
+  register: tls_auth_slurp
+
+- name: ca certificate is loaded
+  slurp:
+    src: "{{ ca_cert }}"
+  register: ca_cert_slurp
+
+- name: client certificate is loaded
+  slurp:
+    src: "{{ client_cert }}"
+  register: client_cert_slurp
+
+- name: client private key is loaded
+  slurp:
+    src: "{{ client_privkey }}"
+  register: client_privkey_slurp
+
+- name: client config is up
+  template:
+    src: client.ovpn.j2
+    dest: "{{ clients_dir }}/{{ client_name }}.ovpn"
+  vars:
+    tls_auth_content: "{{ tls_auth_slurp['content'] | b64decode }}"
+    ca_cert_content: "{{ ca_cert_slurp['content'] | b64decode }}"
+    client_cert_content: "{{ client_cert_slurp['content'] | b64decode }}"
+    client_privkey_content: "{{ client_privkey_slurp['content'] | b64decode }}"
