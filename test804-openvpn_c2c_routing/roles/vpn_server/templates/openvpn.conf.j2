@@ -17,7 +17,9 @@ client-to-client
 ca                /srv/vpn/ca.crt
 cert              /srv/vpn/server.crt
 key               /srv/vpn/server.key
-dh                /srv/vpn/dh.pem
+dh                none
+ecdh-curve        secp384r1
+cipher            AES-128-GCM
 tls-auth          /srv/vpn/tls_auth.key
 tls-version-min   1.2
 remote-cert-tls   client

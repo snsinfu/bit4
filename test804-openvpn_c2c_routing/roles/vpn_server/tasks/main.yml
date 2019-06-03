@@ -1,4 +1,4 @@
-# Certificate and DH parameter
+# Certificate
 
 - name: server certificate is issued
   include_role:
@@ -11,13 +11,6 @@
   set_fact:
     _server_privkey: "{{ _issue_privkey }}"
     _server_cert: "{{ _issue_cert }}"
-    _server_dh: "{{ ca_issue_dir }}/server-dh.pem"
-
-- name: server dh is generated (this may take time)
-  openssl_dhparam:
-    size: "{{ vpn_server_dhsize}}"
-    path: "{{ _server_dh }}"
-    mode: 0600
 
 # Service
 
@@ -48,12 +41,6 @@
   file:
     src: "{{ _server_cert }}"
     dest: /srv/vpn/server.crt
-    state: link
-
-- name: server dh is deployed
-  file:
-    src: "{{ _server_dh }}"
-    dest: /srv/vpn/dh.pem
     state: link
 
 - name: tls-auth key is generated
