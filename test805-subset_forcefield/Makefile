@@ -47,4 +47,5 @@ main: main.cc
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $<
 
 main: Makefile
+main: subsystem_pair_forcefield.hpp
 main: include/md.hpp

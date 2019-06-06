@@ -16,17 +16,7 @@ public:
 
     md::scalar compute_energy(const md::system& system) override
     {
-        const auto positions = system.view_positions();
-
-        std::vector<particle_eval> part_evals;
-        part_evals.reserve(_targets.size());
-        for (auto idx : _targets) {
-            particle_eval part;
-            part.index = idx;
-            part.position = positions[idx];
-            part_evals.push_back(part);
-        }
-
+        std::vector<particle_eval> part_evals = _make_part_evals(system);
         md::scalar energy = 0;
 
         for (md::index i = 0; i < part_evals.size(); i++) {
@@ -48,16 +38,7 @@ public:
 
     void compute_force(const md::system& system, md::array_view<md::vector> forces) override
     {
-        const auto positions = system.view_positions();
-
-        std::vector<particle_eval> part_evals;
-        part_evals.reserve(_targets.size());
-        for (auto idx : _targets) {
-            particle_eval part;
-            part.index = idx;
-            part.position = positions[idx];
-            part_evals.push_back(part);
-        }
+        std::vector<particle_eval> part_evals = _make_part_evals(system);
 
         for (md::index i = 0; i < part_evals.size(); i++) {
             for (md::index j = i + 1; j < part_evals.size(); j++) {
@@ -81,17 +62,34 @@ public:
     }
 
 private:
-    Derived& _derived()
-    {
-        return static_cast<Derived&>(*this);
-    }
-
     struct particle_eval
     {
         md::index  index    = 0;
         md::point  position = {};
         md::vector force    = {};
     };
+
+    std::vector<particle_eval> _make_part_evals(const md::system& system) const
+    {
+        const auto positions = system.view_positions();
+
+        std::vector<particle_eval> part_evals;
+        part_evals.reserve(_targets.size());
+
+        for (auto idx : _targets) {
+            particle_eval part;
+            part.index = idx;
+            part.position = positions[idx];
+            part_evals.push_back(part);
+        }
+
+        return part_evals;
+    }
+
+    Derived& _derived()
+    {
+        return static_cast<Derived&>(*this);
+    }
 
     std::vector<md::index> _targets;
 };

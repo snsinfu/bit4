@@ -1,6 +1,15 @@
 A: subsystem_pair_forcefield
 B: all_pair_forcefield with ad-hoc branching
 
+# Subsystem definition: i % 3 == 0
+
     elapsed time    mean energy
 A       35.9 sec           58.8
 B      290.2 sec           58.8
+
+# Subsystem definition: whole system
+
+    elapsed time    mean energy
+A      307.7 sec          501.6
+B      286.7 sec          501.6
+
