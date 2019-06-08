@@ -1,0 +1,8 @@
+- hosts: localhost
+
+  tasks:
+    - name: private key is created
+      openssl_privatekey:
+        path: ca-private.pem
+        passphrase: "{{ ca_password }}"
+        cipher: aes256
