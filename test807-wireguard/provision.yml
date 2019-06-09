@@ -1,0 +1,13 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: wireguard is installed
+      pkgng:
+        name: wireguard
+        state: present
+
+    - name: interface config is up
+      copy:
+        src: wg0.conf
+        dest: /usr/local/etc/wireguard/wg0.conf

@@ -1,0 +1,9 @@
+#!/bin/sh -eu
+
+name="$1"
+
+curl -fsSL \
+  -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${DIGITALOCEAN_TOKEN}" \
+  "https://api.digitalocean.com/${name#/}"

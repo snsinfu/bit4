@@ -1,0 +1,25 @@
+#cloud-config
+
+timezone: UTC
+
+bootcmd:
+  # write_files module does not run on DO's FreeBSD.
+  # https://www.digitalocean.com/community/questions/cloud-init-change-order-of-module-execution
+  - |
+    cat > /etc/ssh/sshd_config << END
+    AddressFamily inet
+    PermitRootLogin no
+    PasswordAuthentication no
+    ChallengeResponseAuthentication no
+    PubkeyAuthentication yes
+    UsePAM yes
+    Subsystem sftp /usr/libexec/sftp-server
+    END
+
+ssh_authorized_keys: ${ssh_pubkeys}
+
+system_info:
+  default_user:
+    name: ${admin_user}
+    shell: /bin/sh
+    sudo: ALL=(ALL) NOPASSWD:ALL
