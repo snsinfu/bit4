@@ -1,0 +1,5 @@
+_*
+.env
+.vars.json
+.terraform
+terraform.*
