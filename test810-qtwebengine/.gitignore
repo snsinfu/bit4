@@ -1,0 +1,5 @@
+*.o
+qrc_*
+.qmake.stash
+Makefile
+qtwebkit.app
