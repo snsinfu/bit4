@@ -1,0 +1,26 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0 1rem;
+  font-family: sans-serif;
+  background-color: #fafafa;
+  color: #111;
+}
+
+main {
+  max-width: 38rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+input {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
