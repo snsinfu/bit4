@@ -2,6 +2,7 @@
 .vscode
 *.dSYM
 
+core.*
 *.core
 *.o
 a.out
@@ -20,3 +21,10 @@ terraform.tfstate
 terraform.tfstate.backup
 
 node_modules
+
+.ccls-cache
+
+*.tar
+*.gz
+*.xz
+*.h5
