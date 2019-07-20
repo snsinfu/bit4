@@ -1,0 +1,10 @@
+# Example
+
+admin_user: sinfu
+admin_pubkeys:
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMZNkkBrVCOx5sGJ03rya1e0rdxZ98sKwRVJIdYbZsnK tempkey
+
+wg_server_privkey: OFxHd28IGkoKZ0tY6ny+ABIYLBfIa4koiCDPOA86uGo=
+wg_client_privkey: 4LgWX/dWOz8v5noTceGXTtNahzLAQfSLhjiPcv6PE0Y=
+wg_server_port: 51820
+wg_subnet: 10.223.95.0/24

@@ -1,0 +1,85 @@
+- hosts: vpnserver
+  become: yes
+
+  tasks:
+    - name: wireguard is installed
+      pkgng:
+        name: wireguard
+        state: present
+
+    - name: wireguard rc config is up
+      copy:
+        src: rc-wireguard.conf
+        dest: /etc/rc.conf.d/wireguard
+      notify: restart wireguard
+
+    - name: wureguard server pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_server_privkey }}"
+      register: cmd_wg_server_pubkey
+      changed_when: none
+
+    - name: wureguard client pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_client_privkey }}"
+      register: cmd_wg_client_pubkey
+      changed_when: none
+
+    - name: wireguard config facts are set
+      set_fact:
+        wg_server_pubkey: "{{ cmd_wg_server_pubkey.stdout }}"
+        wg_client_pubkey: "{{ cmd_wg_client_pubkey.stdout }}"
+        wg_server_cidr: "{{ wg_subnet | ipaddr(1) }}"
+        wg_client_cidr: "{{ wg_subnet | ipsubnet(32, 10) }}"
+
+    - name: wireguard server interface config is up
+      template:
+        src: server-wg0.conf.j2
+        dest: /usr/local/etc/wireguard/wg0.conf
+        mode: 0600
+      notify: restart wireguard
+
+    - name: wireguard client interface config is created
+      template:
+        src: client-wg0.conf.j2
+        dest: ./_client-wg0.conf
+        mode: 0600
+      delegate_to: localhost
+      connection: local
+      become: no
+
+    - name: firewall script is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+      notify: restart ipfw
+
+    - name: firewall rc config is up
+      template:
+        src: rc-ipfw.conf
+        dest: /etc/rc.conf.d/ipfw
+      notify: restart ipfw
+
+    - name: ip forwarding is enabled
+      sysctl:
+        name: net.inet.ip.forwarding
+        value: "1"
+        sysctl_set: yes
+
+    - name: routing rc config is up
+      template:
+        src: rc-routing.conf
+        dest: /etc/rc.conf.d/routing
+
+  handlers:
+    - name: restart wireguard
+      service:
+        name: wireguard
+        state: restarted
+
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted

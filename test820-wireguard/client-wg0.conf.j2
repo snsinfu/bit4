@@ -1,0 +1,9 @@
+[Interface]
+PrivateKey = {{ wg_client_privkey }}
+Address = {{ wg_client_cidr }}
+DNS = 1.1.1.1
+
+[Peer]
+EndPoint = {{ ansible_host }}:{{ wg_server_port }}
+PublicKey = {{ wg_server_pubkey }}
+AllowedIPs = {{ wg_subnet }}, 0.0.0.0/0

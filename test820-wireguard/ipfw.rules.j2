@@ -1,0 +1,27 @@
+#!/bin/sh -eu
+
+LOOP="lo*"
+TUN="wg*"
+ETH={{ ansible_default_ipv4.interface }}
+NAT=1
+
+SSH=22
+DHCPRECV=67
+HTTP=80
+HTTPS=443
+
+sysctl net.inet.ip.fw.default_to_accept=1
+ipfw -qf flush
+
+# VPN NAT gateway
+ipfw -q nat $NAT config if $ETH
+
+# Firewall rules
+alias ADD="ipfw -q add"
+
+ADD 010 allow    all from any to any via $LOOP
+ADD 010 allow    all from any to any via $TUN
+ADD 030 nat $NAT ip  from any to any via $ETH
+ADD 999 allow    all from any to any
+
+sysctl net.inet.ip.fw.default_to_accept=0

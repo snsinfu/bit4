@@ -1,0 +1,8 @@
+[Interface]
+PrivateKey = {{ wg_server_privkey }}
+ListenPort = {{ wg_server_port }}
+Address = {{ wg_server_cidr }}
+
+[Peer]
+PublicKey = {{ wg_client_pubkey }}
+AllowedIPs = {{ wg_client_cidr }}
