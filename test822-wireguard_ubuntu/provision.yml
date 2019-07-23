@@ -1,0 +1,91 @@
+- hosts: vpnserver
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: wireguard repository is enabled
+      apt_repository:
+        repo: ppa:wireguard/wireguard
+        state: present
+
+    - name: wireguard is installed
+      apt:
+        name: wireguard
+        state: present
+
+    - name: wireguard server pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_server_privkey }}"
+      register: cmd_wg_server_pubkey
+      changed_when: none
+
+    - name: wireguard server facts are gathered
+      set_fact:
+        wg_server_hostname: "{{ ansible_host }}"
+        wg_server_pubkey: "{{ cmd_wg_server_pubkey.stdout }}"
+
+    - name: wireguard config is up
+      template:
+        src: wg-server.conf.j2
+        dest: /etc/wireguard/wg0.conf
+      notify: restart wireguard
+
+    - name: wireguard is activated
+      service:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+
+    - name: wireguard directory is present
+      file:
+        path: /srv/wg
+        state: directory
+
+    - name: wireguard client config is generated
+      template:
+        src: wg-client.conf.j2
+        dest: "/srv/wg/client-{{ client.index }}.conf"
+      loop: "{{ wg_clients }}"
+      loop_control:
+        loop_var: client
+
+    - name: wireguard client config is collected
+      fetch:
+        src: "/srv/wg/client-{{ client.index }}.conf"
+        dest: ./_output/
+        flat: yes
+      loop: "{{ wg_clients }}"
+      loop_control:
+        loop_var: client
+
+    - name: ip forwarding is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+
+    - name: iptables service unit is up
+      copy:
+        src: iptables.service
+        dest: /etc/systemd/system/
+      notify: restart iptables
+
+    - name: iptables script is up
+      template:
+        src: iptables.sh.j2
+        dest: /etc/iptables.sh
+        mode: 0700
+      notify: restart iptables
+
+  handlers:
+    - name: restart wireguard
+      service:
+        name: wg-quick@wg0
+        state: restarted
+
+    - name: restart iptables
+      service:
+        name: iptables
+        state: restarted

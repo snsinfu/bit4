@@ -1,0 +1,9 @@
+[Interface]
+PrivateKey = #
+Address = {{ wg_subnet | ipsubnet(32, client.index) }}
+DNS = 1.1.1.1
+
+[Peer]
+EndPoint = {{ wg_server_hostname }}:{{ wg_server_port }}
+PublicKey = {{ wg_server_pubkey }}
+AllowedIPs = 0.0.0.0/0

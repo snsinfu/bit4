@@ -1,0 +1,12 @@
+[Unit]
+Description=iptables
+Before=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/iptables.sh set
+ExecStop=/etc/iptables.sh clear
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

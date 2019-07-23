@@ -1,0 +1,13 @@
+# Example
+
+admin_user: bb191e9
+
+wg_server_privkey: OFxHd28IGkoKZ0tY6ny+ABIYLBfIa4koiCDPOA86uGo=
+wg_server_port: 51820
+wg_subnet: 10.223.95.0/24
+
+wg_clients:
+  - index: 2
+    pubkey: 76F3oObC3d0d140usLOdjWmKIpVP5M+kxqND4KjMfwg=
+  - index: 3
+    pubkey: X9Jidmt2vzewJf79XEmULWOOzSvacOOhnDSVz4N7ikc=

@@ -1,0 +1,7 @@
+Host vpnserver
+HostName ${host_address}
+UserKnownHostsFile _known_hosts
+PasswordAuthentication no
+IdentitiesOnly yes
+IdentityFile ./tempkey
+User ${admin_user}

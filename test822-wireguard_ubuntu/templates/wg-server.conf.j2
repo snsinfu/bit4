@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ wg_server_privkey }}
+ListenPort = {{ wg_server_port }}
+Address = {{ wg_subnet | ipaddr(1) }}
+
+{% for client in wg_clients %}
+[Peer]
+PublicKey = {{ client.pubkey }}
+AllowedIPs = {{ wg_subnet | ipsubnet(32, client.index) }}
+{% endfor %}
