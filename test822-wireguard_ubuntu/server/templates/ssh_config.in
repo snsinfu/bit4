@@ -3,5 +3,5 @@ HostName ${host_address}
 UserKnownHostsFile _known_hosts
 PasswordAuthentication no
 IdentitiesOnly yes
-IdentityFile ./tempkey
+IdentityFile _id_ed25519
 User ${admin_user}
