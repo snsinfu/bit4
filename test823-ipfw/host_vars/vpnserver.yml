@@ -1,0 +1,17 @@
+# Example. Keys are temporary.
+
+admin_user: sinfu
+
+wg_server_privkey: sAh9IwQFZGBUGRyGuUEIOxtcUNVOaxNMzN2m2utGtVE=
+wg_port: 518
+wg_subnet: 10.223.95.0/24
+
+wg_clients:
+  - name:   site
+    index:  2
+    pubkey: 57ZpMJ73uLttgIiM3a56LwnSHEfFkIquOyu+sgNP2i0=
+    expose: 192.168.100.0/24
+
+  - name:   alice
+    index:  10
+    pubkey: 5T8gKL4+dzHrz5WLkaD1dDbyXJ/3/7sbdwyWFatpN1A=

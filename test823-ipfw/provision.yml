@@ -1,0 +1,90 @@
+- hosts: vpnserver
+  become: yes
+
+  tasks:
+
+    # Basic system configuration
+
+    - name: mosh is installed
+      pkgng:
+        name: mosh
+        state: present
+
+    - name: sendmail is disabled
+      copy:
+        content: |
+          sendmail_enable="NO"
+          sendmail_submit_enable="NO"
+          sendmail_outbound_enable="NO"
+          sendmail_msp_queue_enable="NO"
+        dest: /etc/rc.conf.d/sendmail
+
+    - name: sendmail is not running
+      service:
+        name: sendmail
+        state: stopped
+
+    # Firewall
+
+    - name: firewall script is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+        mode: 0600
+      notify: restart ipfw
+
+    - name: firewall rc config is up
+      copy:
+        content: |
+          firewall_enable="YES"
+          firewall_script="/etc/ipfw.rules"
+          firewall_logging="YES"
+        dest: /etc/rc.conf.d/ipfw
+      notify: restart ipfw
+
+    - name: firewall log limit is set
+      sysctl:
+        name: net.inet.ip.fw.verbose_limit
+        value: "5"  # per connection
+        sysctl_set: yes
+
+    - name: firewall is activated
+      service:
+        name: ipfw
+        state: started
+
+    # Wireguard
+
+    - name: wireguard is installed
+      pkgng:
+        name: wireguard
+        state: present
+
+    - name: wg0.conf is up
+      template:
+        src: wg-server.conf
+        dest: /usr/local/etc/wireguard/wg0.conf
+
+    - name: wireguard is enabled
+      copy:
+        content: |
+          wireguard_enable="YES"
+          wireguard_interfaces="wg0"
+        dest: /etc/rc.conf.d/wireguard
+
+    - name: wireguard is activated
+      service:
+        name: wireguard
+        state: started
+
+    - name: ip forwarding is enabled
+      sysctl:
+        name: net.inet.ip.forwarding
+        value: "1"
+        sysctl_set: yes
+
+  handlers:
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted

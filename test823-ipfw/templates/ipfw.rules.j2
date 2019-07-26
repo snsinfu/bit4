@@ -1,0 +1,43 @@
+#!/bin/sh -eu
+
+LOOP="lo*"
+VPNIF="wg*"
+PIF="{{ ansible_default_ipv4.interface }}"
+
+WG={{ wg_port }}
+MOSH=60000-60010
+ICMPOK="icmptypes 8"
+
+VPN={{ wg_subnet }}
+
+sysctl net.inet.ip.fw.default_to_accept=1
+ipfw -qf flush
+
+# Firewall rules
+alias ADD="ipfw -q add"
+
+# Fundamental rules
+ADD 010 allow all from any to any via $LOOP
+ADD 020 check-state
+
+# Intra-VPN forwarding
+ADD 100 allow all from $VPN to not me via $VPNIF keep-state
+
+# Inbound rules
+ADD 200 allow tcp  from any to me ssh     in via $PIF keep-state setup
+ADD 200 allow udp  from any to me dhcps   in via $PIF keep-state
+ADD 200 allow udp  from any to me $WG     in via $PIF keep-state
+ADD 200 allow udp  from any to me $MOSH   in via $PIF keep-state
+ADD 200 allow icmp from any to me $ICMPOK in via $PIF
+
+# Outbound rule
+ADD 300 allow all from me to any out via $PIF keep-state
+
+# Fallback rules
+ADD 900 unreach port log tcp from any to any via $PIF
+ADD 900 unreach port log udp from any to any via $PIF
+ADD 910 unreach host log all from any to any via $PIF
+ADD 999 deny         log all from any to any
+
+# Default to deny
+sysctl net.inet.ip.fw.default_to_accept=0
