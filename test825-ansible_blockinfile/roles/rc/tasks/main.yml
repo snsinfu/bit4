@@ -1,0 +1,10 @@
+- name: "{{ note }}"
+  blockinfile:
+    path: ./rc.conf
+    create: yes
+    block: "{{ block }}"
+    marker: "# {mark}"
+    marker_begin: "-> {{ note_id }}: {{ note }}"
+    marker_end: "<- {{ note_id }}"
+  vars:
+    note_id: "{{ note | hash('sha1') | truncate(7, end='') }}"

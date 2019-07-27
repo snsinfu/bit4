@@ -1,0 +1,32 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  tasks:
+    - include_role:
+        name: rc
+      vars:
+        note: sshd is configured
+        block: |
+          sshd_enable="YES"
+
+    - include_role:
+        name: rc
+      vars:
+        note: firewall is configured
+        block: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+          firewall_nat_enable="YES"
+          gateway_enable="YES"
+
+    - include_role:
+        name: rc
+      vars:
+        note: sendmail is completely disabled
+        block: |
+          sendmail_enable="NO"
+          sendmail_submit_enable="NO"
+          sendmail_outbound_enable="NO"
+          sendmail_msp_queue_enable="NO"
