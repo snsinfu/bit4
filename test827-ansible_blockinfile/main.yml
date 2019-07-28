@@ -1,0 +1,29 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  tasks:
+    - name: sshd is configured
+      rc_conf:
+        fragment: |
+          sshd_enable="YES"
+        path: ./rc.conf
+
+    - name: sendmail is completely disabled
+      rc_conf:
+        fragment: |
+          sendmail_enable="NO"
+          sendmail_submit_enable="NO"
+          sendmail_outbound_enable="NO"
+          sendmail_msp_queue_enable="NO"
+        path: ./rc.conf
+
+    - name: firewall is configured
+      rc_conf:
+        fragment: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+          firewall_nat_enable="YES"
+          gateway_enable="YES"
+        path: ./rc.conf
