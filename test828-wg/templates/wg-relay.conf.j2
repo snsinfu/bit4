@@ -1,0 +1,15 @@
+[Interface]
+PrivateKey = {{ wg_relay_privkey }}
+Address = {{ wg_network | ipaddr(wg_relay_index) }}
+ListenPort = {{ wg_port }}
+
+# Gateway server
+[Peer]
+PublicKey = {{ wg_gateway_pubkey }}
+AllowedIPs = {{ wg_network | ipsubnet(32, wg_gateway_index) }}
+AllowedIPs = {{ wg_gateway_network }}
+
+# Client
+[Peer]
+PublicKey = {{ wg_client_pubkey }}
+AllowedIPs = {{ wg_network | ipsubnet(32, wg_client_index) }}

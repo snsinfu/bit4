@@ -1,0 +1,157 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: wireguard repository is enabled
+      apt_repository:
+        repo: ppa:wireguard/wireguard
+        state: present
+
+    - name: wireguard is installed
+      apt:
+        name: wireguard
+        state: present
+
+#------------------------------------------------------------------------------
+
+- hosts: relay
+  become: yes
+
+  tasks:
+    - name: iptables service unit is up
+      copy:
+        src: iptables.service
+        dest: /etc/systemd/system/
+      notify: restart iptables
+
+    - name: iptables script is up
+      template:
+        src: iptables-relay.sh.j2
+        dest: /etc/iptables.sh
+        mode: 0700
+      notify: restart iptables
+
+    - name: iptables service is activated
+      service:
+        name: iptables
+        state: started
+
+    - name: ip forwarding is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+
+    - name: wireguard gateway pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_gateway_privkey }}"
+      register: cmd
+
+    - set_fact:
+        wg_gateway_pubkey: "{{ cmd.stdout }}"
+
+    - name: wireguard relay pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_relay_privkey }}"
+      register: cmd
+
+    - set_fact:
+        wg_relay_pubkey: "{{ cmd.stdout }}"
+
+    - name: wireguard config is up
+      template:
+        src: wg-relay.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        mode: 0600
+      notify: restart wireguard
+
+    - name: wireguard service is activted
+      service:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+
+    - name: wireguard client config is generated
+      template:
+        src: wg-client.conf.j2
+        dest: /srv/wg-client.conf
+
+    - name: wireguard client config is fetched back
+      fetch:
+        src: /srv/wg-client.conf
+        dest: ./_output/
+        flat: yes
+
+  handlers:
+    - name: restart iptables
+      service:
+        name: iptables
+        state: restarted
+
+    - name: restart wireguard
+      service:
+        name: wg-quick@wg0
+        state: restarted
+
+#------------------------------------------------------------------------------
+
+- hosts: gateway
+  become: yes
+
+  tasks:
+    - name: iptables service unit is up
+      copy:
+        src: iptables.service
+        dest: /etc/systemd/system/
+      notify: restart iptables
+
+    - name: iptables script is up
+      template:
+        src: iptables-gateway.sh.j2
+        dest: /etc/iptables.sh
+        mode: 0700
+      notify: restart iptables
+
+    - name: iptables service is activated
+      service:
+        name: iptables
+        state: started
+
+    - name: ip forwarding is enabled
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+
+    - name: wireguard relay pubkey is derived
+      command: wg pubkey
+      args:
+        stdin: "{{ wg_relay_privkey }}"
+      register: cmd
+
+    - set_fact:
+        wg_relay_pubkey: "{{ cmd.stdout }}"
+
+    - name: wireguard config is up
+      template:
+        src: wg-gateway.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        mode: 0600
+      notify: restart wireguard
+
+    - name: wireguard service is activted
+      service:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart iptables
+      service:
+        name: iptables
+        state: restarted
+
+    - name: restart wireguard
+      service:
+        name: wg-quick@wg0
+        state: restarted

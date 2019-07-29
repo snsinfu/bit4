@@ -1,0 +1,15 @@
+# Example configuration. Keys should be changed.
+
+wg_network: 10.190.50.0/24
+wg_port: 518
+
+wg_relay_privkey: 8Bk3PvX2ZIT3EkSIPyfmIM+yn8MgUAb5K2yvzwhOu1Y=
+wg_relay_index: 1
+
+wg_gateway_privkey: ON0E8FyRSt/HEKaOQkgQ2AYLOdWaI91JpiUv2SbVInY=
+wg_gateway_index: 2
+wg_gateway_network: 1.0.0.0/8
+
+# private key: KJeDdvs85Tr2B34Nv/1/NIy43b4YrED83hQsW9eON1c=
+wg_client_pubkey: Loy5JKl6499TlPRJNcEONYdOm/qTqTaWFCbPudD20kY=
+wg_client_index: 3

@@ -1,0 +1,11 @@
+UserKnownHostsFile _known_hosts
+PasswordAuthentication no
+IdentitiesOnly yes
+IdentityFile _id_ed25519
+User ${admin_user}
+
+Host relay
+HostName ${relay_address}
+
+Host gateway
+HostName ${gateway_address}

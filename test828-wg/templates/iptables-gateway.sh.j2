@@ -1,0 +1,45 @@
+#!/bin/sh -eu
+
+IP={{ ansible_default_ipv4.address }}
+PIF={{ ansible_default_ipv4.interface }}
+VPNIF=wg+
+
+WG={{ wg_port }}
+VPN={{ wg_network }}
+
+# Clear rules
+iptables -P INPUT   ACCEPT
+iptables -P OUTPUT  ACCEPT
+iptables -P FORWARD ACCEPT
+
+iptables -F
+iptables -X
+
+case "$1" in
+enable)
+    ;;
+disable)
+    exit
+esac
+
+iptables -P INPUT   DROP
+iptables -P OUTPUT  ACCEPT
+iptables -P FORWARD DROP
+
+# Loopback is open
+iptables -A INPUT -j ACCEPT -i lo
+
+# Accept known connections
+iptables -A INPUT   -j ACCEPT -m state --state ESTABLISHED,RELATED
+iptables -A FORWARD -j ACCEPT -m state --state ESTABLISHED,RELATED
+
+# Open ports
+iptables -A INPUT -j ACCEPT -p icmp --icmp-type ping -i $PIF   -m state --state NEW
+iptables -A INPUT -j ACCEPT -p tcp  --dport     ssh  -i $PIF   -m state --state NEW
+iptables -A INPUT -j ACCEPT -p icmp --icmp-type ping -i $VPNIF -m state --state NEW
+
+# Forward from VPN to PIF
+iptables -A FORWARD -j ACCEPT -i $VPNIF -o $PIF -m state --state NEW
+
+# Allow NAT on PIF
+iptables -t nat -A POSTROUTING -j SNAT --to $IP -o $PIF

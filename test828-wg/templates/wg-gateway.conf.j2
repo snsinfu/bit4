@@ -1,0 +1,11 @@
+[Interface]
+PrivateKey = {{ wg_gateway_privkey }}
+Address = {{ wg_network | ipsubnet(32, wg_gateway_index) }}
+
+[Peer]
+PublicKey = {{ wg_relay_pubkey }}
+EndPoint = {{ hostvars["relay"].ansible_host }}:{{ wg_port }}
+AllowedIPs = {{ wg_network }}
+PersistentKeepAlive = 25
+# Need to keep UDP "connection" established to allow relayed packets to pass
+# through stateful firewall.

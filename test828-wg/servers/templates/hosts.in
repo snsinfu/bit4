@@ -1,0 +1,2 @@
+relay ansible_host=${relay_address} ansible_user=${admin_user}
+gateway ansible_host=${gateway_address} ansible_user=${admin_user}
