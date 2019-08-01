@@ -1,0 +1,11 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  tasks:
+    - command_fact:
+        command: uname -a
+        set_fact: foo
+
+    - debug:
+        msg: "{{ foo }}"
