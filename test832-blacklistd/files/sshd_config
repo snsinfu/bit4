@@ -1,0 +1,6 @@
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+UseBlacklist yes
+Subsystem sftp internal-sftp

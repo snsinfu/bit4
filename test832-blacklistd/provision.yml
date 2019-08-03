@@ -1,0 +1,75 @@
+- hosts: all
+  become: yes
+
+  tasks:
+
+    # Misc.
+
+    - name: rc.conf error is corrected
+      lineinfile:
+        path: /etc/rc.conf
+        line: firstboot-growfs="YES"
+        state: absent
+
+    # SSH
+
+    - name: sshd_config is up
+      copy:
+        src: sshd_config
+        dest: /etc/ssh/sshd_config
+      notify: restart sshd
+
+    # Firewall
+
+    - name: ipfw.rules is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+      notify: restart ipfw
+
+    - name: ipfw is enabled
+      rc_conf:
+        fragment: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+      notify: restart ipfw
+
+    - name: ipfw log amount is configured
+      sysctl:
+        name: net.inet.ip.fw.verbose_limit
+        value: "100"
+
+    - name: ipfw is activated
+      service:
+        name: ipfw
+        state: started
+
+    # Blacklistd
+
+    - name: ipfw-blacklistd.rc is up
+      copy:
+        src: ipfw-blacklistd.rc
+        dest: /etc/ipfw-blacklistd.rc
+
+    - name: blacklistd is enabled
+      rc_conf:
+        fragment: |
+          blacklistd_enable="YES"
+      notify: restart blacklistd
+
+    - name: blacklistd is activated
+      service:
+        name: blacklistd
+        state: started
+
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted
