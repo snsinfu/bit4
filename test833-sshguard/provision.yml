@@ -1,0 +1,87 @@
+- hosts: all
+  become: yes
+
+  tasks:
+
+    # Robox FreeBSD currently has a typo in rc.conf.
+
+    - name: rc.conf error is corrected
+      lineinfile:
+        path: /etc/rc.conf
+        regexp: firstboot[-_]growfs="YES"
+        line: firstboot_growfs="YES"
+        state: present
+
+    # ssh
+
+    - name: sshd_config is up
+      copy:
+        src: sshd_config
+        dest: /etc/ssh/sshd_config
+      notify: restart sshd
+
+    # sshguard
+
+    - name: sshguard is installed
+      pkgng:
+        name: sshguard
+        state: present
+
+    - name: sshguard.conf is up
+      copy:
+        src: sshguard.conf
+        dest: /usr/local/etc/sshguard.conf
+      notify: restart sshguard
+
+    - name: sshguard is enabled
+      rc_conf:
+        fragment: |
+          sshguard_enable="YES"
+      notify: restart sshguard
+
+    - name: sshguard is activated
+      service:
+        name: sshguard
+        state: started
+
+    # ipfw
+
+    - name: ipfw.rules is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+      notify: restart ipfw
+
+    - name: ipfw is enabled
+      rc_conf:
+        fragment: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+      notify: restart ipfw
+
+    - name: ipfw log amount is configured
+      sysctl:
+        name: net.inet.ip.fw.verbose_limit
+        value: "100"
+
+    - name: ipfw is activated
+      service:
+        name: ipfw
+        state: started
+
+  handlers:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+
+    - name: restart sshguard
+      service:
+        name: sshguard
+        state: restarted
+
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted
