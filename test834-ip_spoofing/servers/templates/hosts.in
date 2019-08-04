@@ -1,0 +1,2 @@
+srv ansible_host=${srv_address} ansible_user=${admin_user}
+pen ansible_host=${pen_address} ansible_user=${admin_user}

@@ -1,0 +1,50 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: mosh is installed
+      pkgng:
+        name: mosh
+        state: present
+
+
+- hosts: srv
+  become: yes
+  tasks:
+    - name: ipfw.rules is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+        mode: 0700
+      notify: restart ipfw
+
+    - name: ipfw is enabled
+      blockinfile:
+        path: /etc/rc.conf
+        block: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+        marker:       "#{mark}"
+        marker_begin: "-ipfw: ipfw is enabled"
+        marker_end:   "-ipfw"
+      notify: restart ipfw
+
+    - name: ipfw is activated
+      service:
+        name: ipfw
+        state: started
+
+  handlers:
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted
+
+
+- hosts: pen
+  become: yes
+  tasks:
+    - name: nmap is installed
+      pkgng:
+        name: nmap
+        state: present

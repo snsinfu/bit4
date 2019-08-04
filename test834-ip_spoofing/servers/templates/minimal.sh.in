@@ -1,0 +1,62 @@
+#!/bin/sh -eu
+
+umask 022
+mkdir /root/startup
+cd    /root/startup
+
+#
+# Timezone
+#
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
+#
+# User
+#
+pw groupadd ${admin_user}
+pw useradd  ${admin_user} -g ${admin_user} -G wheel -m
+
+#
+# Authorized keys
+#
+install \
+  -g ${admin_user} \
+  -o ${admin_user} \
+  -m 0700 \
+  -d \
+  /home/${admin_user}/.ssh
+
+cat > authorized_keys << EOF
+${admin_pubkeys}
+EOF
+
+install \
+  -g ${admin_user} \
+  -o ${admin_user} \
+  -m 0600 \
+  authorized_keys \
+  /home/${admin_user}/.ssh/
+
+#
+# Sudoers
+#
+pkg install -y sudo
+
+cat > sudoers_admin << EOF
+${admin_user} ALL=(ALL) NOPASSWD:ALL
+EOF
+
+install -m 0440 sudoers_admin /usr/local/etc/sudoers.d/
+
+#
+# SSH server
+#
+cat > sshd_config << EOF
+AddressFamily inet
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+Subsystem sftp internal-sftp
+EOF
+
+install -m 0644 sshd_config /etc/ssh/

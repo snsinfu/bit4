@@ -1,0 +1,11 @@
+UserKnownHostsFile _known_hosts
+PasswordAuthentication no
+IdentitiesOnly yes
+IdentityFile _id_ed25519
+User ${admin_user}
+
+Host srv
+HostName ${srv_address}
+
+Host pen
+HostName ${pen_address}
