@@ -1,0 +1,48 @@
+#!/bin/sh
+set -eu
+
+LOOP="lo*"
+PIF="{{ ansible_default_ipv4.interface }}"
+PING="icmptypes 8"
+
+ipfw -q flush
+alias ADD="ipfw -q add"
+
+#
+# Basic rules
+#
+
+ADD 0100 allow all from any to any via $LOOP
+
+ADD 0900 check-state
+ADD 0910 deny all from any to any frag
+ADD 0920 deny tcp from any to any established
+
+#
+# Inbound rules
+#
+
+# Drop spoofed packets
+ADD 1000 deny all from any to any not verrevpath in
+
+# Allowed packets
+ADD 2000 allow icmp from any to me $PING in via $PIF keep-state
+ADD 2000 allow udp  from any to me dhcps in via $PIF keep-state
+ADD 2000 allow tcp  from any to me ssh   in via $PIF keep-state setup
+
+#
+# Outbound rules
+#
+
+ADD 3000 allow icmp from me to any $PING  out via $PIF keep-state
+ADD 3000 allow udp  from me to any dhcpc  out via $PIF keep-state
+ADD 3000 allow udp  from me to any domain out via $PIF keep-state
+ADD 3000 allow udp  from me to any ntp    out via $PIF keep-state
+ADD 3000 allow tcp  from me to any http   out via $PIF keep-state setup
+ADD 3000 allow tcp  from me to any https  out via $PIF keep-state setup
+
+#
+# Fallback rules
+#
+
+ADD 9999 deny log all from any to any

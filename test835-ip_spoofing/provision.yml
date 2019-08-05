@@ -1,0 +1,25 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: robox rc.conf error is corrected
+      lineinfile:
+        path: /etc/rc.conf
+        line: firstboot-growfs="YES"
+        state: absent
+
+    - name: ipfw.rules is up
+      template:
+        src: ipfw.rules.j2
+        dest: /etc/ipfw.rules
+        mode: 0700
+
+    - name: ipfw is configured
+      blockinfile:
+        path: /etc/rc.conf
+        block: |
+          firewall_enable="YES"
+          firewall_logging="YES"
+          firewall_script="/etc/ipfw.rules"
+        marker:       "#{mark}"
+        marker_begin: "-ipfw: enabled"
+        marker_end:   "-ipfw"
