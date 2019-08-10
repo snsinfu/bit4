@@ -1,0 +1,27 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Sendmail is completely disabled
+      rc_conf:
+        fragment: |
+          sendmail_enable="NO"
+          sendmail_submit_enable="NO"
+          sendmail_outbound_enable="NO"
+          sendmail_msp_queue_enable="NO"
+
+  post_tasks:
+    - name: Check rc.conf sendmail lines
+      lineinfile:
+        name: /etc/rc.conf
+        line: "{{ item }}"
+      check_mode: yes
+      register: line
+      failed_when: (line is changed) or (line is failed)
+      with_items:
+        - sendmail_enable="NO"
+        - sendmail_submit_enable="NO"
+        - sendmail_outbound_enable="NO"
+        - sendmail_msp_queue_enable="NO"

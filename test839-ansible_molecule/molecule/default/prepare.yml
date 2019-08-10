@@ -1,0 +1,18 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    # See: https://forums.freebsd.org/threads/operation-timed-out.51501/
+    - name: Package manager timeout is loosen
+      raw: |
+        sed -i.bak '/FETCH_TIMEOUT/ c\
+        FETCH_TIMEOUT=200' /usr/local/etc/pkg.conf
+
+    - name: Package database is up
+      raw: pkg update
+
+    - name: Python is installed
+      raw: pkg install -Uy python3

@@ -1,0 +1,29 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+
+lint:
+  name: yamllint
+
+platforms:
+  - name: instance
+    box: bento/freebsd-12
+
+provisioner:
+  name: ansible
+  log: true
+  lint:
+    name: ansible-lint
+  env:
+    ANSIBLE_LIBRARY: ../../plugins/module
+    ANSIBLE_ACTION_PLUGINS: ../../plugins/action
+
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
