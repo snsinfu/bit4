@@ -1,0 +1,27 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+lint:
+  name: yamllint
+
+platforms:
+  - name: instance
+    image: centos:7
+
+provisioner:
+  name: ansible
+  log: true
+  lint:
+    name: ansible-lint
+  env:
+    ANSIBLE_LIBRARY: ../../plugins/module
+    ANSIBLE_ACTION_PLUGINS: ../../plugins/action
+
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
