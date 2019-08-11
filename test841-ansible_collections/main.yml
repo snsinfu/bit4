@@ -1,0 +1,8 @@
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: NTP is enabled
+      snsinfu.bsd.rc_conf:
+        path: ./rc.conf
+        block: |
+          ntpd_enable="YES"

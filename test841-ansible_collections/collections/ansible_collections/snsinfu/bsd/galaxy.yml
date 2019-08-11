@@ -1,0 +1,15 @@
+namespace: myns
+name: rc_conf
+version: "0.1.0"
+readme: README.md
+authors:
+  - snsinfu
+dependencies:
+license:
+  - MIT
+tags:
+  - collection
+repository: none
+documentation: none
+homepage: none
+issues: none
