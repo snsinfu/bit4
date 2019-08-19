@@ -1,0 +1,13 @@
+VM_BOX = "bento/ubuntu-18.04"
+EXTERNAL_IP = "10.0.0.2"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = VM_BOX
+  config.vm.network :private_network, ip: EXTERNAL_IP
+
+  config.vm.provision :shell, inline: <<-EOF
+    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.rio.io | sh -
+    rio install --ip-address #{EXTERNAL_IP}
+  EOF
+end
