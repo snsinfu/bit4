@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  postgres:
+    image: postgres:11
+    restart: always
+    ports:
+      - 5432/tcp
+    environment:
+      - POSTGRES_PASSWORD=1c7342681f31513e6b9336aef93e29e6
+    volumes:
+      - "$PWD/data:/var/lib/postgresql/data"
