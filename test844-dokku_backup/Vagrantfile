@@ -1,0 +1,22 @@
+VM_BOX = "bento/ubuntu-18.04"
+DOKKU_TAG = "v0.18.2"
+DOKKU_DOMAIN = "dokku.me"
+DOKKU_IP = "10.0.0.2"
+SERVICE_PORT = 8080
+
+Vagrant.configure("2") do |config|
+  config.vm.box = VM_BOX
+  config.vm.hostname = DOKKU_DOMAIN
+  config.vm.network :private_network, ip: DOKKU_IP
+  config.vm.network :forwarded_port, guest: 80, host: SERVICE_PORT
+
+  config.vm.provision :shell, inline: <<-EOF
+    mkdir -p     /srv/dokku/home /home/dokku
+    mount --bind /srv/dokku/home /home/dokku
+    mkdir -p     /srv/dokku/data /var/lib/dokku
+    mount --bind /srv/dokku/data /var/lib/dokku
+    export DOKKU_TAG=#{DOKKU_TAG}
+    wget https://raw.githubusercontent.com/dokku/dokku/$DOKKU_TAG/bootstrap.sh
+    bash bootstrap.sh
+  EOF
+end
