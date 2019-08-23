@@ -1,0 +1,25 @@
+# https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/
+# https://kubernetes.io/docs/concepts/storage/volumes/
+# https://cloud.google.com/kubernetes-engine/docs/concepts/persistent-volumes
+# https://severalnines.com/blog/using-kubernetes-deploy-postgresql
+
+services:
+  postgres2:
+    build:
+      dockerFile: Dockerfile
+    systemSpec:
+      podSpec:
+        containers:
+          - name: postgres
+            image: postgres:11
+            volumeMounts:
+              - name: postgres-data-storage
+                mountPath: /var/lib/postgresql/data
+            ports:
+              - containerPort: 5432
+                protocol: TCP
+        volumes:
+          - name: postgres-data-storage
+            hostPath:
+              path: /mnt/volume/postgres-data
+              type: Directory
