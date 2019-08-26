@@ -1,0 +1,97 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    postgres_version: 11
+    postgres_cluster: rio
+    postgres_password: c38c022ea863ddffad053eac7edd5489
+    helloworld_password: 3e8537caa87bcb971eef6992bcd4f112
+
+  tasks:
+    - name: Ansible prerequisites are installed
+      apt:
+        name:
+          - python3-pexpect
+          - python3-psycopg2
+        state: present
+
+      # https://wiki.debian.org/PostgreSql
+    - name: Postgres cluster manager is installed
+      apt:
+        name: postgresql-common
+        state: present
+
+    - name: Postgres createcluster config directory is present
+      file:
+        path: /etc/postgresql-common/createcluster.d
+        state: directory
+
+      # Debian's postgres installation creates a passwordless cluster named main
+      # by default. Suppress that behavior. Otherwise, we need to manually drop
+      # the cluster by `pg_dropcluster --stop 11 main` after installation.
+    - name: Postgres default cluster creation is suppressed
+      copy:
+        content: |
+          create_main_cluster = false
+        dest: /etc/postgresql-common/createcluster.d/50-suppress_main_cluster.conf
+
+    - name: Postgres server is installed
+      apt:
+        name: "postgresql-{{ postgres_version }}"
+        state: present
+
+      # Create a database cluster.
+    - name: Postgres cluster is created
+      expect:
+        command: >
+          pg_createcluster
+            --locale C.UTF-8
+            --port 5432
+            --start
+            {{ postgres_version }}
+            {{ postgres_cluster }}
+            --
+            --pwprompt
+        creates: "/var/lib/postgresql/{{ postgres_version }}/{{ postgres_cluster }}/PG_VERSION"
+        responses:
+          "(password|again):": "{{ postgres_password }}"
+
+      # Check accessibility to the maintenance db (named "postgres"). This tries
+      # to connect to postgres from the host Ansible is connecting to, so the
+      # login_host should be 127.0.0.1. Note: The module does not fail and just
+      # emits a warning on failure.
+    - name: Postgres cluster is accessible
+      postgresql_ping:
+        db: postgres
+        login_host: 127.0.0.1
+        login_user: postgres
+        login_password: "{{ postgres_password }}"
+
+      # Add a user and their database. Use this user-db pair in an app?
+    - name: Postgres user helloworld is present
+      postgresql_user:
+        name: helloworld
+        password: "{{ helloworld_password }}"
+        state: present
+        login_host: 127.0.0.1
+        login_password: "{{ postgres_password }}"
+
+    - name: Postgres database helloworld is present
+      postgresql_db:
+        name: helloworld
+        owner: helloworld
+        login_host: 127.0.0.1
+        login_password: "{{ postgres_password }}"
+
+      # TODO: Set correct privileges for the helloworld user.
+      # TODO: Test from some app.
+
+      # Afain, connection failure is reported as a warning. Try changing the
+      # password to a wrong one.
+    - name: The helloworld user can access their database
+      postgresql_ping:
+        db: helloworld
+        login_host: 127.0.0.1
+        login_user: helloworld
+        login_password: "{{ helloworld_password }}"
