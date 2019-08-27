@@ -1,0 +1,62 @@
+- hosts: all
+  become: yes
+
+  vars:
+    k3s_version: v0.8.1
+    k3s_checksum: sha256:5bfe6a1299f26969a257ca877db940b640b1b29f670337338b7d81112e061590
+    rio_version: v0.4.0-rc4
+    rio_checksum: sha256:b9186d8fac875c5fdf788e720994e83f78851fc5fe0f104e9707e3b5eb1e65e6
+    external_ip: 10.0.0.2
+
+  tasks:
+    - name: K3s binary is downloaded
+      get_url:
+        url: "https://github.com/rancher/k3s/releases/download/{{ k3s_version }}/k3s"
+        checksum: "{{ k3s_checksum }}"
+        dest: /usr/local/bin/k3s
+        mode: 0755
+        owner: 0
+        group: 0
+        setype: bin_t
+
+    - name: Kubernetes command links are present
+      file:
+        path: "/usr/local/bin/{{ item }}"
+        src: /usr/local/bin/k3s
+        state: link
+      with_items:
+        - kubectl
+        - crictl
+        - ctr
+
+    - name: K3s service unit is up
+      template:
+        src: k3s.service.j2
+        dest: /etc/systemd/system/k3s.service
+
+    - name: K3s environment file is up
+      copy:
+        content: ""
+        dest: /etc/systemd/system/k3s.env
+        mode: 0600
+
+    - name: K3s is activated
+      service:
+        name: k3s
+        state: started
+
+    - name: Rio binary is downloaded
+      get_url:
+        url: "https://github.com/rancher/rio/releases/download/{{ rio_version }}/rio-linux-amd64"
+        checksum: "{{ rio_checksum }}"
+        dest: /usr/local/bin/rio
+        mode: 0755
+        owner: 0
+        group: 0
+        setype: bin_t
+
+      # Looks like rio install is idempotent.
+    - name: Rio Lite is installed
+      shell: rio install --ip-address "{{ external_ip }}" --lite
+      register: cmd
+      changed_when: "'- Waiting for' in cmd.stdout"
