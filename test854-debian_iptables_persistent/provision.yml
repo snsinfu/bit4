@@ -1,0 +1,33 @@
+- hosts: all
+  become: yes
+
+  tasks:
+
+      # netfilter-persistent installs systemd service that manages firewall
+      # using plugins. iptables-persistent is one of available plugin choices.
+      # It uses iptables-restore command to apply rules.
+    - name: iptables persistence packages are installed
+      apt:
+        name:
+          - netfilter-persistent
+          - iptables-persistent
+        state: present
+
+    - name: iptables rules are up
+      copy:
+        src: iptables.rules.v4
+        dest: /etc/iptables/rules.v4
+        mode: 0600
+      notify: restart firewall
+
+    - name: firewall is activated
+      service:
+        name: netfilter-persistent
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart firewall
+      service:
+        name: netfilter-persistent
+        state: restarted

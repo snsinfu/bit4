@@ -1,0 +1,16 @@
+*filter
+
+:INPUT   DROP
+:FORWARD DROP
+:OUTPUT  ACCEPT
+
+-A INPUT -j ACCEPT -i lo
+-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+
+-A INPUT -j ACCEPT -p icmp               -i eth0
+-A INPUT -j ACCEPT -p tcp  --dport ssh   -i eth0 -m state --state NEW
+-A INPUT -j ACCEPT -p tcp  --dport http  -i eth0 -m state --state NEW
+-A INPUT -j ACCEPT -p tcp  --dport https -i eth0 -m state --state NEW
+-A INPUT -j ACCEPT -p udp  --dport 850   -i eth0 -m state --state NEW
+
+COMMIT
