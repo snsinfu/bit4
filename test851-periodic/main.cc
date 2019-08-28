@@ -19,10 +19,17 @@ int main()
         points.push_back({ coord(random), coord(random), coord(random) });
     }
 
-    open_box box{points.size()};
-    neighbor_searcher<open_box> searcher{box, 0.1};
-    searcher.set_points(points);
     std::vector<std::pair<md::index, md::index>> pairs;
-    searcher.search(std::back_inserter(pairs));
+
+    pairs.clear();
+    neighbor_searcher<open_box> open_searcher{open_box{points.size()}, 0.1};
+    open_searcher.set_points(points);
+    open_searcher.search(std::back_inserter(pairs));
+    std::cout << pairs.size() << '\n';
+
+    pairs.clear();
+    neighbor_searcher<periodic_box> periodic_searcher{periodic_box{1, 1, 1}, 0.1};
+    periodic_searcher.set_points(points);
+    periodic_searcher.search(std::back_inserter(pairs));
     std::cout << pairs.size() << '\n';
 }

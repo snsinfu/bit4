@@ -12,6 +12,86 @@
 #include "box.hpp"
 
 
+namespace detail
+{
+    using std::int32_t;
+    using std::uint32_t;
+
+    // Computes non-negative floating-point remainder of x/m. The result r
+    // satisfies 0 <= r < m. Use this function to map a point to its canonical
+    // image in a periodic system.
+    inline md::scalar floor_mod(md::scalar x, md::scalar m)
+    {
+        return x - std::floor(x * (1 / m)) * m;
+    }
+
+    // Computes zero-centered floating-point remainder of x/m. The result r
+    // satisfies -m/2 <= r <= m/2. Use this function to compute the distance
+    // between nearest images of points in a periodic system.
+    // inline md::scalar round_mod(md::scalar x, md::scalar m)
+    // {
+    //     return x - std::nearbyint(x * (1 / m)) * m;
+    // }
+
+    // Returns the integral part of x as uint32_t.
+    inline uint32_t trunc_uint(md::scalar x)
+    {
+        // Converting floating-point number to int32_t is much faster than to
+        // uint32_t on x86.
+        return static_cast<uint32_t>(static_cast<int32_t>(x));
+    }
+
+    // Rounds x to the nearest uint32_t value.
+    inline uint32_t round_uint(md::scalar x)
+    {
+        return trunc_uint(std::nearbyint(x));
+    }
+
+    // Computes (x + y) mod m assuming both x and y are less than m.
+    inline uint32_t add_mod(uint32_t x, uint32_t y, uint32_t m)
+    {
+        auto sum = x + y;
+        if (sum >= m) {
+            sum -= m;
+        }
+        return sum;
+    }
+
+    // A bin_layout defines 1-dimensional uniform bins.
+    struct bin_layout
+    {
+        md::scalar step;
+        uint32_t count;
+    };
+
+    // Creates a bin_layout that splits given span into uniform bins.
+    inline bin_layout define_bins(md::scalar span, md::scalar min_step)
+    {
+        bin_layout bins;
+        bins.count = std::max(trunc_uint(span / min_step), uint32_t(1));
+        bins.step = span / md::scalar(bins.count);
+        return bins;
+    }
+
+    // Computes the index of the bin in which given coordinate value falls.
+    inline uint32_t locate_bin(const bin_layout& bins, md::scalar coord)
+    {
+        const auto span = bins.step * md::scalar(bins.count);
+        const auto image = floor_mod(coord, span);
+        const auto index = trunc_uint(image * (1 / bins.step));
+        return index < bins.count ? index : bins.count - 1;
+    }
+
+    // Sort and remove duplicates in a container.
+    template<typename Container>
+    void sort_unique(Container& cont)
+    {
+        std::sort(cont.begin(), cont.end());
+        cont.erase(std::unique(cont.begin(), cont.end()), cont.end());
+    }
+}
+
+
 // Bucket for spatial hash table.
 struct spatial_bucket
 {
@@ -118,11 +198,7 @@ private:
 
 
 template<typename Box>
-struct search_grid
-{
-    // Exposition only. Not implemented.
-    search_grid(Box box, md::scalar spacing, md::index count);
-};
+struct search_grid;
 
 
 // Grid implementation for open_box. Since infinite grid cannot be represented
@@ -141,7 +217,7 @@ struct search_grid<open_box>
         init_buckets();
     }
 
-    inline std::uint32_t locate_bucket(md::point pt) const
+    inline std::size_t locate_bucket(md::point pt) const
     {
         // Negative coordinate value causes discontinuous jumps in hash value
         // which breaks our search algorithm. Avoid that by offsetting. The
@@ -171,6 +247,8 @@ private:
 
     void init_buckets()
     {
+        buckets.resize(hash.modulus);
+
         // Compute neighbor graph of the spatial cells.
         std::set<std::uint32_t> hash_deltas;
 
@@ -204,6 +282,95 @@ private:
         }
     }
 };
+
+
+// Grid implementation for periodic_box.
+template<>
+struct search_grid<periodic_box>
+{
+    periodic_box                box;
+    detail::bin_layout          x_bins;
+    detail::bin_layout          y_bins;
+    detail::bin_layout          z_bins;
+    std::vector<spatial_bucket> buckets;
+
+    search_grid(periodic_box box, md::scalar spacing)
+        : box{box}
+    {
+        init_bins(spacing);
+        init_buckets();
+    }
+
+    inline std::size_t locate_bucket(md::point pt) const
+    {
+        const auto x = detail::locate_bin(x_bins, pt.x);
+        const auto y = detail::locate_bin(y_bins, pt.y);
+        const auto z = detail::locate_bin(z_bins, pt.z);
+        return do_locate_bucket(x, y, z);
+    }
+
+    inline md::scalar squared_distance(md::point p1, md::point p2) const
+    {
+        return box.shortest_displacement(p1, p2).squared_norm();
+    }
+
+private:
+    void init_bins(md::scalar spacing)
+    {
+        x_bins = detail::define_bins(box.x_period, spacing);
+        y_bins = detail::define_bins(box.y_period, spacing);
+        z_bins = detail::define_bins(box.z_period, spacing);
+    }
+
+    void init_buckets()
+    {
+        buckets.clear();
+        buckets.resize(x_bins.count * y_bins.count * z_bins.count);
+
+        for (std::uint32_t z = 0; z < z_bins.count; z++) {
+            for (std::uint32_t y = 0; y < y_bins.count; y++) {
+                for (std::uint32_t x = 0; x < x_bins.count; x++) {
+                    init_bucket_adjacents(x, y, z);
+                }
+            }
+        }
+    }
+
+    // Initializes adjacent links of a bucket that covers (x,y,z) bin.
+    void init_bucket_adjacents(std::uint32_t x, std::uint32_t y, std::uint32_t z)
+    {
+        const auto bucket_index = do_locate_bucket(x, y, z);
+        auto& bucket = buckets[bucket_index];
+
+        const std::uint32_t dx_values[] = {0, 1, x_bins.count - 1};
+        const std::uint32_t dy_values[] = {0, 1, y_bins.count - 1};
+        const std::uint32_t dz_values[] = {0, 1, z_bins.count - 1};
+
+        for (const auto dz : dz_values) {
+            for (const auto dy : dy_values) {
+                for (const auto dx : dx_values) {
+                    const auto adj_x = detail::add_mod(x, dx, x_bins.count);
+                    const auto adj_y = detail::add_mod(y, dy, y_bins.count);
+                    const auto adj_z = detail::add_mod(z, dz, z_bins.count);
+                    const auto adj_index = do_locate_bucket(adj_x, adj_y, adj_z);
+                    if (adj_index <= bucket_index) {
+                        bucket.directed_neighbors.push_back(adj_index);
+                    }
+                    bucket.complete_neighbors.push_back(adj_index);
+                }
+            }
+        }
+
+        detail::sort_unique(bucket.directed_neighbors);
+        detail::sort_unique(bucket.complete_neighbors);
+    }
+
+    std::size_t do_locate_bucket(std::uint32_t x, std::uint32_t y, std::uint32_t z) const
+    {
+        return x + x_bins.count * (y + y_bins.count * z);
+    }
+};
+
 
 
 // Generic neighbor searcher API.
