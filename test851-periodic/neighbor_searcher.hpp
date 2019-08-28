@@ -372,6 +372,112 @@ private:
 };
 
 
+// Grid implementation for xy_periodic_box.
+template<>
+struct search_grid<xy_periodic_box>
+{
+    xy_periodic_box             box;
+    detail::bin_layout          x_bins;
+    detail::bin_layout          y_bins;
+    detail::bin_layout          z_bins;
+    std::vector<spatial_bucket> buckets;
+
+    search_grid(xy_periodic_box box, md::scalar spacing)
+        : box{box}
+    {
+        init_bins(spacing);
+        init_buckets();
+    }
+
+    inline std::size_t locate_bucket(md::point pt) const
+    {
+        const auto x = detail::locate_bin(x_bins, pt.x);
+        const auto y = detail::locate_bin(y_bins, pt.y);
+        const auto z = detail::locate_bin(z_bins, pt.z);
+        return do_locate_bucket(x, y, z);
+    }
+
+    inline md::scalar squared_distance(md::point p1, md::point p2) const
+    {
+        return box.shortest_displacement(p1, p2).squared_norm();
+    }
+
+private:
+    void init_bins(md::scalar spacing)
+    {
+        x_bins = detail::define_bins(box.x_period, spacing);
+        y_bins = detail::define_bins(box.y_period, spacing);
+        z_bins = estimate_z_bins(spacing);
+    }
+
+    detail::bin_layout estimate_z_bins(md::scalar spacing)
+    {
+        constexpr md::scalar min_bin_occupancy = 4.0;
+
+        const auto volume = box.x_period * box.y_period * box.z_span;
+        const auto density = md::scalar(box.particle_count) / volume;
+        const auto bin_volume = x_bins.step * y_bins.step * spacing;
+        const auto bin_occupancy = density * bin_volume;
+
+        const auto target_occupancy = std::max(bin_occupancy, min_bin_occupancy);
+        const auto bucket_count = double(1 + box.particle_count) / target_occupancy;
+        const auto z_mod = bucket_count / (x_bins.count * y_bins.count);
+
+        detail::bin_layout bins;
+        bins.step = spacing;
+        bins.count = detail::round_uint(z_mod < 1 ? 1 : z_mod);
+        return bins;
+    }
+
+    void init_buckets()
+    {
+        buckets.clear();
+        buckets.resize(x_bins.count * y_bins.count * z_bins.count);
+
+        for (std::uint32_t z = 0; z < z_bins.count; z++) {
+            for (std::uint32_t y = 0; y < y_bins.count; y++) {
+                for (std::uint32_t x = 0; x < x_bins.count; x++) {
+                    init_bucket_adjacents(x, y, z);
+                }
+            }
+        }
+    }
+
+    // Initializes adjacent links of a bucket that covers (x,y,z) bin.
+    void init_bucket_adjacents(std::uint32_t x, std::uint32_t y, std::uint32_t z)
+    {
+        const auto bucket_index = do_locate_bucket(x, y, z);
+        auto& bucket = buckets[bucket_index];
+
+        const std::uint32_t dx_values[] = {0, 1, x_bins.count - 1};
+        const std::uint32_t dy_values[] = {0, 1, y_bins.count - 1};
+        const std::uint32_t dz_values[] = {0, 1, z_bins.count - 1};
+
+        for (const auto dz : dz_values) {
+            for (const auto dy : dy_values) {
+                for (const auto dx : dx_values) {
+                    const auto adj_x = detail::add_mod(x, dx, x_bins.count);
+                    const auto adj_y = detail::add_mod(y, dy, y_bins.count);
+                    const auto adj_z = detail::add_mod(z, dz, z_bins.count);
+                    const auto adj_index = do_locate_bucket(adj_x, adj_y, adj_z);
+                    if (adj_index <= bucket_index) {
+                        bucket.directed_neighbors.push_back(adj_index);
+                    }
+                    bucket.complete_neighbors.push_back(adj_index);
+                }
+            }
+        }
+
+        detail::sort_unique(bucket.directed_neighbors);
+        detail::sort_unique(bucket.complete_neighbors);
+    }
+
+    std::size_t do_locate_bucket(std::uint32_t x, std::uint32_t y, std::uint32_t z) const
+    {
+        return x + x_bins.count * (y + y_bins.count * z);
+    }
+};
+
 
 // Generic neighbor searcher API.
 template<typename Box>

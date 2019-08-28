@@ -31,11 +31,6 @@ struct periodic_box
     md::scalar y_period = 1;
     md::scalar z_period = 1;
 
-    md::vector period_vector() const
-    {
-        return {x_period, y_period, z_period};
-    }
-
     md::vector shortest_displacement(md::point p1, md::point p2) const
     {
         const auto dx = detail::round_mod(p1.x - p2.x, x_period);
@@ -50,11 +45,6 @@ struct z_periodic_box
 {
     md::scalar z_period = 1;
 
-    md::vector period_vector() const
-    {
-        return {0, 0, z_period};
-    }
-
     md::vector shortest_displacement(md::point p1, md::point p2) const
     {
         const auto dx = p1.x - p2.x;
@@ -67,13 +57,10 @@ struct z_periodic_box
 
 struct xy_periodic_box
 {
-    md::scalar x_period = 1;
-    md::scalar y_period = 1;
-
-    md::vector period_vector() const
-    {
-        return {x_period, y_period, 0};
-    }
+    md::scalar x_period       = 1;
+    md::scalar y_period       = 1;
+    md::scalar z_span         = 1;
+    md::index  particle_count = 1000;
 
     md::vector shortest_displacement(md::point p1, md::point p2) const
     {
