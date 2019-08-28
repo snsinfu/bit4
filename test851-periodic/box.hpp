@@ -16,6 +16,8 @@ namespace detail
 
 struct open_box
 {
+    md::index particle_count = 1000;
+
     md::vector shortest_displacement(md::point p1, md::point p2) const
     {
         return p1 - p2;

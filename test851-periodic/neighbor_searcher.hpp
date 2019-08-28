@@ -33,6 +33,7 @@ struct spatial_bucket
 };
 
 
+// Internal neighbor searcher implementation for generic grid.
 template<typename Grid>
 class basic_neighbor_searcher
 {
@@ -124,6 +125,8 @@ struct search_grid
 };
 
 
+// Grid implementation for open_box. Since infinite grid cannot be represented
+// in memory, so this implementation uses a hash function with finite modulus.
 template<>
 struct search_grid<open_box>
 {
@@ -131,8 +134,42 @@ struct search_grid<open_box>
     md::linear_hash             hash;
     std::vector<spatial_bucket> buckets;
 
-    search_grid(open_box, md::scalar spacing, md::index count)
-        : spacing{spacing}, hash{make_hash(count)}, buckets(hash.modulus)
+    search_grid(open_box box, md::scalar spacing)
+        : spacing{spacing}
+    {
+        init_hash(box);
+        init_buckets();
+    }
+
+    inline std::uint32_t locate_bucket(md::point pt) const
+    {
+        // Negative coordinate value causes discontinuous jumps in hash value
+        // which breaks our search algorithm. Avoid that by offsetting. The
+        // offset should be chosen to not overwhelm the coordinate values.
+        constexpr md::scalar offset = 1L << 20;
+
+        md::scalar const freq = 1 / spacing;
+        auto const x = std::uint32_t(offset + freq * pt.x);
+        auto const y = std::uint32_t(offset + freq * pt.y);
+        auto const z = std::uint32_t(offset + freq * pt.z);
+
+        return hash(x, y, z);
+    }
+
+    inline md::scalar squared_distance(md::point p1, md::point p2) const
+    {
+        return md::squared_distance(p1, p2);
+    }
+
+private:
+    void init_hash(open_box box)
+    {
+        // This simple heuristic gives surprisingly good performance.
+        hash.modulus = md::linear_hash::uint(box.particle_count * 2 / 11);
+        hash.modulus |= 1;
+    }
+
+    void init_buckets()
     {
         // Compute neighbor graph of the spatial cells.
         std::set<std::uint32_t> hash_deltas;
@@ -166,46 +203,18 @@ struct search_grid<open_box>
             }
         }
     }
-
-    inline std::uint32_t locate_bucket(md::point pt) const
-    {
-        // Negative coordinate value causes discontinuous jumps in hash value
-        // which breaks our search algorithm. Avoid that by offsetting.
-        constexpr md::scalar offset = 1L << 16;
-
-        md::scalar const freq = 1 / spacing;
-        auto const x = std::uint32_t(offset + freq * pt.x);
-        auto const y = std::uint32_t(offset + freq * pt.y);
-        auto const z = std::uint32_t(offset + freq * pt.z);
-
-        return hash(x, y, z);
-    }
-
-    inline md::scalar squared_distance(md::point p1, md::point p2) const
-    {
-        return md::squared_distance(p1, p2);
-    }
-
-    static md::linear_hash make_hash(md::index count)
-    {
-        md::linear_hash hash;
-        // This simple heuristic is surprisingly good.
-        hash.modulus = md::linear_hash::uint(count * 2 / 11);
-        hash.modulus |= 1;
-        return hash;
-    }
 };
 
 
-// Neighbor searcher optimized for periodic box.
+// Generic neighbor searcher API.
 template<typename Box>
 class neighbor_searcher
 {
     using grid_type = search_grid<Box>;
 
 public:
-    neighbor_searcher(Box box, md::scalar dcut, md::index count)
-        : searcher_{grid_type{box, dcut, count}, dcut}
+    neighbor_searcher(Box box, md::scalar dcut)
+        : searcher_{grid_type{box, dcut}, dcut}
     {
     }
 

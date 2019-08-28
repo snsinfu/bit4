@@ -11,7 +11,6 @@
 
 int main()
 {
-    open_box box;
     std::vector<md::point> points;
 
     std::mt19937_64 random;
@@ -20,7 +19,8 @@ int main()
         points.push_back({ coord(random), coord(random), coord(random) });
     }
 
-    neighbor_searcher<open_box> searcher{box, 0.1, points.size()};
+    open_box box{points.size()};
+    neighbor_searcher<open_box> searcher{box, 0.1};
     searcher.set_points(points);
     std::vector<std::pair<md::index, md::index>> pairs;
     searcher.search(std::back_inserter(pairs));
