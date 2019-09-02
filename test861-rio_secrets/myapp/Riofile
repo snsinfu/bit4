@@ -1,0 +1,5 @@
+services:
+  myapp:
+    secrets:
+      - myapp:/srv/secrets
+    scale: 1
