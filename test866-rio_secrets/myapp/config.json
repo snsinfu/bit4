@@ -1,0 +1,4 @@
+{
+    "database_url": "postgres://myapp:79aec2ae8ed123c1@example.com:5432/myapp",
+    "token": "595689c865ce09842558006dd685ed37"
+}
