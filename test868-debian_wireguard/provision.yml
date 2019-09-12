@@ -1,0 +1,47 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: debian unstable repository is enabled
+      apt_repository:
+        repo: deb http://deb.debian.org/debian/ unstable main
+        state: present
+
+    - name: debian unstable repository priority is low
+      copy:
+        content: |
+          Package: *
+          Pin: release a=unstable
+          Pin-Priority: 90
+        dest: /etc/apt/preferences.d/limit-unstable
+
+      # This takes a while to build wireguard kernel module.
+    - name: wireguard is installed
+      apt:
+        name: wireguard
+        state: present
+
+    - name: wireguard configuration is up
+      copy:
+        src: wg0.conf
+        dest: /etc/wireguard/wg0.conf
+        mode: 0600
+      notify: restart wg-quick
+
+      # This can fail if the elinux kernel has been upgraded above.
+    - name: wireguard kernel module is loaded
+      modprobe:
+        name: wireguard
+        state: present
+
+    - name: wg-quick is activated
+      service:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart wg-quick
+      service:
+        name: wg-quick@wg0
+        state: restarted
