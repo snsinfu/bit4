@@ -1,0 +1,12 @@
+[NetDev]
+Name = wg
+Kind = wireguard
+
+[WireGuard]
+PrivateKey = gIcTzicYLGPdxXwo1+ItTaJEN6BDcN8meGL2dNY4+H0=
+ListenPort = 580
+Address = 203.0.113.1/24
+
+[WireGuardPeer]
+PublicKey = 33AwD1RwT1O1vLZoN+AqcVRmlGhOCYVnkQMW1QMXnQ4=
+AllowedIPs = 203.0.113.10/32

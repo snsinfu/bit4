@@ -1,0 +1,23 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: wireguard network configuration is up
+      copy:
+        src: wg.network
+        dest: /etc/systemd/network/wg.network
+        mode: 0600
+        owner: systemd-network
+        group: systemd-network
+      notify: restart systemd-networkd
+
+    - name: systemd-networkd is activated
+      service:
+        name: systemd-networkd
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart systemd-networkd
+      service:
+        name: systemd-networkd
+        state: restarted
