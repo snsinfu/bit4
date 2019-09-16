@@ -1,0 +1,11 @@
+services:
+  myapp-web:
+    ports:
+      - ${PORT}/http
+    env:
+      - PORT=${PORT}
+    scale: 1
+
+template:
+  questions:
+    - variable: PORT

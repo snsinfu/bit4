@@ -1,0 +1,34 @@
+VM_BOX = "debian/buster64"
+EXTERNAL_IP = "10.0.0.2"
+K3S_VERSION = "v0.9.0-rc2"
+RIO_VERSION = "v0.4.0"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = VM_BOX
+  config.vm.network :private_network, ip: EXTERNAL_IP
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 2048
+    v.cpus = 2
+  end
+
+  config.vm.provision :shell, inline: <<-EOF
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get install -y curl
+  EOF
+
+  config.vm.provision :shell, inline: <<-EOF
+    export INSTALL_K3S_VERSION=#{K3S_VERSION}
+    export INSTALL_RIO_VERSION=#{RIO_VERSION}
+    command -v k3s || ( curl -fsSL https://get.k3s.io | sh - ) &
+    command -v rio || ( curl -fsSL https://get.rio.io | sh - ) &
+    wait
+    rio install --ip-address #{EXTERNAL_IP} --lite
+  EOF
+
+  config.vm.provision :shell, inline: <<-EOF
+    cd /vagrant/myapp
+    rio up --answers answers-1.yaml
+    ../update_answers myapp answers-2.yaml
+  EOF
+end

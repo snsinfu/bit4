@@ -1,0 +1,28 @@
+#!/bin/sh -eu
+
+main() {
+  name="$1"
+  answers="$2"
+  images="$(enum_images "${name}")"
+  rio stack update --answers "${answers}" ${images} "${name}"
+}
+
+enum_images() {
+  rio stack info "$1" | awk '
+  state == 0 && /^images:/ {
+    state = 1
+    next
+  }
+  state == 1 && /^[a-zA-Z0-9_-]+:/ {
+    state = 2
+    next
+  }
+  state == 1 {
+    name = $1
+    image = $2
+    sub(/:$/, "", name)
+    print "--images " name "=" image
+  }'
+}
+
+main "$@"
