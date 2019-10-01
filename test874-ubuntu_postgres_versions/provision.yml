@@ -1,0 +1,37 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    postgres_version: 11
+
+  tasks:
+    - name: apt cache is up
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: postgres apt signing key is added
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: postgres repository is added
+      apt_repository:
+        repo: deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main
+        state: present
+        filename: pgdg.list
+
+    - name: postgres is installed
+      apt:
+        name: postgresql-{{ postgres_version }}
+        state: present
+
+    - name: postgres default cluster is checked
+      stat:
+        path: /var/lib/postgresql/{{ postgres_version }}/main/PG_VERSION
+      register: cluster
+
+    - name: postgres default cluster exists
+      assert:
+        that: cluster.stat.exists
