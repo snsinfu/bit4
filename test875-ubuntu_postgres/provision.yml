@@ -1,0 +1,80 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    postgres_version: 11
+    postgres_cluster: postgres
+    postgres_password: 52ae70d0970cd3d004282e727919c574
+
+  tasks:
+    - name: ansible postgres prerequisites are installed
+      apt:
+        name:
+          - python3-pexpect
+          - python3-psycopg2
+        state: present
+
+    # Ubuntu package repository only provides a single version of postgresql.
+    # So use the postgresql apt repository instead.
+    - name: postgres apt signing key is added
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: postgres repository is added
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg.list
+
+    # APT postgresql installation creates a password-less cluster named main by
+    # default. Suppress that behavior.
+    - name: postgres cluster manager is installed
+      apt:
+        name: postgresql-common
+        state: present
+
+    - name: postgres createcluster config directory is present
+      file:
+        path: /etc/postgresql-common/createcluster.d
+        state: directory
+
+    - name: postgres default cluster creation is suppressed
+      copy:
+        content: |
+          create_main_cluster = false
+        dest: /etc/postgresql-common/createcluster.d/50-suppress_main_cluster.conf
+
+    - name: postgres is installed
+      apt:
+        name: "postgresql-{{ postgres_version }}"
+        state: present
+
+    # Postgres supports multiple server instances or "clusters" that listen on
+    # different ports. We only need a single cluster.
+    - name: postgres cluster is created
+      expect:
+        command: >
+          pg_createcluster
+            --locale C.UTF-8
+            --port 5432
+            --start
+            {{ postgres_version }}
+            {{ postgres_cluster }}
+            --
+            --pwprompt
+        creates: "/var/lib/postgresql/{{ postgres_version }}/{{ postgres_cluster }}/PG_VERSION"
+        responses:
+          "(password|again):": "{{ postgres_password }}"
+
+    # Check accessibility to the maintenance db (named "postgres"). This tries to
+    # connect to postgres from the host Ansible is connecting to, so the login_host
+    # should be 127.0.0.1. Note: The module does not fail and just emits a warning
+    # on failure.
+    - name: postgres cluster is accessible
+      postgresql_ping:
+        db: postgres
+        login_host: 127.0.0.1
+        login_user: postgres
+        login_password: "{{ postgres_password }}"
