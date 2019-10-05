@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -N mpi
-#PBS -l nodes=2:ppn=4
+#PBS -l nodes=4:ppn=4
 cd "${PBS_O_WORKDIR}"
 network="192.168.108.0/24"
 mpirun                                       \
