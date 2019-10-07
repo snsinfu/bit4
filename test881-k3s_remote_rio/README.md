@@ -32,7 +32,12 @@ also interesting.
 
 TODO: Investigate how to enable standard port access (not :8443) in the default
 `svclb` mode. As of v0.5.0 the ingress mode works but it looks like being
-deprecated silently (see [021c4dc](https://github.com/rancher/rio/commit/021c4dc41c4f6c2d46d004b711985a9b4661f21d)).
+deprecated silently (see [021c4dc](https://github.com/rancher/rio/commit/021c4dc41c4f6c2d46d004b711985a9b4661f21d)). See these issues:
+
+- https://github.com/rancher/rio/issues/424
+- https://github.com/rancher/rio/issues/531#issuecomment-536059530
+
+Also mentioned in [the v0.5.0 release note](https://github.com/rancher/rio/releases/tag/v0.5.0). We need to use `--http-port 80 --https-port 443` but it causes stucking gateway installation. Hmm...
 
 ## Setting kuberenetes config
 
