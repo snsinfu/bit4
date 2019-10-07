@@ -37,7 +37,9 @@ deprecated silently (see [021c4dc](https://github.com/rancher/rio/commit/021c4dc
 - https://github.com/rancher/rio/issues/424
 - https://github.com/rancher/rio/issues/531#issuecomment-536059530
 
-Also mentioned in [the v0.5.0 release note](https://github.com/rancher/rio/releases/tag/v0.5.0). We need to use `--http-port 80 --https-port 443` but it causes stucking gateway installation. Hmm...
+Also mentioned in [the v0.5.0 release note](https://github.com/rancher/rio/releases/tag/v0.5.0). We need to use `--http-port 80 --https-port 443` but it causes stuck gateway installation. Hmm...
+
+Deleting traefik service `kubectl delete service traefik` seems to "fix" the installation issue but then services are inaccessible bacause of missing load balancer. However, the `hostport` mode does not help; it also causes stuck gateway installation somehow.
 
 ## Setting kuberenetes config
 
