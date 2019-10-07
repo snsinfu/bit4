@@ -1,0 +1,7 @@
+services:
+  myapp-web:
+    ports:
+      - 8000/http
+    env:
+      - PORT=8000
+    scale: 1
