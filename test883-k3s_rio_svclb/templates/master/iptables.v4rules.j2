@@ -1,0 +1,31 @@
+*filter
+
+:INPUT   DROP
+:OUTPUT  DROP
+:FORWARD DROP
+
+# Loopback is open
+-A INPUT -j ACCEPT -i lo
+
+# Accept known connections
+-A INPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A OUTPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+
+# Allowed inbound connections
+-A INPUT -j ACCEPT -p icmp
+-A INPUT -j ACCEPT -p tcp  --dport http  -i {{ PIF }} -m state --state NEW
+-A INPUT -j ACCEPT -p tcp  --dport https -i {{ PIF }} -m state --state NEW
+-A INPUT -j ACCEPT -p udp  --dport wg0   -i {{ PIF }} -m state --state NEW
+
+# Allowed outbound connections
+-A OUTPUT -j ACCEPT -p icmp
+-A OUTPUT -j ACCEPT -p udp  --dport domain -o {{ PIF }} -m state --state NEW
+-A OUTPUT -j ACCEPT -p udp  --dport ntp    -o {{ PIF }} -m state --state NEW
+-A OUTPUT -j ACCEPT -p tcp  --dport http   -o {{ PIF }} -m state --state NEW
+-A OUTPUT -j ACCEPT -p tcp  --dport https  -o {{ PIF }} -m state --state NEW
+
+# VPN clients can connect to all services (udp is for mosh)
+-A INPUT -j ACCEPT -p tcp -i wg0 -m state --state NEW
+-A INPUT -j ACCEPT -p udp -i wg0 -m state --state NEW
+
+COMMIT
