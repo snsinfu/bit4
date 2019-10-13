@@ -1,0 +1,32 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: firewalld is disabled
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+    - name: nftables is installed
+      yum:
+        name: nftables
+        state: present
+
+    - name: nftables rules file is up
+      copy:
+        src: nftables.conf
+        dest: /etc/sysconfig/
+      notify: restart nftables
+
+    - name: nftables service is activated
+      service:
+        name: nftables
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart nftables
+      service:
+        name: nftables
+        state: restarted
