@@ -1,0 +1,21 @@
+- hosts: default
+  become: yes
+
+  tasks:
+    - name: apt cache is up
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: apt packages are installed
+      apt:
+        name: "{{ required_packages }}"
+        state: present
+
+    - name: root password is set
+      user:
+        name: root
+        password: "{{ root_password | password_hash('sha512') }}"
+
+    # required_packages is defined in plaintext host_vars/default/config.yml
+    # root_password is defined in encrypted host_vars/default/secret

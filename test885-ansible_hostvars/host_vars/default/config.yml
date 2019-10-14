@@ -1,0 +1,5 @@
+required_packages:
+  - htop
+  - mosh
+  - tmux
+  - zsh
