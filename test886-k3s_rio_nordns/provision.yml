@@ -1,0 +1,28 @@
+- hosts: master
+  become: yes
+
+  vars:
+    k3s_version: v0.9.1
+    k3s_address: "{{ ansible_default_ipv4.address }}"
+
+  tasks:
+    - name: k3s is installed
+      shell: curl -fsSL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        INSTALL_K3S_EXEC: "server --tls-san {{ k3s_address }} --no-deploy traefik"
+
+    - name: k3s remote config is generated
+      shell: |
+        sed                                \
+          's/127.0.0.1/{{ k3s_address }}/' \
+          /etc/rancher/k3s/k3s.yaml        \
+        > k3s-remote.yaml
+
+    - name: k3s remote config is downloaded
+      fetch:
+        src: k3s-remote.yaml
+        dest: _k3s.yaml
+        flat: yes
