@@ -1,0 +1,33 @@
+* filter
+
+:INPUT   ACCEPT
+:OUTPUT  ACCEPT
+:FORWARD ACCEPT
+
+# Standard stateful firewall rules.
+-A INPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A OUTPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A INPUT  -j DROP   -m state --state INVALID
+-A OUTPUT -j DROP   -m state --state INVALID
+
+# Allowed inbound traffic.
+-A INPUT -j ACCEPT -i eth+ -p icmp
+-A INPUT -j ACCEPT -i eth0 -p tcp --dport ssh        -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport http       -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport https      -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport kubernetes -m state --state NEW
+-A INPUT -j DROP   -i eth+
+
+-A INPUT -j ACCEPT -i cni0         -m state --state NEW
+-A INPUT -j ACCEPT -s 10.42.0.0/16 -m state --state NEW
+-A INPUT -j ACCEPT -s 10.43.0.0/16 -m state --state NEW
+
+#
+-A OUTPUT -j ACCEPT -o cni0
+
+#
+-A FORWARD -j ACCEPT -s 10.42.0.0/16
+-A FORWARD -j ACCEPT -d 10.42.0.0/16
+-A FORWARD -j DROP
+
+COMMIT
