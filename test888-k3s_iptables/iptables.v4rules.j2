@@ -1,65 +1,29 @@
 * filter
 
-:INPUT   ACCEPT
+:INPUT   DROP
 :OUTPUT  ACCEPT
-:FORWARD ACCEPT
+:FORWARD DROP
 
 # Use LOGDROP instead of DROP for logging dropped packets. The purpose is to
 # see if what kind of packets should be accepted for k3s to work. To read log
-# use `sudo journalctl -b`.
+# use `journalctl -b`.
 -N LOGDROP
 -A LOGDROP -j LOG --log-prefix "iptables: " --log-level 4 -m limit --limit 60/min
 -A LOGDROP -j DROP
 
-# Allow local traffic.
--A INPUT   -j ACCEPT -i lo          # required
--A OUTPUT  -j ACCEPT -o lo          # required
--A FORWARD -j ACCEPT -i lo -o lo    # unused?
-
 # Standard stateful firewall rules.
--A INPUT   -j ACCEPT -m state --state ESTABLISHED,RELATED
--A OUTPUT  -j ACCEPT -m state --state ESTABLISHED,RELATED
--A FORWARD -j ACCEPT -m state --state ESTABLISHED,RELATED
--A INPUT   -j DROP   -m state --state INVALID
--A OUTPUT  -j DROP   -m state --state INVALID
--A FORWARD -j DROP   -m state --state INVALID
+-A INPUT -j ACCEPT -i lo
+-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A INPUT -j DROP   -m state --state INVALID
 
 # Allowed inbound traffic.
 #
-# No packet hits the http/https rules. I guess HTTP packets are forwarded 
+# No need to open http/https ports here. K3s auto-configures open ports.
 #
 -A INPUT -j ACCEPT -i eth+ -p icmp
 -A INPUT -j ACCEPT -i eth0 -p tcp --dport ssh        -m state --state NEW
--A INPUT -j ACCEPT -i eth1 -p tcp --dport http       -m state --state NEW   # unused?
--A INPUT -j ACCEPT -i eth1 -p tcp --dport https      -m state --state NEW   # unused?
--A INPUT -j ACCEPT -i eth1 -p tcp --dport kubernetes -m state --state NEW   # required
--A INPUT -j DROP   -i eth+
-
-# No packet hits the (*) rules. I thought these rules could be necessary for
-# cross-container communication.
--A INPUT -j ACCEPT -i cni0         -m state --state NEW     # required
--A INPUT -j ACCEPT -s 10.42.0.0/16 -m state --state NEW     # unused? (*)
--A INPUT -j ACCEPT -s 10.43.0.0/16 -m state --state NEW     # unused? (*)
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport kubernetes -m state --state NEW
+-A INPUT -j ACCEPT -i cni0                           -m state --state NEW
 -A INPUT -j LOGDROP
-
-# Allowed outbound traffic.
--A OUTPUT -j ACCEPT -o eth0 -p udp --dport domain -m state --state NEW
--A OUTPUT -j ACCEPT -o eth0 -p udp --dport ntp    -m state --state NEW
--A OUTPUT -j ACCEPT -o eth0 -p tcp --dport http   -m state --state NEW
--A OUTPUT -j ACCEPT -o eth0 -p tcp --dport https  -m state --state NEW
-
-# Many packets hit the "-o cni0" rule. It is not automatically inserted to the
-# OUTPUT chain by k3s, so it's required!
--A OUTPUT -j ACCEPT -o cni0 -m state --state NEW  # required
--A OUTPUT -j LOGDROP
-
-# Make kubernetes networking work.
-#
-# The rules marked with (*) are required but look like k3s automatically appends
-# the same rules to the end of the FORWARD chain. So this can be unnecessary.
-#
--A FORWARD -j ACCEPT -s 10.42.0.0/16 -m state --state NEW   # required (*)
--A FORWARD -j ACCEPT -d 10.42.0.0/16 -m state --state NEW   # required (*)
--A FORWARD -j LOGDROP
 
 COMMIT
