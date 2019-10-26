@@ -1,0 +1,11 @@
+#!/bin/sh -eu
+export AWS_ENDPOINT="http://localhost:9000"
+export AWS_ACCESS_KEY_ID="{{ minio_access_key }}"
+export AWS_SECRET_ACCESS_KEY="{{ minio_secret_key }}"
+export AWS_S3_FORCE_PATH_STYLE="true"
+export WALG_S3_PREFIX="{{ walg_s3_prefix }}"
+export PGHOST=/var/run/postgresql
+export PGPORT=5432
+export PGUSER=postgres
+export PGPASSWORD="{{ postgres_password }}"
+exec /srv/wal-g/wal-g "$@"

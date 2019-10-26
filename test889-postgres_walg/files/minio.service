@@ -1,0 +1,13 @@
+[Unit]
+Description=minio
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/srv/minio/minio server /srv/minio/data
+Restart=on-failure
+EnvironmentFile=/srv/minio/env
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,166 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    minio_access_key: minio
+    minio_secret_key: 9c26f24f6193226a79bc78888a1a299d
+    postgres_version: 10
+    postgres_password: e41fde59a861eb2c878f0313912388b6
+    walg_version: v0.2.13
+    walg_s3_prefix: s3://db-backups/main
+
+  tasks:
+    - name: ansible prerequisites are installed
+      apt:
+        name:
+          - python3-pexpect
+          - python3-psycopg2
+          - python3-boto3
+        state: present
+
+    # Firewall
+
+    - name: ufw is disabled
+      service:
+        name: ufw
+        state: stopped
+        enabled: no
+
+    # MinIO
+
+    - name: minio directory is present
+      file:
+        path: /srv/minio/data
+        state: directory
+
+    - name: minio is downloaded
+      get_url:
+        url: https://dl.min.io/server/minio/release/linux-amd64/minio
+        dest: /srv/minio/minio
+        mode: 0755
+
+    - name: minio service unit is up
+      copy:
+        src: minio.service
+        dest: /etc/systemd/system
+
+    - name: minio service environment is configured
+      copy:
+        content: |
+          MINIO_ACCESS_KEY={{ minio_access_key }}
+          MINIO_SECRET_KEY={{ minio_secret_key }}
+        dest: /srv/minio/env
+      notify: restart minio
+
+    - name: minio is activated
+      service:
+        name: minio
+        state: started
+        enabled: yes
+
+    - name: minio db-backups bucket is created
+      s3_bucket:
+        name: db-backups
+        s3_url: http://localhost:9000
+        aws_access_key: "{{ minio_access_key }}"
+        aws_secret_key: "{{ minio_secret_key }}"
+        state: present
+
+    # PostgreSQL
+
+    - name: postgresql cluster manager is installed
+      apt:
+        name: postgresql-common
+        state: present
+
+    - name: postgresql createcluster config directory is present
+      file:
+        path: /etc/postgresql-common/createcluster.d
+        state: directory
+
+    - name: postgresql default cluster creation is suppressed
+      copy:
+        content: |
+          create_main_cluster = false
+        dest: /etc/postgresql-common/createcluster.d/50-suppress_main_cluster.conf
+
+    - name: postgresql is installed
+      apt:
+        name: "postgresql-{{ postgres_version }}"
+        state: present
+
+    - name: postgresql cluster is created
+      expect:
+        command: >
+          pg_createcluster
+            --locale C.UTF-8
+            --port 5432
+            --start
+            {{ postgres_version }}
+            main
+            --
+            --pwprompt
+        creates: "/var/lib/postgresql/{{ postgres_version }}/main/PG_VERSION"
+        responses:
+          "(password|again):": "{{ postgres_password }}"
+
+    - name: postgresql auth config is up
+      copy:
+        src: postgres-hba.conf
+        dest: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+        owner: postgres
+        group: postgres
+        mode: 0640
+      notify: restart postgresql
+
+    - name: postgresql overriding config is up
+      copy:
+        src: postgres-overrides.conf
+        dest: "/etc/postgresql/{{ postgres_version }}/main/conf.d/overrides.conf"
+        owner: postgres
+        group: postgres
+        mode: 0640
+      notify: restart postgresql
+
+    - name: postgresql is activated
+      service:
+        name: "postgresql@{{ postgres_version }}-main"
+        state: started
+        enabled: yes
+
+    - name: postgresql is accessible
+      postgresql_ping:
+        db: postgres
+        login_password: "{{ postgres_password }}"
+
+    # wal-g
+
+    - name: wal-g directory is present
+      file:
+        path: /srv/wal-g
+        state: directory
+
+    - name: wal-g is downloaded
+      unarchive:
+        src: "https://github.com/wal-g/wal-g/releases/download/{{ walg_version }}/wal-g.linux-amd64.tar.gz"
+        dest: /srv/wal-g
+        remote_src: yes
+        creates: /srv/wal-g/wal-g
+
+    - name: wal-g wrapper script is up
+      template:
+        src: wal-g@minio.j2
+        dest: /srv/wal-g/wal-g@minio
+        mode: 0700
+
+  handlers:
+    - name: restart minio
+      service:
+        name: minio
+        state: restarted
+
+    - name: restart postgresql
+      service:
+        name: "postgresql@{{ postgres_version }}-main"
+        state: restarted
