@@ -136,6 +136,16 @@
 
     # wal-g
 
+    - name: uenv apt repository is added
+      apt_repository:
+        repo: ppa:snsinfu/uenv
+        state: present
+
+    - name: uenv is installed
+      apt:
+        name: uenv
+        state: present
+
     - name: wal-g directory is present
       file:
         path: /srv/wal-g
@@ -148,11 +158,29 @@
         remote_src: yes
         creates: /srv/wal-g/wal-g
 
-    - name: wal-g wrapper script is up
+    - name: wal-g minio environment is up
       template:
-        src: wal-g@minio.j2
-        dest: /srv/wal-g/wal-g@minio
-        mode: 0700
+        src: minio.env.j2
+        dest: /srv/wal-g/minio.env
+        mode: 0640
+        owner: root
+        group: postgres
+
+    # The cron frequency is set to high for testing purpose.
+
+    - name: wal-g backup job is set up
+      cron:
+        minute: "*/1"
+        job: "/bin/uenv -f /srv/wal-g/minio.env /srv/wal-g/wal-g backup-push /var/lib/postgresql/{{ postgres_version }}/main"
+        user: root
+        cron_file: database
+
+    - name: wal-g retention job is set up
+      cron:
+        minute: "*/5"
+        job: "/bin/uenv -f /srv/wal-g/minio.env /srv/wal-g/wal-g delete retain 5 --confirm"
+        user: root
+        cron_file: database
 
   handlers:
     - name: restart minio
