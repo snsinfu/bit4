@@ -9,6 +9,7 @@
     postgres_password: e41fde59a861eb2c878f0313912388b6
     walg_version: v0.2.13
     walg_s3_prefix: s3://db-backups/main
+    walg_retained_backups: 5
 
   tasks:
     - name: ansible prerequisites are installed
@@ -168,17 +169,16 @@
 
     # The cron frequency is set to high for testing purpose.
 
+    - name: wal-g backup job script is up
+      template:
+        src: backup.sh.j2
+        dest: /srv/wal-g/backup.sh
+        mode: 0755
+
     - name: wal-g backup job is set up
       cron:
         minute: "*/1"
-        job: "/bin/uenv -f /srv/wal-g/minio.env /srv/wal-g/wal-g backup-push /var/lib/postgresql/{{ postgres_version }}/main"
-        user: root
-        cron_file: database
-
-    - name: wal-g retention job is set up
-      cron:
-        minute: "*/5"
-        job: "/bin/uenv -f /srv/wal-g/minio.env /srv/wal-g/wal-g delete retain 5 --confirm"
+        job: "/bin/uenv -f /srv/wal-g/minio.env /srv/wal-g/backup.sh"
         user: root
         cron_file: database
 

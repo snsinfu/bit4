@@ -1,0 +1,4 @@
+#!/bin/sh -eux
+
+/srv/wal-g/wal-g backup-push /var/lib/postgresql/{{ postgres_version }}/main
+/srv/wal-g/wal-g delete retain {{ walg_retained_backups }} --confirm
