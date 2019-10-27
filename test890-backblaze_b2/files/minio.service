@@ -1,0 +1,12 @@
+[Unit]
+Description=MinIO object storage server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/srv/minio/bin/minio $MINIO_ARGS
+EnvironmentFile=/srv/minio/minio.conf
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
