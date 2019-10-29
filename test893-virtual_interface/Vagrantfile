@@ -1,0 +1,7 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.provider "virtualbox"
+  config.vm.provision :shell, inline: <<-EOF
+    ip addr add 192.168.5.1/24 label lo:5 dev lo
+  EOF
+end
