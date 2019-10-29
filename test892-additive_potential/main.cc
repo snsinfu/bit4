@@ -73,6 +73,36 @@ namespace md
         sum.potential_2 = pot2;
         return sum;
     }
+
+
+    template<typename P>
+    struct wrapped_potential
+    {
+        P base;
+
+        wrapped_potential() = default;
+
+        explicit wrapped_potential(P const& base)
+            : base{base}
+        {
+        }
+
+        md::scalar evaluate_energy(md::vector r) const
+        {
+            return base.evaluate_energy(r);
+        }
+
+        md::vector evaluate_force(md::vector r) const
+        {
+            return base.evaluate_force(r);
+        }
+    };
+
+    template<typename P>
+    wrapped_potential<P> potential(P const& pot)
+    {
+        return wrapped_potential<P>{pot};
+    }
 }
 
 
@@ -91,6 +121,7 @@ struct my_potential
 
 
 
+
 int main()
 {
     md::polybell_potential<2, 3> soft { .overlap_energy = 2, .cutoff_distance = 0.1 };
@@ -102,7 +133,9 @@ int main()
 
     std::cout << pot.evaluate_energy(r) << '\n';
 
-    // error!
     my_potential mp;
-    mp + mp;
+
+    //mp + mp; // error!
+    mp + spring; // OK thanks to ADL
+    md::potential(mp) + spring; // OK
 }
