@@ -1,0 +1,22 @@
+- hosts: all
+  become: yes
+
+  vars:
+    unique_local_address: 192.168.15.1
+
+  tasks:
+    # Ubuntu 18.04 uses netplan to configure the loopback adaptor. networkd
+    # does not work (says "lo: Link is not managed by us").
+    # https://askubuntu.com/q/1161255
+    # https://netplan.io/examples#configuring-a-loopback-interface
+    - name: loopback alias is configured
+      template:
+        src: ula.yml
+        dest: /etc/netplan/50-ula.yaml  # netplan requires .yaml suffix
+      notify: apply netplan
+
+  handlers:
+    # netplan module PR is stalled.
+    # https://github.com/ansible/ansible/pull/47718
+    - name: apply netplan
+      command: netplan apply
