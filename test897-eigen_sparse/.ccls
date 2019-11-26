@@ -1,0 +1,5 @@
+-std=c++17
+-Wno-c++17-extensions
+-Wno-c99-extensions
+-isystem../deps/BlueBrain/HighFive/include
+-isystem/home/linuxbrew/.linuxbrew/include/eigen3
