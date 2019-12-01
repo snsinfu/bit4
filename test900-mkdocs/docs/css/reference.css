@@ -1,0 +1,20 @@
+h3 {
+  margin-top: 4rem;
+}
+
+h1 > code,
+h2 > code,
+h3 > code,
+h4 > code {
+  background: inherit;
+  border: none;
+  font-weight: bold;
+  color: inherit;
+}
+
+a > code {
+  background: inherit;
+  border: none;
+  font-weight: bold;
+  color: inherit;
+}

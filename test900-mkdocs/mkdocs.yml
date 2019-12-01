@@ -1,0 +1,12 @@
+site_name: MicroMD
+
+nav:
+  - index.md
+  - User Guide:
+    - quick_start.md
+    - recipes.md
+  - Reference:
+    - quick_reference.md
+
+extra_css:
+  - css/reference.css
