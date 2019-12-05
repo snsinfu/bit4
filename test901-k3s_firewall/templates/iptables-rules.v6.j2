@@ -1,0 +1,12 @@
+*filter
+
+:INPUT   DROP
+:OUTPUT  ACCEPT
+:FORWARD DROP
+
+-A INPUT -j ACCEPT -i lo
+-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A INPUT -j DROP   -m state --state INVALID
+-A INPUT -j ACCEPT -p icmpv6
+
+COMMIT

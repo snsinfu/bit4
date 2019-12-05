@@ -1,0 +1,28 @@
+*filter
+
+:INPUT   DROP
+:OUTPUT  ACCEPT
+:FORWARD DROP
+
+-A INPUT -j ACCEPT -i lo
+-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A INPUT -j DROP   -m state --state INVALID
+-A INPUT -j ACCEPT -p icmp
+
+# Inbound traffic from the Internet. No need to open http/https ports here. K3s
+# manages necessary configurations for exposing services.
+-A INPUT   -j ACCEPT -i eth0 -p tcp --dport ssh -m state --state NEW
+-A INPUT   -j DROP   -i eth0
+-A FORWARD -j DROP   -i eth0
+
+# Inbound traffic from private network.
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport ssh        -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport http       -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport https      -m state --state NEW
+-A INPUT -j ACCEPT -i eth1 -p tcp --dport kubernetes -m state --state NEW
+-A INPUT -j REJECT -i eth1
+
+# Container networking.
+-A INPUT -j ACCEPT -i cni0 -m state --state NEW
+
+COMMIT
