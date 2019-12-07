@@ -12,6 +12,7 @@
 # Inbound traffic from the Internet. No need to open http/https ports here. K3s
 # manages necessary configurations for exposing services.
 -A INPUT   -j ACCEPT -i eth0 -p tcp --dport ssh -m state --state NEW
+-A INPUT   -j ACCEPT -i eth0 -p tcp --dport kubernetes -m state --state NEW
 -A INPUT   -j DROP   -i eth0
 -A FORWARD -j DROP   -i eth0
 

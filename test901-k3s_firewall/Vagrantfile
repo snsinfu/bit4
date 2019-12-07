@@ -6,6 +6,8 @@ VM_CPUS = 2
 Vagrant.configure("2") do |config|
   config.vm.box = VM_BOX
   config.vm.network :private_network, ip: VM_IP
+  config.vm.network :forwarded_port,
+    guest: 6443, host: 6443, guest_ip: VM_IP, host_ip: VM_IP
 
   config.vm.provider "virtualbox" do |v|
     v.memory = VM_MEMORY
