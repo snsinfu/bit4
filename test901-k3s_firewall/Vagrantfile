@@ -1,5 +1,5 @@
 VM_BOX = "bento/ubuntu-18.04"
-VM_IP = "192.168.9.1"
+VM_IP = "192.168.9.2"
 VM_MEMORY = 4096
 VM_CPUS = 2
 
