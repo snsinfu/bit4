@@ -1,0 +1,80 @@
+- hosts: all
+  become: yes
+
+  vars:
+    k3s_version: v1.0.0
+
+  tasks:
+
+    # K3s
+
+    - name: k3s is installed
+      shell: curl -fsSL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+      environment:
+        INSTALL_K3S_VERSION: "{{ k3s_version }}"
+        INSTALL_K3S_EXEC: "server --tls-san {{ k3s_address }} --no-deploy traefik"
+
+    - name: k3s remote access config is generated
+      shell: |
+        sed                                \
+          's/127.0.0.1/{{ k3s_address }}/' \
+          /etc/rancher/k3s/k3s.yaml        \
+        > k3s-remote.yaml
+      args:
+        warn: no
+
+    - name: k3s remote access config is downloaded
+      fetch:
+        src: k3s-remote.yaml
+        dest: _k3s.yaml
+        flat: yes
+
+    - name: k3s service port is registered
+      lineinfile:
+        path: /etc/services
+        line: "k3s 6443/tcp"
+        regexp: "^k3s "
+        state: present
+
+    # Firewall
+
+    - name: ufw is disabled
+      service:
+        name: ufw
+        state: stopped
+        enabled: no
+
+    - name: iptables-persistent is installed
+      apt:
+        name:
+          - netfilter-persistent
+          - iptables-persistent
+        state: present
+
+    - name: iptables v4 rules are up
+      template:
+        src: iptables-rules.v4.j2
+        dest: /etc/iptables/rules.v4
+        mode: 0600
+      notify: restart iptables service
+
+    - name: iptables v6 rules are up
+      template:
+        src: iptables-rules.v6.j2
+        dest: /etc/iptables/rules.v6
+        mode: 0600
+      notify: restart iptables service
+
+    - name: iptables service is activated
+      service:
+        name: netfilter-persistent
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart iptables service
+      service:
+        name: netfilter-persistent
+        state: restarted

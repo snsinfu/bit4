@@ -1,0 +1,6 @@
+services:
+  helloworld-web:
+    build:
+    ports:
+      - 80/http
+    scale: 1
