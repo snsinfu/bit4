@@ -17,12 +17,7 @@ rio up
 I could install Rio and access to the dashboard. Looks like the iptables rules
 are working.
 
-However, I could not deploy an example app (helloworld) using `rio up`. `rio ps`
-says:
+See how Rio handles `rio up` with no argument: https://github.com/rancher/rio/blob/v0.6.0/cli/pkg/up/build.go#L27
 
-```
-NAME                      IMAGE     ENDPOINT             PORTS     SCALE     WEIGHT    CREATED          DETAIL
-helloworld-web@5820dd8c             No ports specified             1                   19 minutes ago   helloworld-web: not ready; ServiceDeployed: failed to create default/helloworld-web apps/v1, Kind=Deployment for service default/helloworld-web: Deployment.apps "helloworld-web" is invalid: spec.template.spec.containers: Required value(Error); helloworld-web waiting on build
-```
-
-Is this a Rio issue? Or is somehting wrong in my Riofile?
+The default riofile contains `image: ./` specification. This is required to
+deploy a local stack. The path needs to be `./` exactly. `.` does not work.
