@@ -2,5 +2,5 @@ services:
   helloworld-web:
     image: ./
     ports:
-      - 80/http
+      - 80:5000/http
     scale: 1

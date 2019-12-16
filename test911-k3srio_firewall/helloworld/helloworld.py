@@ -17,5 +17,6 @@ if __name__ == "__main__":
     app = tornado.web.Application([
         (r"/(.*)", MainHandler)
     ])
-    app.listen(80)
+    server = app.listen(5000)
+    server.xheaders = True
     tornado.ioloop.IOLoop.current().start()
