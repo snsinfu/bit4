@@ -1,0 +1,3 @@
+#!/bin/sh -eux
+wal-g backup-push {{ postgres_datadir }}
+wal-g delete retain {{ walg_retained_backups }} --confirm

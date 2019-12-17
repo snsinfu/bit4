@@ -1,0 +1,21 @@
+- name: wal-g backup script is up
+  template:
+    src: backup.sh.j2
+    dest: /srv/wal-g/backup.sh
+    mode: 0755
+
+- name: wal-g backup job PATH is set
+  cronvar:
+    user: root
+    cron_file: wal-g
+    name: PATH
+    value: /usr/sbin:/usr/bin:/sbin:/bin
+
+- name: wal-g backup job is set up
+  cron:
+    name: daily backup
+    user: root
+    cron_file: wal-g
+    # special_time: daily
+    minute: "*/2"   # set to high frequency for testing
+    job: uenv -f /srv/wal-g/gs.env /srv/wal-g/backup.sh

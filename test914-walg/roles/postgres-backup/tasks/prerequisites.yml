@@ -1,0 +1,11 @@
+# We use uenv to pass environment variables to wal-g.
+
+- name: uenv apt repository is added
+  apt_repository:
+    repo: ppa:snsinfu/uenv
+    state: present
+
+- name: uenv is installed
+  apt:
+    name: uenv
+    state: present

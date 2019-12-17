@@ -1,0 +1,17 @@
+- name: wal-g download directory is present
+  file:
+    path: /opt/wal-g/{{ walg_version }}
+    state: directory
+
+- name: wal-g release is downloaded
+  unarchive:
+    src: https://github.com/wal-g/wal-g/releases/download/{{ walg_version }}/wal-g.linux-amd64.tar.gz
+    dest: /opt/wal-g/{{ walg_version }}
+    creates: /opt/wal-g/{{ walg_version }}/wal-g
+    remote_src: yes
+
+- name: wal-g link is created
+  file:
+    src: /opt/wal-g/{{ walg_version }}/wal-g
+    path: /usr/bin/wal-g
+    state: link

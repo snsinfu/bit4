@@ -1,0 +1,8 @@
+- name: postgres backup config is up
+  copy:
+    src: postgres-backup.conf
+    dest: "{{ postgres_configdir }}/conf.d/backup.conf"
+    owner: postgres
+    group: postgres
+    mode: 0640
+  notify: restart postgresql
