@@ -1,0 +1,13 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    postgres_version: 12
+    postgres_cluster: main
+    postgres_password: 18c0cc32a41a7843abebca89e21667d7  # example
+
+  roles:
+    - ubuntu-system
+    - postgres-server
+    - postgres-pool

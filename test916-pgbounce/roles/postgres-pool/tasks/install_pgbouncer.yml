@@ -1,0 +1,11 @@
+- name: pgbouncer is installed
+  apt:
+    name: pgbouncer
+    state: present
+
+- name: pgbouncer service port is registered
+  lineinfile:
+    path: /etc/services
+    line: pgbouncer {{ pgbouncer_port }}/tcp
+    regexp: "^pgbouncer "
+    state: present

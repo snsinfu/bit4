@@ -1,0 +1,5 @@
+- name: pgbouncer is activated
+  service:
+    name: pgbouncer
+    state: started
+    enabled: yes

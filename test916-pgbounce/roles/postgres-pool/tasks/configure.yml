@@ -1,0 +1,17 @@
+- name: pgbouncer config is up
+  template:
+    src: pgbouncer.ini.j2
+    dest: /etc/pgbouncer/pgbouncer.ini
+    owner: postgres
+    group: postgres
+    mode: 0640
+  notify: restart pgbouncer
+
+- name: pgbouncer userlist is up
+  template:
+    src: userlist.txt.j2
+    dest: /etc/pgbouncer/userlist.txt
+    owner: postgres
+    group: postgres
+    mode: 0640
+  notify: restart pgbouncer

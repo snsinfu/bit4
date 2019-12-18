@@ -1,0 +1,4 @@
+- FIXME: pgbouncer fails to start.
+- FIXME: `auth_user` should be a dedicated non-admin user. See:
+  - https://www.pgbouncer.org/config.html#auth_user
+  - https://richyen.com/pgbouncer/postgres/2018/11/21/pgbouncer_auth_user.html
