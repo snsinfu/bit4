@@ -29,3 +29,6 @@ node_modules
 *.gz
 *.xz
 *.h5
+
+.*
+_*
