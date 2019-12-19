@@ -1,0 +1,5 @@
+defaults = {
+#define X(name, type, value)    #name: value,
+#define false                   False
+#include "config_members.hpp"
+}

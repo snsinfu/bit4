@@ -1,0 +1,5 @@
+X(font_size,        int,            12          )
+X(bold,             bool,           false       )
+X(italic,           bool,           false       )
+X(scale,            double,         1.0         )
+X(text,             std::string,    ""          )
