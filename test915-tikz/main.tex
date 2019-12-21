@@ -1,0 +1,15 @@
+\documentclass{article}
+\usepackage{tikz}
+\begin{document}
+
+\begin{tikzpicture}
+  \path
+    (0, 0) node[circle, draw](x) {A}
+    (5, 1) node[circle, draw](y) {B}
+    (2,-1) node[circle, draw](z) {C};
+  \draw[->] (x) -- (y);
+  \draw[->] (x) -| (z);
+  \draw[->] (y) -- (z);
+\end{tikzpicture}
+
+\end{document}
