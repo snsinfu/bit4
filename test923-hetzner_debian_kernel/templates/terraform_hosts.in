@@ -1,0 +1,1 @@
+master ansible_host=${master_address} ansible_user=${admin_user}

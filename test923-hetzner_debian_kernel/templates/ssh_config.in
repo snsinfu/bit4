@@ -1,0 +1,7 @@
+UserKnownHostsFile _known_hosts
+PasswordAuthentication no
+IdentitiesOnly yes
+
+Host master
+HostName ${master_address}
+User ${admin_user}

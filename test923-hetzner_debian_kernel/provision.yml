@@ -1,0 +1,33 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: dkms and linux headers are installed
+      apt:
+        name:
+          - dkms
+          - "linux-headers-{{ ansible_kernel }}"
+        state: present
+
+    - name: debian unstable repository is enabled
+      apt_repository:
+        repo: deb http://deb.debian.org/debian/ unstable main
+        state: present
+
+    - name: debian unstable repository is less prioritized than stable
+      copy:
+        content: |
+          Package: *
+          Pin release a=unstable
+          Pin-Priority: 90
+        dest: /etc/apt/preferences.d/pin-unstable
+
+    - name: wireguard is installed
+      apt:
+        name: wireguard
+        state: present
+
+    - name: wireguard kernel module is loaded
+      modprobe:
+        name: wireguard
+        state: present
