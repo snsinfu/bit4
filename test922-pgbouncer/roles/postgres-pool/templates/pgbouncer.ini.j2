@@ -1,0 +1,15 @@
+[databases]
+* =
+
+[pgbouncer]
+listen_addr = *
+unix_socket_dir = /var/run/postgresql
+
+pool_mode = transaction
+max_client_conn = 100
+max_db_connections = 5
+default_pool_size = 5
+
+auth_file = /etc/pgbouncer/userlist.txt
+auth_type = hba
+auth_hba_file = {{ postgres_configdir }}/pg_hba.conf

@@ -1,0 +1,12 @@
+- name: pgbouncer is installed
+  apt:
+    name: pgbouncer
+    state: present
+    policy_rc_d: 101  # Do not start service
+
+- name: pgbouncer service port is registered
+  lineinfile:
+    path: /etc/services
+    line: pgbouncer {{ pgbouncer_port }}/tcp
+    regexp: "^pgbouncer "
+    state: present

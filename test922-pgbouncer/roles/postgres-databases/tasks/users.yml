@@ -1,0 +1,15 @@
+- name: database owners are present
+  postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    login_password: "{{ postgres_password }}"
+  with_items: "{{ postgres_databases }}"
+
+- name: database authfile is up
+  template:
+    src: userlist.txt.j2
+    dest: /etc/pgbouncer/userlist.txt
+    mode: 0600
+    owner: postgres
+    group: postgres
+  notify: restart pgbouncer

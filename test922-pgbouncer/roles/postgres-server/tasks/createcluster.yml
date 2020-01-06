@@ -1,0 +1,15 @@
+- name: postgresql cluster manager is installed
+  apt:
+    name: postgresql-common
+    state: present
+
+- name: postgresql createcluster config directory is present
+  file:
+    path: /etc/postgresql-common/createcluster.d
+    state: directory
+
+- name: postgresql default cluster creation is suppressed
+  copy:
+    content: |
+      create_main_cluster = false
+    dest: /etc/postgresql-common/createcluster.d/50-suppress_main_cluster.conf

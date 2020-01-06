@@ -1,0 +1,12 @@
+postgres_password: 18c0cc32a41a7843abebca89e21667d7  # sample
+
+postgres_databases:
+
+  - name: mydb1
+    password: 2f041a3c5a508c8915010e543cf6c08d  # sample
+
+  - name: mydb2
+    password: 04e9d52ddead4e6bbb9901e559c6385f  # sample
+
+  - name: mydb3
+    password: 9eeb6d578a3c838bcd1b9646b8de61a1  # sample

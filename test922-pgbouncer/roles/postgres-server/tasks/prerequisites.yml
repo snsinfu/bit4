@@ -1,0 +1,20 @@
+- name: ansible prerequisites are installed
+  apt:
+    name:
+      - gpg
+      - python3-pexpect
+      - python3-psycopg2
+    state: present
+
+# Debian package repository only provides a single version of postgresql. Use
+# postgresql apt repository instead.
+- name: postgres apt signing key is added
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: postgres repository is added
+  apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main
+    state: present
+    filename: pgdg.list

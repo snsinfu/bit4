@@ -1,0 +1,12 @@
+[Unit]
+Description=Connection pool server and application proxy for PostgreSQL
+Wants=network.target
+After=postgresql.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/pgbouncer /etc/pgbouncer/pgbouncer.ini
+User=postgres
+
+[Install]
+WantedBy=multi-user.target

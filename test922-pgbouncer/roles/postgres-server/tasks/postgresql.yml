@@ -1,0 +1,71 @@
+- name: postgresql is installed
+  apt:
+    name: postgresql-{{ postgres_version }}
+    state: present
+
+- name: postgresql cluster is created
+  expect:
+    command: >
+      pg_createcluster
+        --locale C.UTF-8
+        --port {{ postgres_port }}
+        {{ postgres_version }}
+        {{ postgres_cluster }}
+        --
+        --pwprompt
+    creates: "{{ postgres_datadir }}/PG_VERSION"
+    responses:
+      "(password|again):": "{{ postgres_password }}"
+
+#
+# Configuration
+#
+
+- name: postgresql connection config is up
+  template:
+    src: postgres-connection.conf.j2
+    dest: "{{ postgres_configdir }}/conf.d/connection.conf"
+    mode: 0644
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgresql tuning config is up
+  template:
+    src: postgres-tuning.conf.j2
+    dest: "{{ postgres_configdir }}/conf.d/tuning.conf"
+    mode: 0644
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgresql auth config is up
+  template:
+    src: postgres-hba.conf.j2
+    dest: "{{ postgres_configdir }}/pg_hba.conf"
+    mode: 0640
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgresql service port is registered
+  lineinfile:
+    path: /etc/services
+    line: postgres {{ postgres_port }}/tcp
+    regexp: "^postgres "
+    state: present
+
+#
+# Service
+#
+
+- name: postgresql is activated
+  service:
+    name: postgresql@{{ postgres_version }}-{{ postgres_cluster }}
+    state: started
+    enabled: yes
+
+- name: postgresql is accessible
+  postgresql_ping:
+    db: postgres
+    login_password: "{{ postgres_password }}"

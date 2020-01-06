@@ -1,0 +1,6 @@
+- set_fact:
+    pgbouncer_port: "{{ pgbouncer_port | default(6432) }}"
+
+- include: pgbouncer.yml
+- include: configure.yml
+- include: service.yml
