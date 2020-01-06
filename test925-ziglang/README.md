@@ -1,0 +1,3 @@
+```
+$ zig run main.zig
+```
