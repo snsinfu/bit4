@@ -1,0 +1,16 @@
+[Unit]
+Description=MinIO
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=minio
+Group=minio
+EnvironmentFile=/etc/default/minio
+WorkingDirectory=/var/lib/minio
+ExecStart=/usr/sbin/minio server $MINIO_OPTIONS /var/lib/minio
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
