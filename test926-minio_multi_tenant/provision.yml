@@ -3,6 +3,8 @@
 
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    minio_admin_key: admin
+    minio_admin_secret: 775a68aad443e58908512e13e8ff8c55    # sample
 
   tasks:
 
@@ -50,17 +52,62 @@
       template:
         src: minio.j2
         dest: /etc/default/minio
-        owner: minio
-        group: minio
-        mode: 0640
+        mode: 0600
+      notify: restart minio
 
     - name: minio service unit is up
       copy:
         src: minio.service
         dest: /etc/systemd/system/
+      notify: restart minio
 
     - name: minio service is activated
       service:
         name: minio
         state: started
         enabled: yes
+
+    - meta: flush_handlers
+
+    # Access
+
+    - name: ansible prerequisites are installed
+      apt:
+        name:
+          - python3-boto
+          - python3-boto3
+          - python3-botocore
+        state: present
+
+    - name: mybucket is present
+      s3_bucket:
+        name: mybucket
+        state: present
+        s3_url: http://{{ private_address }}:9000
+        aws_access_key: "{{ minio_admin_key }}"
+        aws_secret_key: "{{ minio_admin_secret }}"
+
+    - name: file to put is created
+      copy:
+        content: |
+          @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
+          `abcdefghijklmnopqrstuvwxyz{|}~
+        dest: /tmp/somedata.txt
+
+    - name: mybucket contains an object
+      aws_s3:
+        mode: put
+        bucket: mybucket
+        src: /tmp/somedata.txt
+        object: /data/somedata.txt
+        encrypt: no
+        permission: [] # Set to empty as MinIO does not support ACL
+        s3_url: http://{{ private_address }}:9000
+        aws_access_key: "{{ minio_admin_key }}"
+        aws_secret_key: "{{ minio_admin_secret }}"
+
+  handlers:
+    - name: restart minio
+      service:
+        name: minio
+        state: restarted
