@@ -3,6 +3,7 @@
 
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    minio_kms_master_key: minio:7989e7d0c2ed0e6f12cd8647f4988fec27a3b48006769194d6710ea39a04f8b2  # sample
     minio_admin_key: admin
     minio_admin_secret: 775a68aad443e58908512e13e8ff8c55    # sample
 
@@ -87,24 +88,29 @@
         aws_access_key: "{{ minio_admin_key }}"
         aws_secret_key: "{{ minio_admin_secret }}"
 
-    - name: file to put is created
+    - name: somedata file is created
       copy:
         content: |
           @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
           `abcdefghijklmnopqrstuvwxyz{|}~
         dest: /tmp/somedata.txt
 
-    - name: mybucket contains an object
+    - name: mybucket contains somedata as an object
       aws_s3:
         mode: put
         bucket: mybucket
         src: /tmp/somedata.txt
         object: /data/somedata.txt
-        encrypt: no
         permission: [] # Set to empty as MinIO does not support ACL
         s3_url: http://{{ private_address }}:9000
         aws_access_key: "{{ minio_admin_key }}"
         aws_secret_key: "{{ minio_admin_secret }}"
+
+    - name: somedata object is encrypted on disk
+      command: file -b /var/lib/minio/mybucket/data/somedata.txt
+      register: _result
+      failed_when: _result.stdout == "ASCII text"
+      changed_when: none
 
   handlers:
     - name: restart minio
