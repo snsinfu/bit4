@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily backup
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/local/libexec/daily-backup/run_backup
+EnvironmentFile=/etc/default/daily-backup
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+#!/bin/sh -eu
+echo "Started"
+echo "Access key: ${SOME_ACCESS_KEY}"
+date
+echo "Finished"

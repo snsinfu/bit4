@@ -1,0 +1,39 @@
+- hosts: default
+  become: yes
+
+  tasks:
+    - name: backup service directories are present
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - /usr/local/libexec/daily-backup
+        - /usr/local/lib/systemd/system
+
+    - name: backup script is up
+      copy:
+        src: run_backup
+        dest: /usr/local/libexec/daily-backup
+        mode: 0755
+
+    - name: backup timer unit is up
+      copy:
+        src: daily-backup.timer
+        dest: /usr/local/lib/systemd/system
+
+    - name: backup service unit is up
+      copy:
+        src: daily-backup.service
+        dest: /usr/local/lib/systemd/system
+
+    - name: backup config is up
+      copy:
+        src: daily-backup.env
+        dest: /etc/default/daily-backup
+        mode: 0600
+
+    - name: backup timer is activated
+      service:
+        name: daily-backup.timer
+        state: started
+        enabled: yes
