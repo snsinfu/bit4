@@ -1,0 +1,41 @@
+- name: postgresql cluster manager is installed
+  apt:
+    name: postgresql-common
+    state: present
+
+- name: postgresql createcluster config directory is present
+  file:
+    path: /etc/postgresql-common/createcluster.d
+    state: directory
+
+- name: postgresql default cluster creation is suppressed
+  copy:
+    content: |
+      create_main_cluster = false
+    dest: /etc/postgresql-common/createcluster.d/50-suppress_main_cluster.conf
+
+- name: postgresql is installed
+  apt:
+    name: postgresql-{{ postgres_version }}
+    state: present
+
+- name: postgresql cluster is created
+  expect:
+    command: >
+      pg_createcluster
+        --locale C.UTF-8
+        --port {{ postgres_port }}
+        {{ postgres_version }}
+        {{ postgres_cluster }}
+        --
+        --pwprompt
+    creates: "{{ postgres_datadir }}/PG_VERSION"
+    responses:
+      "(password|again):": "{{ postgres_password }}"
+
+- name: postgresql service port is registered
+  lineinfile:
+    path: /etc/services
+    line: postgres {{ postgres_port }}/tcp
+    regexp: "^postgres "
+    state: present

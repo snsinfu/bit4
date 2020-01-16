@@ -1,0 +1,5 @@
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             postgres                                md5
+host    all             postgres        {{ private_network }}   md5
+local   sameuser        all                                     md5
+host    sameuser        all             0.0.0.0/0               md5

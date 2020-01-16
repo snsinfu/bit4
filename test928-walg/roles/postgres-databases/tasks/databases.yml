@@ -1,0 +1,6 @@
+- name: databases are present
+  postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.name }}"
+    login_password: "{{ postgres_password }}"
+  with_items: "{{ postgres_databases }}"

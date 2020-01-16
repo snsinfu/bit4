@@ -1,0 +1,4 @@
+#!/bin/sh -aeu
+. "$1"
+shift
+exec "$@"

@@ -1,0 +1,10 @@
+- name: postgresql is activated
+  service:
+    name: postgresql@{{ postgres_version }}-{{ postgres_cluster }}
+    state: started
+    enabled: yes
+
+- name: postgresql is accessible
+  postgresql_ping:
+    db: postgres
+    login_password: "{{ postgres_password }}"

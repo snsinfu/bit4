@@ -1,0 +1,11 @@
+[Unit]
+Description=Backup PostgreSQL databases
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/local/libexec/postgres-backup/run_backup
+EnvironmentFile=/etc/postgres-backup/env
+
+[Install]
+WantedBy=multi-user.target

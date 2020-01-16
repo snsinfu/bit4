@@ -1,0 +1,26 @@
+- name: postgresql connection config is up
+  template:
+    src: postgres-connection.conf.j2
+    dest: "{{ postgres_configdir }}/conf.d/connection.conf"
+    mode: 0644
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgresql tuning config is up
+  template:
+    src: postgres-tuning.conf.j2
+    dest: "{{ postgres_configdir }}/conf.d/tuning.conf"
+    mode: 0644
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgresql auth config is up
+  template:
+    src: postgres-hba.conf.j2
+    dest: "{{ postgres_configdir }}/pg_hba.conf"
+    mode: 0640
+    owner: postgres
+    group: postgres
+  notify: restart postgresql

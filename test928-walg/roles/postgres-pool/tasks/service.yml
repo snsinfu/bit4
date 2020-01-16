@@ -1,0 +1,18 @@
+# Debian's pgbouncer package comes with a sysv init service. Apparently it
+# fails at start-stop-daemon but I'm not sure because no useful message is
+# logged. I give up and just put a custom systemd unit.
+- name: pgbouncer service unit is up
+  copy:
+    src: pgbouncer.service
+    dest: /etc/systemd/system/
+  notify: restart pgbouncer
+
+- name: pgbouncer sysv service is disabled
+  command: /lib/systemd/systemd-sysv-install disable pgbouncer
+  failed_when: none
+
+- name: pgbouncer is activated
+  service:
+    name: pgbouncer
+    state: started
+    enabled: yes

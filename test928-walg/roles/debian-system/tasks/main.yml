@@ -1,0 +1,26 @@
+- name: apt cache is up to date
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: max number of file descriptors is increased
+  sysctl:
+    name: fs.file-max
+    value: "65536"
+    reload: yes
+
+- name: host-local directories are present
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /usr/local/bin
+    - /usr/local/sbin
+    - /usr/local/libexec
+    - /usr/local/lib/systemd/system
+
+- name: envrun script is up
+  copy:
+    src: envrun
+    dest: /usr/local/bin
+    mode: 0755

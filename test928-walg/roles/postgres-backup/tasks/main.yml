@@ -1,0 +1,4 @@
+- include: install_walg.yml
+- include: configure_walg.yml
+- include: configure_postgres.yml
+- include: configure_timer.yml

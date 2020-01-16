@@ -1,0 +1,26 @@
+- name: backup script directory is present
+  file:
+    path: /usr/local/libexec/postgres-backup
+    state: directory
+
+- name: backup script is up
+  copy:
+    src: run_backup
+    dest: /usr/local/libexec/postgres-backup/run_backup
+    mode: 0755
+
+- name: backup service unit is up
+  copy:
+    src: postgres-backup.service
+    dest: /usr/local/lib/systemd/system
+
+- name: backup timer unit is up
+  copy:
+    src: postgres-backup.timer
+    dest: /usr/local/lib/systemd/system
+
+- name: backup timer is activated
+  service:
+    name: postgres-backup.timer
+    state: started
+    enabled: yes

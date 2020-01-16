@@ -1,0 +1,12 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  roles:
+    - debian-system
+    - postgres-server
+    - postgres-backup
+    - postgres-pool
+    - postgres-databases

@@ -1,0 +1,9 @@
+- set_fact:
+    postgres_port: "{{ postgres_port | default(5432) }}"
+    postgres_configdir: /etc/postgresql/{{ postgres_version }}/{{postgres_cluster }}
+    postgres_datadir: /var/lib/postgresql/{{ postgres_version }}/{{postgres_cluster }}
+
+- include: prepare.yml
+- include: install.yml
+- include: configure.yml
+- include: service.yml

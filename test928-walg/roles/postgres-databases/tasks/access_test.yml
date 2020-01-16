@@ -1,0 +1,17 @@
+- meta: flush_handlers
+
+- name: databases are accessible
+  postgresql_ping:
+    db: "{{ item.name }}"
+    login_user: "{{ item.name }}"
+    login_password: "{{ item.password }}"
+  with_items: "{{ postgres_databases }}"
+
+- name: databases are accessible via pgbouncer
+  postgresql_ping:
+    db: "{{ item.name }}"
+    port: "{{ pgbouncer_port }}"
+    login_host: 127.0.0.1
+    login_user: "{{ item.name }}"
+    login_password: "{{ item.password }}"
+  with_items: "{{ postgres_databases }}"

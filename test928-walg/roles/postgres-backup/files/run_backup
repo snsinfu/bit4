@@ -1,0 +1,4 @@
+#!/bin/sh -eux
+
+wal-g backup-push "${PGDATADIR}"
+wal-g delete retain "${WALG_RETAINED_BACKUPS}" --confirm

@@ -1,0 +1,23 @@
+- name: backup config directory is present
+  file:
+    path: /etc/postgres-backup
+    mode: 0750
+    owner: root
+    group: postgres
+    state: directory
+
+- name: backup configuration is up
+  template:
+    src: env.j2
+    dest: /etc/postgres-backup/env
+    mode: 0640
+    owner: root
+    group: postgres
+
+- name: backup google storage service account key is up
+  copy:
+    src: "{{ walg_service_account }}"
+    dest: /etc/postgres-backup/service_account.json
+    mode: 0640
+    owner: root
+    group: postgres
