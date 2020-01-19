@@ -7,6 +7,8 @@ After=postgresql.service
 Type=simple
 ExecStart=/usr/sbin/pgbouncer /etc/pgbouncer/pgbouncer.ini
 User=postgres
+Group=postgres
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
