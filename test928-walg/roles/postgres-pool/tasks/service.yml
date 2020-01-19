@@ -4,7 +4,7 @@
 - name: pgbouncer service unit is up
   copy:
     src: pgbouncer.service
-    dest: /etc/systemd/system/
+    dest: /usr/local/lib/systemd/system/
   notify: restart pgbouncer
 
 - name: pgbouncer sysv service is disabled
