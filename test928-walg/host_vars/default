@@ -12,5 +12,5 @@ postgres_databases:
 
 walg_version: v0.2.14
 walg_service_account: _service_account.json
-walg_bucket: test-923cc233d715a13f/backup  # example
+walg_bucket: test928-a008583e3c895104/backup  # example
 walg_retained_backups: 7
