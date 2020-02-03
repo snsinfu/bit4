@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "hdf5.h"
 
@@ -296,18 +297,24 @@ namespace h5
         // are created as needed.
         inline
         detail::unique_hid<H5Dclose>
-        do_create_dataset(hid_t file, std::string const& path)
+        do_create_dataset(hid_t file, std::string const& path, hid_t datatype, int rank)
         {
             detail::ensure_group_full(file, detail::get_parent_path(path));
 
             // Create an empty dataset.
-            hsize_t dims[2] = {0, 0}; // FIXME
-            detail::unique_hid<H5Sclose> const dataspace = H5Screate_simple(2, dims, dims);
+            detail::unique_hid<H5Sclose> dataspace = -1;
+
+            if (rank == 0) {
+                dataspace = H5Screate(H5S_SCALAR);
+            } else {
+                std::vector<hsize_t> dims(static_cast<std::size_t>(rank), 0);
+                dataspace = H5Screate_simple(rank, dims.data(), dims.data());
+            }
 
             auto const dataset = H5Dcreate2(
                 file,
                 path.c_str(),
-                H5T_IEEE_F32LE, // FIXME
+                datatype,
                 dataspace,
                 H5P_DEFAULT,
                 H5P_DEFAULT,
@@ -321,12 +328,46 @@ namespace h5
 
 
         inline
-        detail::unique_hid<H5Dclose>
-        open_or_create_dataset(hid_t file, std::string const& path)
+        bool check_dataset_type(hid_t dataset, hid_t datatype, int rank)
         {
-            return detail::check_path_exists_full(file, path)
+            detail::unique_hid<H5Tclose> type = H5Dget_type(dataset);
+            if (type < 0) {
+                throw h5::exception("cannot get datatype for a dataset");
+            }
+
+            H5T_cdata_t* cdata = nullptr;
+            if (H5Tfind(type, datatype, &cdata) == nullptr) {
+                return false; // incompatible type
+            }
+
+            detail::unique_hid<H5Sclose> space = H5Dget_space(dataset);
+            if (space < 0) {
+                throw h5::exception("cannot get dataspace for a dataset");
+            }
+
+            if (H5Sget_simple_extent_ndims(space) != rank) {
+                return false; // rank mismatch
+            }
+
+            return true;
+        }
+
+
+        inline
+        detail::unique_hid<H5Dclose>
+        open_or_create_dataset(
+            hid_t file, std::string const& path, hid_t datatype, int rank
+        )
+        {
+            auto dataset = detail::check_path_exists_full(file, path)
                 ? detail::do_open_dataset(file, path)
-                : detail::do_create_dataset(file, path);
+                : detail::do_create_dataset(file, path, datatype, rank);
+
+            if (!detail::check_dataset_type(dataset, datatype, rank)) {
+                throw h5::exception("unexpected dataset type or rank");
+            }
+
+            return dataset;
         }
     }
 
@@ -345,14 +386,15 @@ namespace h5
     };
 
 
-    template<typename T, int rank>
+    // Simple dataset
+    template<typename D, int rank>
     class dataset
     {
     public:
         dataset(hid_t file, std::string const& path)
             : _file{file}
             , _path{path}
-            , _dataset{detail::open_or_create_dataset(file, path)}
+            , _dataset{detail::open_or_create_dataset(file, path, h5::storage_type_v<D>, rank)}
         {
         }
 
@@ -363,7 +405,7 @@ namespace h5
                 throw h5::exception("cannot determine dataspace");
             }
 
-            auto const ndims = H5Sget_simple_extent_ndims(space);
+            int const ndims = H5Sget_simple_extent_ndims(space);
             if (ndims != rank) {
                 throw h5::exception("rank mismatch");
             }
@@ -405,10 +447,10 @@ namespace h5
         {
         }
 
-        template<typename T, int rank>
-        h5::dataset<T, rank> dataset(std::string const& path)
+        template<typename D, int rank>
+        h5::dataset<D, rank> dataset(std::string const& path)
         {
-            return h5::dataset<T, rank>{_file, path};
+            return h5::dataset<D, rank>{_file, path};
         }
 
     private:

@@ -25,6 +25,10 @@ int main()
     }
 
     auto data = file.dataset<float, 2>("/data/points");
+
+    auto const shape = data.shape();
+    std::cout << shape.dims[0] << ',' << shape.dims[1] << '\n';
+
     //data.write(
     //    reinterpret_cast<double const*>(points.data()),
     //    {points.size(), 3},
