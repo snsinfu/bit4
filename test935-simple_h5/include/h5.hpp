@@ -21,45 +21,44 @@ namespace h5
         }
     };
 
+
     // DATA TYPES
 
-    namespace detail
-    {
-        using std::int32_t;
-        using std::uint32_t;
-        using std::int64_t;
-        using std::uint64_t;
+    using i32 = std::int32_t;
+    using u32 = std::uint32_t;
+    using i64 = std::int64_t;
+    using u64 = std::uint64_t;
 
-        // We want to map C++ scalar type to the corresponding HDF5 datatype.
-        // We use function templates because datatype values are determined at
-        // run time. (H5T_* macros are not constants!)
+    // We want to map C++ scalar type to the corresponding HDF5 datatype. We
+    // use function templates because datatype values are determined at run
+    // time. (H5T_* macros are not constants!)
 
-        template<typename T>
-        hid_t storage_type() = delete;
+    template<typename T>
+    hid_t storage_type() = delete;
 
-        template<> inline hid_t storage_type<int32_t >() { return H5T_STD_I32LE; }
-        template<> inline hid_t storage_type<int64_t >() { return H5T_STD_I64LE; }
-        template<> inline hid_t storage_type<uint32_t>() { return H5T_STD_U32LE; }
-        template<> inline hid_t storage_type<uint64_t>() { return H5T_STD_U64LE; }
-        template<> inline hid_t storage_type<float   >() { return H5T_IEEE_F32LE; }
-        template<> inline hid_t storage_type<double  >() { return H5T_IEEE_F64LE; }
+    template<> inline hid_t storage_type<h5::i32>() { return H5T_STD_I32LE; }
+    template<> inline hid_t storage_type<h5::i64>() { return H5T_STD_I64LE; }
+    template<> inline hid_t storage_type<h5::u32>() { return H5T_STD_U32LE; }
+    template<> inline hid_t storage_type<h5::u64>() { return H5T_STD_U64LE; }
+    template<> inline hid_t storage_type<float  >() { return H5T_IEEE_F32LE; }
+    template<> inline hid_t storage_type<double >() { return H5T_IEEE_F64LE; }
 
-        template<typename T>
-        hid_t memory_type() = delete;
+    template<typename T>
+    hid_t memory_type() = delete;
 
-        template<> inline hid_t memory_type<int32_t >() { return H5T_NATIVE_INT32; }
-        template<> inline hid_t memory_type<int64_t >() { return H5T_NATIVE_INT64; }
-        template<> inline hid_t memory_type<uint32_t>() { return H5T_NATIVE_UINT32; }
-        template<> inline hid_t memory_type<uint64_t>() { return H5T_NATIVE_UINT64; }
-        template<> inline hid_t memory_type<float   >() { return H5T_NATIVE_FLOAT; }
-        template<> inline hid_t memory_type<double  >() { return H5T_NATIVE_DOUBLE; }
+    template<> inline hid_t memory_type<h5::i32>() { return H5T_NATIVE_INT32; }
+    template<> inline hid_t memory_type<h5::i64>() { return H5T_NATIVE_INT64; }
+    template<> inline hid_t memory_type<h5::u32>() { return H5T_NATIVE_UINT32; }
+    template<> inline hid_t memory_type<h5::u64>() { return H5T_NATIVE_UINT64; }
+    template<> inline hid_t memory_type<float  >() { return H5T_NATIVE_FLOAT; }
+    template<> inline hid_t memory_type<double >() { return H5T_NATIVE_DOUBLE; }
 
-        template<typename T>
-        inline hid_t const storage_type_v = detail::storage_type<T>();
+    template<typename T>
+    inline hid_t const storage_type_v = h5::storage_type<T>();
 
-        template<typename T>
-        inline hid_t const memory_type_v = detail::memory_type<T>();
-    }
+    template<typename T>
+    inline hid_t const memory_type_v = h5::memory_type<T>();
+
 
     // BASIC HID WRAPPER
 
