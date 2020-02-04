@@ -1,0 +1,90 @@
+- hosts: default
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    loopback_alias: 172.16.9.50/32
+
+  tasks:
+
+    # Debain system
+
+    - name: apt cache is up
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+
+    - name: admin tools are installed
+      apt:
+        name:
+          - curl
+          - net-tools
+        state: present
+
+    - name: service directory exists
+      file:
+        path: /srv
+        state: directory
+
+    # Interface config
+
+    - name: loopback alias configuration is up
+      copy:
+        content: |
+          auto lo:1
+          iface lo:1 inet static
+            address {{ loopback_alias }}
+        dest: /etc/network/interfaces.d/lo:1
+      notify: restart lo:1
+
+    - meta: flush_handlers
+
+    # Nginx to bind to the loopback alias
+
+    - name: nginx is installed
+      apt:
+        name: nginx
+        state: present
+        policy_rc_d: 101  # Do not start service
+
+    - name: nginx default site is disabled
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: restart nginx
+
+    - name: nginx site configuration is up
+      template:
+        src: nginx-site.conf.j2
+        dest: /etc/nginx/sites-enabled/site.conf
+      notify: restart nginx
+
+    - name: web directory exists
+      file:
+        path: /srv/www
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: 0755
+
+    - name: web content is up
+      copy:
+        src: index.html
+        dest: /srv/www
+        owner: www-data
+        group: www-data
+
+    - name: nginx is activated
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart lo:1
+      shell: "/sbin/ifdown lo:1 && /sbin/ifup lo:1"
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted

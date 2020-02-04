@@ -1,0 +1,7 @@
+server {
+    listen {{ loopback_alias | ipaddr('address') }};
+
+    location / {
+        root /srv/www;
+    }
+}
