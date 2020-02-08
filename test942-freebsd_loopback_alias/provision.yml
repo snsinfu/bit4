@@ -1,0 +1,32 @@
+- hosts: default
+  become: yes
+  gather_facts: no
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3
+    loopback_alias: 172.16.9.50
+
+  pre_tasks:
+    - name: python is installed
+      raw: pkg install -y python3
+      register: install_python
+      changed_when: "'INSTALLED' in install_python.stdout"
+
+    - name: ansible is set up
+      setup:
+
+  tasks:
+    - name: localhost alias is set
+      rc_conf:
+        fragment: |
+          ifconfig_lo0_alias0="{{ loopback_alias }} netmask 255.255.255.255"
+      notify: restart network
+
+  handlers:
+    - name: restart network
+      service:
+        name: "{{ item }}"
+        state: restarted
+      with_items:
+        - netif
+        - routing
