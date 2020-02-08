@@ -1,0 +1,83 @@
+- hosts: default
+  become: yes
+  gather_facts: no
+
+  vars:
+    ansible_python_interpreter: /usr/local/bin/python3
+    zfs_device: ada1
+
+  pre_tasks:
+    - name: python is installed
+      raw: pkg install -y python3
+      register: install_python
+      changed_when: "'INSTALLED' in install_python.stdout"
+
+    - name: ansible is set up
+      setup:
+
+  tasks:
+
+    # ZFS --------------------------------------------------------------------
+
+    - name: zfs kernel parameters are tuned for low memory
+      stanza:
+        path: /etc/sysctl.conf
+        content: |
+          vm.kmem_size="500M"
+          vm.kmem_size_max="500M"
+          vfs.zfs.arc_max="250M"
+          vfs.zfs.cache.size="30M"
+
+    - name: zfs is enabled
+      stanza:
+        path: /etc/rc.conf
+        content: |
+          zfs_enable="YES"
+      notify: restart zfs
+
+    - name: zfs pool is created
+      command: zpool create -m /srv/data data {{ zfs_device }}
+      args:
+        creates: /srv/data
+
+    # MinIO ------------------------------------------------------------------
+
+    - name: minio is installed
+      pkgng:
+        name: minio
+        state: present
+
+    - name: minio volume is created
+      zfs:
+        name: data/minio
+        state: present
+        extra_zfs_properties:
+          compression: lz4
+          atime: "off"
+          exec: "off"
+
+    - name: minio volume permission is set
+      file:
+        path: /srv/data/minio
+        state: directory
+        owner: minio
+        group: minio
+        mode: 0700
+
+    - name: minio service is configured
+      stanza:
+        path: /etc/rc.conf
+        content: |
+          minio_enable="YES"
+          minio_disks="/srv/data/minio"
+
+    - name: minio service is activated
+      service:
+        name: minio
+        state: started
+
+  handlers:
+    - name: restart zfs
+      service:
+        name: zfs
+        state: restarted
