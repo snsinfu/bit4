@@ -1,21 +1,22 @@
 #!/bin/sh
-set -eux
-exec 2>/var/log/firstboot.log
+set -u
 
-# Grow filesystem on the last partition.
-gpart recover da0
-gpart resize -i 2 da0
-growfs -y da0p2
+# Grow root filesystem.
+rootpart=$(mount -p | awk '$2 == "/" { print $1 }')
+rootdisk=${rootpart%p*}
+rootpartno=${rootpart##*p}
+gpart recover ${rootdisk}
+gpart resize -i ${rootpartno} ${rootdisk}
+growfs -y ${rootpart}
 
-# Hostname
+# Set hostname.
 sysrc hostname="$(fetch -o- http://169.254.169.254/latest/meta-data/hostname)"
+service hostname restart
 
 # Host key
 rm -f /etc/ssh/ssh_host_*
 ssh-keygen -A
-if pgrep sshd; then
-    service sshd restart
-fi
+service sshd restart
 
 # User script
 fetch -o- http://169.254.169.254/lastest/user-data | sh

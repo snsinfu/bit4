@@ -30,5 +30,5 @@ END
 
 cat > /etc/rc.local << END
 rm /etc/rc.local
-sh /root/firstboot.sh
+sh -x /root/firstboot.sh 2> /var/log/firstboot.log
 END
