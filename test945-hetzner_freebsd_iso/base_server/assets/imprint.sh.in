@@ -1,9 +1,6 @@
 #!/bin/sh
 set -eux
 
-pkg install -y ca_root_nss python37 sudo
-pkg clean
-
 cat > /etc/ssh/sshd_config << END
 VersionAddendum none
 PermitRootLogin no
