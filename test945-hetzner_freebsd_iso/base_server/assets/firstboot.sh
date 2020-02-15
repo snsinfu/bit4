@@ -19,4 +19,4 @@ ssh-keygen -A
 test -f /var/run/sshd.pid || service sshd restart
 
 # User script
-fetch -o- http://169.254.169.254/lastest/user-data | sh
+fetch -o- http://169.254.169.254/latest/user-data | sh
