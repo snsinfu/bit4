@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eux
+
+# Add Ansible prerequisites
+pkg install -y python3 sudo
+
+# Add admin user
+pw groupadd '${admin_user}'
+pw useradd '${admin_user}' -m -g '${admin_user}' -G wheel
+chpass -p '${admin_passwd}' '${admin_user}'
+
+# Inject SSH pubkeys
+cat > /tmp/admin_pubkeys << END
+${admin_pubkeys}
+END
+trap "rm /tmp/admin_pubkeys" EXIT
+
+install -o '${admin_user}' -g '${admin_user}' -m 0700 -d '/home/${admin_user}/.ssh'
+install -o '${admin_user}' -g '${admin_user}' -m 0600 /tmp/admin_pubkeys '/home/${admin_user}/.ssh/authorized_keys'
+
+# Allow admin user to sudo
+cat > /tmp/sudoers_wheel << END
+%wheel ALL=(ALL) ALL
+END
+trap "rm /tmp/sudoers_wheel" EXIT
+
+install -m 0600 /tmp/sudoers_wheel /usr/local/etc/sudoers.d/wheel
