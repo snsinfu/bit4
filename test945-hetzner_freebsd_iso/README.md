@@ -4,17 +4,20 @@ make
 ```
 
 Go to Hetzner cloud dashboard and open the console. Start FreeBSD installation.
-Disk must be partitioned as:
+Partition the disk like this (swap is optional):
 
 ```
-ada0p1 boot
-ada0p2 /
+p1 boot
+p2 swap
+p3 /
 ```
 
-No root password. Do not add user. Drop to the shell and run imprinting script:
+No root password. Do not add user. No service or hardening. Drop to the shell
+and run imprinting script:
 
 ```
 fetch -o- http://169.254.169.254/latest/user-data | sh
 ```
 
-Exit the shell and shutdown the server. Take snapshot.
+Exit the shell and shutdown the server. Take snapshot and attach a label
+`custom_image=freebsd-12.1` to the snapshot.
