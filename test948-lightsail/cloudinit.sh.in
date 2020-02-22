@@ -1,0 +1,45 @@
+# Our user-data is concatenated to the back of Lightsail-provided shell script.
+# So this file needs to be a shell script, too.
+# https://serverfault.com/q/823130
+
+timedatectl set-timezone UTC
+
+cat > /etc/ssh/sshd_config << END
+TrustedUserCAKeys /etc/ssh/lightsail_instance_ca.pub
+PermitRootLogin no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+Subsystem sftp internal-sftp
+END
+systemctl restart sshd
+
+useradd \
+  -U \
+  -G sudo \
+  -m \
+  -s /bin/bash \
+  ${admin_user}
+
+chpasswd << END
+${admin_user}:${admin_password}
+END
+
+cat > /tmp/admin_pubkeys << END
+${admin_pubkeys_text}
+END
+trap "rm /tmp/admin_pubkeys" EXIT
+
+install \
+  -o ${admin_user} \
+  -g ${admin_user} \
+  -m 0700 \
+  -d \
+  /home/${admin_user}/.ssh
+
+install \
+  -o ${admin_user} \
+  -g ${admin_user} \
+  -m 0600 \
+  /tmp/admin_pubkeys \
+  /home/${admin_user}/.ssh/authorized_keys

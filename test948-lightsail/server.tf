@@ -7,10 +7,10 @@ resource "aws_lightsail_instance" "sail" {
 }
 
 data "template_file" "cloudinit" {
-  template = file("${path.module}/cloudinit.yml.in")
+  template = file("${path.module}/cloudinit.sh.in")
   vars     = {
     admin_user         = var.admin_user
     admin_password     = var.admin_password
-    admin_pubkeys_json = jsonencode(var.admin_pubkeys)
+    admin_pubkeys_text = join("\n", var.admin_pubkeys)
   }
 }
