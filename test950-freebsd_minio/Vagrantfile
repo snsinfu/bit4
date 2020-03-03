@@ -1,0 +1,20 @@
+VM_BOX = "freebsd/FreeBSD-12.1-RELEASE"
+VM_IP = "172.25.25.2"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = VM_BOX
+  config.vm.network :private_network, ip: VM_IP
+  config.ssh.shell = "/bin/sh"
+
+  config.vm.provision :shell, run: "once", inline: <<-END
+    pkg install -y python3
+  END
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {
+      ansible_python_interpreter: "/usr/local/bin/python3",
+      external_address: VM_IP
+    }
+  end
+end

@@ -1,0 +1,171 @@
+- hosts: default
+  become: yes
+
+  vars:
+
+    # NOTE: `minino_kms_master_key` must be "minio" followed by a colon and
+    # 64 hex chars.
+    minio_mc_version: RELEASE.2017-04-03T18-35-01Z
+    minio_kms_master_key: minio:07eda8185bd1a1fe537fe3b75041a3efe45f43b49d7cac3d2c1d9cc3e6014e4b
+    minio_admin_key: admin
+    minio_admin_secret: f3a73b347a42909ad02ae4b6de6e84ce
+
+    bucket_name: bucket-3f6bc823
+    bucket_owner_name: user-3f6bc823
+    bucket_owner_pass: 2e3aa37411d34305e7b1d09650a0c357
+
+  tasks:
+
+    # SERVER -----------------------------------------------------------------
+
+    - name: minio is installed
+      pkgng:
+        name: minio
+        state: present
+
+    - name: minio envfile is up
+      copy:
+        content: |
+          MINIO_KMS_MASTER_KEY={{ minio_kms_master_key }}
+          MINIO_ACCESS_KEY={{ minio_admin_key }}
+          MINIO_SECRET_KEY={{ minio_admin_secret }}
+          MINIO_BROWSER=on
+        dest: /usr/local/etc/minio.env
+        mode: 0600
+        owner: minio
+        group: minio
+      notify: restart minio
+
+    - name: data directory exists
+      file:
+        path: /data
+        state: directory
+
+    - name: minio data directory exists
+      file:
+        path: /data/minio
+        owner: minio
+        group: minio
+        mode: 0750
+        state: directory
+
+    - name: minio service is configured
+      copy:
+        content: |
+          minio_enable="YES"
+          minio_disks="/data/minio"
+          minio_env_file="/usr/local/etc/minio.env"
+        dest: /etc/rc.conf.d/minio
+      notify: restart minio
+
+    - name: minio is activated
+      service:
+        name: minio
+        state: started
+
+    - meta: flush_handlers
+
+    # ADD USER ---------------------------------------------------------------
+
+    - name: minio client is installed
+      pkgng:
+        name: minio-client
+        state: present
+
+    - name: minio client config directory exists
+      file:
+        path: /root/.minio-client
+        state: directory
+
+    - name: minio client config is up
+      copy:
+        content: |
+          {
+            "version": "9",
+            "hosts": {
+              "minio": {
+                "url": "http://localhost:9000",
+                "accessKey": "{{ minio_admin_key }}",
+                "secretKey": "{{ minio_admin_secret }}",
+                "api": "S3v4",
+                "lookup": "auto"
+              }
+            }
+          }
+        dest: /root/.minio-client/config.json
+        mode: 0600
+
+    - name: minio bucket user list is obtained
+      command: minio-client admin user list --json minio
+      register: _command
+      changed_when: none
+
+    - name: minio bucket user list is set
+      set_fact:
+        fact_minio_users: "{{ _command.stdout_lines | map('from_json') | map(attribute='accessKey') | list }}"
+
+    - name: minio bucket user is added
+      command: minio-client admin user add minio {{ bucket_owner_name }} {{ bucket_owner_pass }}
+      when: bucket_owner_name not in fact_minio_users
+
+    - meta: flush_handlers
+
+    # ADD BUCKET -------------------------------------------------------------
+
+    - name: ansible s3 module requirements are installed
+      pkgng:
+        name:
+          - py37-boto
+          - py37-boto3
+          - py37-botocore
+        state: present
+
+    - name: bucket is created
+      s3_bucket:
+        name: "{{ bucket_name }}"
+        policy: |
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject"],
+                "Resource": ["arn:aws:s3:::{{ bucket_name }}/*"],
+                "Principal": {"AWS": ["arn:aws:iam::minio:user/{{ bucket_owner_name }}"]}
+              }
+            ]
+          }
+        state: present
+        s3_url: http://localhost:9000
+        aws_access_key: "{{ minio_admin_key }}"
+        aws_secret_key: "{{ minio_admin_secret }}"
+
+    - name: data file is created
+      copy:
+        content: |
+          @ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_
+          `abcdefghijklmnopqrstuvwxyz{|}~
+        dest: /tmp/somedata.txt
+
+    - name: data file is put in the bucket
+      aws_s3:
+        bucket: "{{ bucket_name }}"
+        mode: put
+        src: /tmp/somedata.txt
+        object: /somedata.txt
+        permission: [] # minio does not support ACL
+        s3_url: http://localhost:9000
+        aws_access_key: "{{ minio_admin_key }}"
+        aws_secret_key: "{{ minio_admin_secret }}"
+
+    - name: data file is encrypted on disk
+      command: file -b /data/minio/{{ bucket_name }}/somedata.txt
+      register: _result
+      failed_when: _result.stdout == "ASCII text"
+      changed_when: none
+
+  handlers:
+    - name: restart minio
+      service:
+        name: minio
+        state: restarted
