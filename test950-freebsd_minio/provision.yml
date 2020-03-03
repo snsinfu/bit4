@@ -16,6 +16,28 @@
 
   tasks:
 
+    # FreEBSD 12.1-RELEASE's querterly package repository has an out-of-date
+    # minio that does not support KMS master key. Need to switch to latest
+    # repository for now.
+    #
+    # And as of 2020-03-03 16:49 UTC, the latest package repository is broken.
+    # Blocked. https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=244549
+
+    - name: pkgng repository directory exists
+      file:
+        path: /usr/local/etc/pkg/repos
+        state: directory
+        recurse: yes
+
+    - name: pkgng latest repository is enabled
+      copy:
+        content: |
+          FreeBSD {
+            url: "pkg+http://pkg.FreeBSD.org/${ABI}/latest",
+          }
+        dest: /usr/local/etc/pkg/repos/FreeBSD.conf
+
+
     # SERVER -----------------------------------------------------------------
 
     - name: minio is installed
