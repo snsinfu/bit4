@@ -1,0 +1,28 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  vars:
+    node_name: data
+    vpn_nodes:
+      - name: data
+        address: 192.168.150.1
+        somekey: ca12b920d8b040b83d8ec3780759e318
+      - name: app-1
+        address: 192.168.150.2
+        somekey: 0d1febbc361a8fd66cbec6082ab03e08
+      - name: app-2
+        address: 192.168.150.3
+        somekey: 332044e0d2273638bacbf8b39bd144b9
+
+  tasks:
+    # Select "this" node and other nodes from `vpn_nodes` using custom filters.
+    - set_fact:
+        this_node: "{{ vpn_nodes | where(name=node_name) | first }}"
+        other_nodes: "{{ vpn_nodes | unless(name=node_name) }}"
+
+    - debug:
+        msg: "{{ this_node }}"
+
+    - debug:
+        msg: "{{ other_nodes }}"
