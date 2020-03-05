@@ -1,0 +1,13 @@
+[Interface]
+PrivateKey = {{ node.private_key | default("") }}
+Address = {{ node.address }}/24
+
+{% for peer in peers %}
+[Peer]
+PublicKey = {{ peer.public_key }}
+AllowedIPs = {{ peer.address }}/32
+{% if peer.name in hostvars %}
+EndPoint = {{ hostvars[peer.name].public_address }}:{{ wireguard_port }}
+PersistentKeepalive = 25
+{% endif %}
+{% endfor %}

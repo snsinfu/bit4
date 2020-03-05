@@ -1,0 +1,127 @@
+- hosts: all
+  become: yes
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  vars_files:
+    - config/variables.yml
+
+  tasks:
+
+    # WIREGUARD INSTALLATION -------------------------------------------------
+
+    - name: dkms and linux headers are installed
+      apt:
+        name:
+          - dkms
+          - "linux-headers-{{ ansible_kernel }}"
+        state: present
+
+    - name: debian unstable repository is enabled
+      apt_repository:
+        repo: deb http://deb.debian.org/debian/ unstable main
+        state: present
+
+    - name: debian unstable repository is less prioritized than stable
+      copy:
+        content: |
+          Package: *
+          Pin release a=unstable
+          Pin-Priority: 90
+        dest: /etc/apt/preferences.d/pin-unstable
+
+    - name: wireguard is installed
+      apt:
+        name: wireguard
+        state: present
+
+    - name: wireguard kernel module is loaded
+      modprobe:
+        name: wireguard
+        state: present
+
+    # WIREGUARD SETUP --------------------------------------------------------
+
+    - name: wireguard service port is registered
+      lineinfile:
+        path: /etc/services
+        line: wg0 {{ wireguard_port }}/udp
+        regexp: '^wg\s'
+        state: present
+
+    - name: wireguard server configuration is up
+      template:
+        src: templates/wireguard_server.conf.j2
+        dest: /etc/wireguard/wg0.conf
+        mode: 0600
+      vars:
+        node: "{{ wireguard_nodes | where(name=inventory_hostname) | first }}"
+        peers: "{{ wireguard_nodes | unless(name=inventory_hostname) }}"
+      notify: restart wg-quick
+
+    - name: wireguard client configuration is generated
+      template:
+        src: templates/wireguard_client.conf.j2
+        dest: _wireguard_client.conf
+        mode: 0600
+      vars:
+        node: "{{ wireguard_nodes | where(name='client') | first }}"
+        peers: "{{ wireguard_nodes | unless(name='client') }}"
+      connection: local
+      become: no
+
+    - name: wg-quick is activated
+      service:
+        name: wg-quick@wg0
+        state: started
+        enabled: yes
+
+    # FIREWALL ---------------------------------------------------------------
+
+    - name: iptables persistence packages are installed
+      apt:
+        name:
+          - netfilter-persistent
+          - iptables-persistent
+        state: present
+
+    - name: iptables rules are up
+      template:
+        src: config/iptables-{{ item }}.j2
+        dest: /etc/iptables/{{ item }}
+      vars:
+        PIF: "{{ ansible_default_ipv4.interface }}"
+      with_items:
+        - rules.v4
+        - rules.v6
+      notify: restart firewall
+
+    - name: firewall is activated
+      service:
+        name: netfilter-persistent
+        state: started
+        enabled: yes
+
+    # INTEGRATION ------------------------------------------------------------
+
+    - name: inventory is updated to use vpn
+      copy:
+        content: |
+          main ansible_host={{ node.address }}
+        dest: inventory/x20-vpn
+      vars:
+        node: "{{ wireguard_nodes | where(name=inventory_hostname) | first }}"
+      connection: local
+      become: no
+
+  handlers:
+    - name: restart wg-quick
+      service:
+        name: wg-quick@wg0
+        state: restarted
+
+    - name: restart firewall
+      service:
+        name: netfilter-persistent
+        state: restarted

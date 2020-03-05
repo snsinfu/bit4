@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = {{ node.private_key | default("") }}
+Address = {{ node.address }}/24
+ListenPort = {{ wireguard_port }}
+
+{% for peer in peers %}
+[Peer]
+PublicKey = {{ peer.public_key }}
+AllowedIPs = {{ peer.address }}/32
+{% endfor %}

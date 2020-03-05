@@ -1,0 +1,32 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  vars_files:
+    - config/variables.yml
+
+  tasks:
+    - name: server is up
+      terraform:
+        project_path: ./infra
+        variables: "{{ infra_config | tfvars }}"
+        force_init: yes
+        state: present
+      register: tf
+
+    - name: inventory is up to date
+      template:
+        src: infra/inventory.j2
+        dest: inventory/x10-infra
+      vars:
+        host_address: "{{ tf.outputs.ip.value }}"
+        admin_user: "{{ infra_config.admin_user }}"
+
+    - name: ssh_config is up to date
+      template:
+        src: infra/ssh_config.j2
+        dest: _ssh_config
+      vars:
+        host_address: "{{ tf.outputs.ip.value }}"
+        admin_user: "{{ infra_config.admin_user }}"
+        admin_keyfile: sample_key

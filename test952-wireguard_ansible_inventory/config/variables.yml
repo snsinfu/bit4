@@ -1,0 +1,14 @@
+infra_config:
+  admin_user: x80c3296
+  admin_pubkeys:
+    - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIESmTr5iihwZc256HmFj5ZUyI5Ve0f/onU7jB/KvqODZ
+
+wireguard_port: 850
+wireguard_nodes:
+  - name: main
+    address: 192.168.135.1
+    private_key: 2NN+G0BrnLvaCE3Jbam/lKNgsMrkd8PPRhSL/YsB9HI=  # sample
+    public_key: +i1AhTUuHtiUu5n7TjVrsGL3HGOPGP1E3VDNA37Mpmk=  # sample
+  - name: client
+    address: 192.168.135.2
+    public_key: GepkqlIOoi8g8cHZicDXc9Wzee8t8aFOyvsGc2L7UzI=  # sample
