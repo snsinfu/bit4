@@ -1,0 +1,14 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  vars_files:
+    - config/variables.yml
+
+  tasks:
+    - name: server is down
+      terraform:
+        project_path: ./infra
+        variables: "{{ infra_config | tfvars }}"
+        state: absent
+      register: tf
