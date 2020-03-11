@@ -202,6 +202,5 @@ Sequential (32x multi-threaded):
 
 - Surprisingly fast.
 - The throughput looks bounded by 100Gbps. Ceph storage over 100GbE?
-- At 8kB it records ~4k IOPS on a 1vCPU/2GB machine and ~33k IOPS on a
-  4vCPU/16GB machine. Looks like it greatly benefits from real concurrent I/O.
-- On 1vCPU mchine the performance is similar to SATA SSD.
+- At 4kB-random it records ~4k IOPS. Not very fast (NVMe SSD does > 100k IOPS)
+  but not bad compared to magnetic disks. It's similar to a cheap SATA SSD.
