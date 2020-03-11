@@ -1,0 +1,4 @@
+Host main
+HostName ${host_address}
+UserKnownHostsFile _known_hosts
+User ${admin_user}
