@@ -1,0 +1,13 @@
+- hosts: localhost
+  connection: local
+  become: no
+
+  tasks:
+    - merge_vars_files:
+        files:
+          - config/variables.yml
+          - config/secrets.yml
+          - config/extra.yml
+
+    - debug:
+        msg: "{{ config }}"
