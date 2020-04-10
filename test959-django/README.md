@@ -4,8 +4,9 @@ poetry add django
 poetry export -f requirements.txt > requirements.txt
 ```
 
-Create project:
+Create project and some app:
 
 ```
 poetry run django-admin startproject examplesite .
+poetry run django-admin startapp frontpage
 ```
