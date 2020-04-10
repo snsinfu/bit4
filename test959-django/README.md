@@ -18,3 +18,9 @@ Migrate:
 ```
 poetry run ./manage.py migrate
 ```
+
+Run:
+
+```
+poetry run ./manage.py runserver
+```
