@@ -1,0 +1,54 @@
+#!/bin/sh
+set -eu
+
+# ADMIN USER -----------------------------------------------------------------
+
+# Add admin user.
+pw useradd ${admin_user} -m -G wheel -s /bin/sh
+
+# Inject SSH pubkeys.
+umask 077
+mkdir /home/${admin_user}/.ssh
+cat > /home/${admin_user}/.ssh/authorized_keys << 'END'
+${admin_authorized_keys}
+END
+chown -R ${admin_user}:${admin_user} /home/${admin_user}/.ssh
+umask 022
+
+# Allow admin user to sudo without password.
+pkg install -y sudo
+
+umask 077
+cat > /usr/local/etc/sudoers.d/wheel << END
+%wheel ALL=(ALL) NOPASSWD: ALL
+END
+umask 022
+
+# Disable password login.
+chpass -p "*" root
+chpass -p "*" ${admin_user}
+
+
+# ZFS ------------------------------------------------------------------------
+
+zpool create data /dev/diskid/DISK-${volume_id}
+
+
+# POSTGRESQL -----------------------------------------------------------------
+
+# Install PostgreSQL.
+pkg install -y postgresql12-server
+
+cat >> /etc/rc.conf << 'END'
+postgresql_enable="YES"
+postgresql_data="/data/postgresql-12"
+END
+
+
+# BENCHMARK ------------------------------------------------------------------
+
+cat > /home/${admin_user}/benchmark.sh << 'END'
+${benchmark_script}
+END
+chown ${admin_user}:${admin_user} /home/${admin_user}/benchmark.sh
+chmod u+x /home/${admin_user}/benchmark.sh
