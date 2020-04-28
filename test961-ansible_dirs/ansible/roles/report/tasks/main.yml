@@ -1,0 +1,5 @@
+- debug:
+    msg:
+      - "{{ ansible_facts.os_family }}"
+      - "{{ ansible_facts.kernel }}"
+      - "{{ ansible_facts.processor }}"

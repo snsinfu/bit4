@@ -1,0 +1,10 @@
+- hosts: localhost
+  become: no
+
+  tasks:
+    - name: connection is established
+      ping:
+
+    - name: configuration variable is loaded
+      debug:
+        msg: "{{ some_token }}"
