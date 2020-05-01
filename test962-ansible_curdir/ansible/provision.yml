@@ -1,0 +1,31 @@
+- hosts: default
+  become: yes
+
+  tasks:
+    - name: iptables service is installed
+      apt:
+        name:
+          - netfilter-persistent
+          - iptables-persistent
+        state: present
+
+    - name: iptables rules are up
+      template:
+        src: ../assets/iptables-{{ item }}.j2
+        dest: /etc/iptables/{{ item }}
+      with_items:
+        - rules.v4
+        - rules.v6
+      notify: restart iptables
+
+    - name: iptables service is activated
+      service:
+        name: netfilter-persistent
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart iptables
+      service:
+        name: netfilter-persistent
+        state: restarted

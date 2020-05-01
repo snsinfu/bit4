@@ -1,0 +1,6 @@
+- hosts: localhost
+  become: no
+  connection: local
+
+  tasks:
+    - name:

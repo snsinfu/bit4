@@ -1,0 +1,15 @@
+* filter
+
+:INPUT DROP
+:OUTPUT ACCEPT
+:FORWARD DROP
+
+-A INPUT -j ACCEPT -i lo
+-A INPUT -j ACCEPT -m state --state ESTABLISHED,RELATED
+-A INPUT -j ACCEPT -m state --state INVALID
+-A INPUT -j ACCEPT -p icmp
+
+-A INPUT -j ACCEPT -i eth0 -p tcp --dport ssh -m state --state NEW
+-A INPUT -j REJECT -i eth0
+
+COMMIT
