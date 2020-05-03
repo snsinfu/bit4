@@ -1,0 +1,45 @@
+#!/bin/sh
+set -efu
+
+LOOP="lo*"
+LAN="em0"
+WAN="em1"
+
+alias ADD="ipfw -q add"
+
+ipfw -qf flush
+
+
+# GENERAL RULES --------------------------------------------------------------
+
+# Allow all local communications.
+ADD 010 allow via ${LOOP}
+
+# Allow packets related to tracked connections.
+ADD 020 check-state
+
+# Allow ICMP and known TCP connections.
+ADD 030 allow icmp from any to any
+ADD 030 allow tcp  from any to any established
+
+
+# INBOUND RULES --------------------------------------------------------------
+
+# Open services.
+ADD 110 allow tcp from any to me ssh   in via ${LAN} keep-state setup
+ADD 110 allow tcp from any to me ssh   in via ${WAN} keep-state setup
+ADD 110 allow tcp from any to me http  in via ${WAN} keep-state setup
+ADD 110 allow tcp from any to me https in via ${WAN} keep-state setup
+
+# Reject the rest.
+ADD 190 unreach host in
+
+
+# OUTBOUND RULES -------------------------------------------------------------
+
+# Link-local address is usually used for metadata service, which may leak
+# credentials to local applications. So reject access if not used.
+ADD 210 unreach host all from any to 169.254.0.0/16 out
+
+# Allow all other outbound packets.
+ADD 290 allow out keep-state setup

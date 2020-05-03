@@ -1,0 +1,16 @@
+VM_BOX = "bento/freebsd-12.1"
+VM_IP = "192.168.231.10"
+
+Vagrant.configure("2") do |config|
+  config.vm.box = VM_BOX
+  config.vm.network :private_network, ip: VM_IP
+
+  config.vm.provision :shell, inline: <<-END
+    pkg install -qy python3
+  END
+
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {"ansible_python_interpreter": "python3"}
+  end
+end
