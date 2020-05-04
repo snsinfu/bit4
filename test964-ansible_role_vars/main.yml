@@ -1,0 +1,28 @@
+- hosts: localhost
+  become: no
+
+  roles:
+
+    # This uses acme_version="1.1" even if you specify the role var here
+    # because 1.1 is hard-coded in roles/test-vars/vars.
+    - name: test-vars
+      vars:
+        acme_version: "1.4"
+
+    # This uses acme_version="1.3" as expected.
+    - name: test-defaults
+      vars:
+        acme_version: "1.3"
+
+    # acme_url is defined in defaults/ so it's overridable. Prints none.
+    - name: test-defaults
+      vars:
+        acme_version: "1.3.5"
+        acme_url: none
+
+    # This uses acme_version="1.2". And acme_url is not overridable because
+    # it's in vars/, not in defaults/.
+    - name: test-vars-defaults
+      vars:
+        acme_version: "1.2"
+        acme_url: none
