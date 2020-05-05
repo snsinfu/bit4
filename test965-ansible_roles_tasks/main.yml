@@ -1,0 +1,10 @@
+- hosts: localhost
+  become: no
+
+  tasks:
+    - debug:
+        msg: "This is a task"
+
+  roles:
+    - role-1
+    - role-2
