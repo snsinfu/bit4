@@ -1,0 +1,14 @@
+#!/bin/sh
+
+awk -v map_file="map.txt" '
+BEGIN {
+    while ((getline < map_file) > 0) {
+        mapping[$1] = $2
+    }
+    OFS = "\t"
+}
+
+{
+    print mapping[$1], $2, $3
+}
+'
