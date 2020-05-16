@@ -13,7 +13,8 @@ CXXFLAGS = \
   -Wsign-conversion \
   -Wshadow \
   $(OPTFLAGS) \
-  $(INCLUDES)
+  $(INCLUDES) \
+  $(EXTRA_CXXFLAGS)
 
 ARTIFACTS = \
   main
