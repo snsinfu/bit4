@@ -1,0 +1,58 @@
+- hosts: default
+
+  tasks:
+    - name: femtomail build requirements are installed
+      pkgng:
+        name:
+          - git
+          - gmake
+        state: present
+      become: yes
+
+    - name: femtomail is cloned
+      command: git clone -b freebsd https://github.com/snsinfu/femtomail.git
+      args:
+        creates: ./femtomail/Makefile
+
+    - name: femtomail is built
+      command: gmake -C femtomail USERNAME=root MAILBOX_PATH=/var/mail/femtomail
+      args:
+        creates: ./femtomail/femtomail
+
+    - name: femtomail maildir exists
+      file:
+        path: /var/mail/femtomail/new
+        state: directory
+        mode: 0700
+      become: yes
+
+    - name: femtomail is installed
+      copy:
+        src: ./femtomail/femtomail
+        dest: /usr/local/libexec/
+        remote_src: yes
+        mode: 0755
+      become: yes
+
+    - name: femtomail wrapper is up
+      copy:
+        content: |
+          #!/bin/sh
+          exec /usr/local/libexec/femtomail "$@" root
+        dest: /usr/local/libexec/femtomail.root
+        mode: 0755
+      become: yes
+
+    - name: femtomail wrapper is configured as sendmail
+      lineinfile:
+        path: /etc/mail/mailer.conf
+        line: 'sendmail /usr/local/libexec/femtomail.root'
+        regexp: '^sendmail'
+      become: yes
+
+    - name: example minutely cron job is configured
+      lineinfile:
+        path: /etc/crontab
+        line: |
+          */1  *  *  *  *  root  date
+      become: yes

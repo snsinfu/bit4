@@ -1,0 +1,13 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/freebsd-12.1"
+  config.vm.provision :shell, inline: <<-END
+    pkg update -q
+    pkg install -qy python3
+  END
+  config.vm.provision :ansible do |ansible|
+    ansible.playbook = "provision.yml"
+    ansible.extra_vars = {
+      ansible_python_interpreter: "/usr/local/bin/python3"
+    }
+  end
+end
