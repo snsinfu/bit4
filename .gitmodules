@@ -83,3 +83,6 @@
 [submodule "deps/BlueBrain/HighFive"]
 	path = deps/BlueBrain/HighFive
 	url = https://github.com/BlueBrain/HighFive.git
+[submodule "deps/snsinfu/micromd@master"]
+	path = deps/snsinfu/micromd@master
+	url = https://github.com/snsinfu/micromd.git
