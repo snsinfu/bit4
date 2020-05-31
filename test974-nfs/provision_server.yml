@@ -1,0 +1,111 @@
+- hosts: n-server
+  become: yes
+
+  tasks:
+
+    # NFS --------------------------------------------------------------------
+
+    - name: nfs export base directory exists
+      file:
+        path: /data
+        state: directory
+
+    - name: nfs export directories exist
+      file:
+        path: /data/{{ item }}
+        mode: 0700
+        owner: nobody
+        group: nobody
+        state: directory
+      with_items:
+        - foo
+        - bar
+
+    - name: nfs exports are configured
+      copy:
+        content: |
+          V4: /
+          /data/foo -network {{ nfs_network }} -mapall nobody:nobody
+          /data/bar -network {{ nfs_network }} -mapall nobody:nobody
+        dest: /etc/exports
+      notify: restart nfsd
+
+    - name: nfs service configuration is up
+      copy:
+        content: |
+          nfsv4_server_enable="YES"
+          nfs_server_enable="YES"
+          nfs_server_flags="-t"
+        dest: /etc/rc.conf.d/nfsd
+      notify: restart nfsd
+
+    - name: rpcbind service configuration is up
+      copy:
+        content: |
+          rpcbind_enable="YES"
+        dest: /etc/rc.conf.d/rpcbind
+      notify: restart rpcbind
+
+    - name: mountd service configuration is up
+      copy:
+        content: |
+          mountd_flags="-rS -p {{ mountd_port }}"
+        dest: /etc/rc.conf.d/mountd
+      notify: restart mountd
+
+    - name: nfs service is started
+      service:
+        name: nfsd
+        state: started
+
+    - name: mountd custom port is registered
+      lineinfile:
+        path: /etc/services
+        line: |
+          mountd {{ mountd_port }}/tcp
+        regexp: '^mountd\s.*/tcp'
+
+
+    # IPFW -------------------------------------------------------------------
+
+    - name: ipfw rule script is up
+      copy:
+        src: server-ipfw.rules
+        dest: /etc/ipfw.rules
+        mode: 0600
+      notify: restart ipfw
+
+    - name: ipfw service configuration is up
+      copy:
+        content: |
+          firewall_enable="YES"
+          firewall_script="/etc/ipfw.rules"
+        dest: /etc/rc.conf.d/ipfw
+      notify: restart ipfw
+
+    - name: ipfw service is started
+      service:
+        name: ipfw
+        state: started
+
+
+  handlers:
+    - name: restart nfsd
+      service:
+        name: nfsd
+        state: restarted
+
+    - name: restart rpcbind
+      service:
+        name: rpcbind
+        state: restarted
+
+    - name: restart mountd
+      service:
+        name: mountd
+        state: restarted
+
+    - name: restart ipfw
+      service:
+        name: ipfw
+        state: restarted

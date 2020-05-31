@@ -1,0 +1,39 @@
+#!/bin/sh
+set -efu
+
+LOOP="lo*"
+WAN="em0"
+LAN="em1"
+
+ipfw -qf flush
+alias ADD="ipfw -q add"
+
+
+# GENERAL RULES --------------------------------------------------------------
+
+ADD 010 allow via ${LOOP}
+ADD 020 check-state
+ADD 030 allow icmp from any to any
+ADD 040 allow tcp  from any to any keep-state established
+
+
+# INBOUND RULES (WAN) --------------------------------------------------------
+
+ADD 199 allow in via ${WAN} keep-state
+
+
+# INBOUND RULES (LAN) --------------------------------------------------------
+
+ADD 220 allow tcp from any to me rpcbind in via ${LAN} keep-state setup
+ADD 220 allow tcp from any to me nfs     in via ${LAN} keep-state setup
+ADD 220 allow tcp from any to me mountd  in via ${LAN} keep-state setup
+ADD 220 allow tcp from any to me lockd   in via ${LAN} keep-state setup
+
+ADD 290 unreach port tcp from any to me in via ${LAN}
+ADD 290 unreach host                    in via ${LAN}
+
+
+# FALLBACK RULES -------------------------------------------------------------
+
+ADD 999 deny  in
+ADD 999 allow out keep-state
