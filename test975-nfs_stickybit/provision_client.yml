@@ -1,0 +1,44 @@
+- hosts: n-client
+  become: yes
+
+  tasks:
+
+    - name: apt cache is up to date
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+
+    # NFS --------------------------------------------------------------------
+
+    - name: nfs client package is installed
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: nfs mountpoint exists
+      file:
+        path: /srv/foo
+        state: directory
+
+    - name: nfs mountpoint is configured
+      mount:
+        path: /srv/foo
+        src: "{{ nfs_server }}:/data/foo"
+        fstype: nfs
+        opts: rw,nfsvers=4,sec=sys
+        state: mounted
+
+    - name: test directory is created
+      file:
+        path: /srv/foo/test
+        state: directory
+      become: no
+
+    - name: test file is created
+      copy:
+        content: |
+          The quick brown fox jumps
+          over the lazy dog
+        dest: /srv/foo/test/fox.txt
+      become: no

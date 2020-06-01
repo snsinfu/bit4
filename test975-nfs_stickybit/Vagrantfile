@@ -1,0 +1,33 @@
+VM_CPUS = 1
+VM_MEMORY = 512
+VM_SERVER_BOX = "bento/freebsd-12.1"
+VM_CLIENT_BOX = "debian/buster64"
+VM_SERVER_IP = "10.94.216.10"
+VM_CLIENT_IP = "10.94.216.11"
+
+Vagrant.configure("2") do |config|
+  config.vm.provider :virtualbox do |v|
+    v.cpus = VM_CPUS
+    v.memory = VM_MEMORY
+  end
+
+  config.vm.define "n-server" do |server|
+    server.vm.box = VM_SERVER_BOX
+    server.vm.network :private_network, ip: VM_SERVER_IP
+    server.vm.provision :shell, inline: <<-END
+      pkg update -q
+      pkg install -qy python3
+    END
+    server.vm.provision :ansible do |ansible|
+      ansible.playbook = "provision_server.yml"
+    end
+  end
+
+  config.vm.define "n-client" do |client|
+    client.vm.box = VM_CLIENT_BOX
+    client.vm.network :private_network, ip: VM_CLIENT_IP
+    client.vm.provision :ansible do |ansible|
+      ansible.playbook = "provision_client.yml"
+    end
+  end
+end
