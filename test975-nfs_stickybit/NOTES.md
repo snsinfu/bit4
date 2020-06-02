@@ -72,3 +72,11 @@ strings "1000" and "0" before and after 0x0140.
 
 I'd learn the wire format to understand what is happening:
 https://tools.ietf.org/html/rfc7530
+
+
+### OPEN operation does not take owner_group
+
+https://tools.ietf.org/html/rfc7530#section-16.16
+
+OPEN takes an owner, but it does not take owner_group. Now I doubt there is a way to set gid on file creation when using NFSv4 without idmap. Still, gid might be sent along OPEN because I don't understand yet whether additional attributes can be/are attached to OPEN or not.
+
