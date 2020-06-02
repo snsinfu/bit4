@@ -80,10 +80,6 @@ func main() {
 				select {
 				case up := <-updates:
 					rows[up.Row] = up.Text
-
-				case <-end:
-					break rendering
-
 				default:
 					break pump
 				}
@@ -93,6 +89,12 @@ func main() {
 				fmt.Fprintln(w, row)
 			}
 			w.Flush()
+
+			select {
+			case <-end:
+				break rendering
+			default:
+			}
 		}
 
 		w.Flush()
