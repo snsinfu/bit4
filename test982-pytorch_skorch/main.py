@@ -82,8 +82,7 @@ print("Train:", X_train.shape, y_train.shape)
 print("Test: ", X_test.shape, y_test.shape)
 
 
-
-ptions = {
+module_options = {
     "module": CNN,
     "module__input_dim": 1,
     "module__output_dim": len(label_encoder.classes_),
