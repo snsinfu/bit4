@@ -16,7 +16,7 @@ static uv_fs_t open_req;
 static uv_fs_t read_req;
 static uv_fs_t close_req;
 
-static char read_buffer_storage[1024];
+static char read_buffer_storage[10];
 static uv_buf_t read_buffer = {
     .base = read_buffer_storage,
     .len  = sizeof read_buffer_storage
@@ -59,11 +59,11 @@ static void on_open(uv_fs_t *req)
         fprintf(stderr, "uv_fs_open: %s\n", uv_strerror((int) req->result));
         goto clean;
     }
-    uv_file file = req->file;
+    uv_file file = (uv_file) req->result;
     uv_loop_t *loop = req->loop;
 
     // FIXME: I'm still not sure but the offset 0 causes "invalid seek" error.
-    uv_fs_read(loop, &read_req, file, &read_buffer, 1, 0, &on_read);
+    uv_fs_read(loop, &read_req, file, &read_buffer, 1, -1, &on_read);
 
 clean:
     uv_fs_req_cleanup(req);
@@ -76,15 +76,26 @@ static void on_read(uv_fs_t *req)
         fprintf(stderr, "uv_fs_read: %s\n", uv_strerror((int) req->result));
         goto clean;
     }
-    uv_file file = req->file;
     uv_loop_t *loop = req->loop;
 
+    // XXX: req->file is not a public member. How can I correctly obtain the
+    // file handle?  https://docs.libuv.org/en/v1.x/fs.html#public-members
+    uv_file file = req->file;
+
     if (req->result > 0) {
-        for (unsigned i = 0; i < req->nbufs; i++) {
-            uv_buf_t buf = req->bufs[i];
-            printf("%u: %p %zu\n", i, buf.base, buf.len);
-        }
+        size_t n_read = (size_t) req->result;
+
+        // XXX: Looks like req->bufs is not set to the buufer passed to
+        // uv_fs_read (which I expected). Assigning read_req.bufs before
+        // calling uv_fs_read did not work; it was cleared to NULL. So I
+        // directly use the global read_buffer. DRY violation!
+
+        printf("Read (%zu): %.*s\n", n_read, (int) n_read, read_buffer.base);
+
+        // FIXME: Only the first bytes that fit into the buffer is read. How
+        // can I read until the EOF?
     } else {
+        // FIXME: Does not reach here.
         uv_fs_close(loop, &close_req, file, &on_close);
     }
 
