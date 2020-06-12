@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,6 +22,9 @@ static uv_buf_t read_buffer = {
     .base = read_buffer_storage,
     .len  = sizeof read_buffer_storage
 };
+
+static uv_file current_file;
+static int64_t current_pos;
 
 static void on_open(uv_fs_t *req);
 static void on_read(uv_fs_t *req);
@@ -62,7 +66,9 @@ static void on_open(uv_fs_t *req)
     uv_file file = (uv_file) req->result;
     uv_loop_t *loop = req->loop;
 
-    uv_fs_read(loop, &read_req, file, &read_buffer, 1, 0, &on_read);
+    current_file = file;
+    current_pos = 0;
+    uv_fs_read(loop, &read_req, file, &read_buffer, 1, current_pos, &on_read);
 
 clean:
     uv_fs_req_cleanup(req);
@@ -77,12 +83,13 @@ static void on_read(uv_fs_t *req)
     }
     uv_loop_t *loop = req->loop;
 
-    // XXX: req->file is not a public member. How can I correctly obtain the
-    // file handle?  https://docs.libuv.org/en/v1.x/fs.html#public-members
-    uv_file file = req->file;
+    // There seems to be no portable way to obtain file handle from req (on
+    // unix req->file exists but it's a private member). So I use global
+    // context variable here.
+    uv_file file = current_file;
 
     if (req->result > 0) {
-        size_t n_read = (size_t) req->result;
+        int64_t n_read = (int64_t) req->result;
 
         // XXX: Looks like req->bufs is not set to the buufer passed to
         // uv_fs_read (which I expected). Assigning read_req.bufs before
@@ -91,10 +98,16 @@ static void on_read(uv_fs_t *req)
 
         printf("Read (%zu): %.*s\n", n_read, (int) n_read, read_buffer.base);
 
-        // FIXME: Only the first bytes that fit into the buffer is read. How
-        // can I read until the EOF?
+        // XXX: Need to keep track of the current reading position. Yet another
+        // context variable. Use this variable to repeat requesting read until
+        // reaching EOF. This is akin to synchronous while-read loop.
+        current_pos += n_read;
+        uv_fs_req_cleanup(req);
+        uv_fs_read(loop, &read_req, file, &read_buffer, 1, current_pos, &on_read);
+        return;
     } else {
-        // FIXME: Does not reach here.
+        // EOF.
+        printf("EOF.\n");
         uv_fs_close(loop, &close_req, file, &on_close);
     }
 
