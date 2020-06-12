@@ -62,8 +62,7 @@ static void on_open(uv_fs_t *req)
     uv_file file = (uv_file) req->result;
     uv_loop_t *loop = req->loop;
 
-    // FIXME: I'm still not sure but the offset 0 causes "invalid seek" error.
-    uv_fs_read(loop, &read_req, file, &read_buffer, 1, -1, &on_read);
+    uv_fs_read(loop, &read_req, file, &read_buffer, 1, 0, &on_read);
 
 clean:
     uv_fs_req_cleanup(req);
