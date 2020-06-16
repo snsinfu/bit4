@@ -1,0 +1,9 @@
+services:
+  railed-adjusts:
+    build:
+      context: .
+    ports: 8000/http
+    volume:
+      name: railed-adjusts
+      path: /srv/data
+      persistent: yes

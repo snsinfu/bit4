@@ -1,0 +1,36 @@
+- hosts: nfs
+  become: yes
+
+  tasks:
+    - name: nfs server is installed
+      apt:
+        name: nfs-kernel-server
+        state: present
+
+    - name: nfsv4 idmapping is disabled
+      copy:
+        content: |
+          options nfsd nfs4_disable_idmapping=Y
+        dest: /etc/modprobe.d/nfsd.conf
+      notify: restart nfsd
+
+    - name: nfs shared directory exists
+      file:
+        path: /srv/share
+        state: directory
+        mode: 01777
+
+    - name: nfs exports is configured
+      copy:
+        content: |
+          /srv/share {{ network }}(fsid=0,no_subtree_check,rw)
+        dest: /etc/exports
+      vars:
+        network: "{{ nfs_address | ipsubnet(24, 0) }}"
+      notify: restart nfsd
+
+  handlers:
+    - name: restart nfsd
+      service:
+        name: nfs-server
+        state: restarted

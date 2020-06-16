@@ -1,0 +1,36 @@
+VM_CPUS = 2
+VM_MEMORY = 2048
+VM_NFS_BOX = "debian/buster64"
+VM_RIO_BOX = "debian/buster64"
+VM_NFS_IP = "10.94.216.10"
+VM_RIO_IP = "10.94.216.11"
+
+Vagrant.configure("2") do |config|
+  config.vm.provider :virtualbox do |v|
+    v.cpus = VM_CPUS
+    v.memory = VM_MEMORY
+  end
+
+  config.vm.define "nfs" do |server|
+    server.vm.box = VM_NFS_BOX
+    server.vm.network :private_network, ip: VM_NFS_IP
+    server.vm.provision :ansible do |ansible|
+      ansible.playbook = "provision_nfs.yml"
+      ansible.extra_vars = {
+        nfs_address: VM_NFS_IP,
+      }
+    end
+  end
+
+  config.vm.define "rio" do |client|
+    client.vm.box = VM_RIO_BOX
+    client.vm.network :private_network, ip: VM_RIO_IP
+    client.vm.provision :ansible do |ansible|
+      ansible.playbook = "provision_rio.yml"
+      ansible.extra_vars = {
+        nfs_address: VM_NFS_IP,
+        k3s_address: VM_RIO_IP,
+      }
+    end
+  end
+end

@@ -1,0 +1,34 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: railed-adjusts
+  labels:
+    app: railed-adjusts
+spec:
+  storageClassName: nfs
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: 10Gi
+  nfs:
+    server: 10.94.216.10
+    path: /srv/share
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: railed-adjusts
+spec:
+  storageClassName: nfs
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  selector:
+    matchLabels:
+      app: railed-adjusts
