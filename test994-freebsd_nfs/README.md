@@ -37,3 +37,30 @@ https://github.com/freebsd/freebsd/blob/release/12.1.0/sys/fs/nfs/nfs_commonsubs
 So, FreeBSD expects NFS user name (and group name similarly) to be completely
 made of uid digits, not in the form "uid@domain". Linux client might be sending
 uid/gid in the latter form.
+
+## packet capture
+
+Captured packets on FreeBSD server while creating file on Linux client.
+
+```console
+$ sudo tcpdump -i em1 -w p.log
+$ tcpdump -r p.log -XX | less
+```
+
+The dump showed textual uid "4613" but no gid "4512". So it's not sent with
+OPEN command. Strangely, I could fix the gid of the file on the Linux client
+using chown and FreeBSD recognized the change:
+
+```
+$ uname
+FreeBSD
+
+$ ls -l /srv/share
+total 1
+-rw-r--r--  1 4613  4512  0 Jun 17 17:45 alice.txt
+```
+
+So, gid is neither sent or set _on file creation_ when FreeBSD NFS server is
+used. It would have been understandable as a server issue if gid were sent
+because gid is sent and set if Linux NFS server is used. However, gid is not
+sent at all. WTF?

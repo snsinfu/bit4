@@ -10,7 +10,7 @@
     - name: nfsv4 idmapping is disabled
       copy:
         content: |
-          options nfs nfs4_disable_idmapping=N
+          options nfs nfs4_disable_idmapping=Y
         dest: /etc/modprobe.d/nfs.conf
       notify: remount nfs volume
 
@@ -37,6 +37,11 @@
 
     - name: user-owned file is created on nfs volume
       command: sudo -u alice touch /mnt/alice.txt
+      args:
+        warn: no
+
+    - name: file owner is corrected
+      command: sudo -u alice chown alice:alice /mnt/alice.txt
       args:
         warn: no
 
