@@ -1,0 +1,47 @@
+- hosts: n-client
+  become: yes
+
+  tasks:
+    - name: nfs is installed
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: nfsv4 idmapping is disabled
+      copy:
+        content: |
+          options nfs nfs4_disable_idmapping=N
+        dest: /etc/modprobe.d/nfs.conf
+      notify: remount nfs volume
+
+    - name: nfs volume is mounted
+      mount:
+        path: /mnt
+        src: "{{ nfs_server }}:/srv/share"
+        fstype: nfs
+        opts: rw,nfsvers=4
+        state: mounted
+
+    - name: client-only group is present
+      group:
+        name: alice
+        gid: 4512
+
+    - name: client-only user is present
+      user:
+        name: alice
+        uid: 4613
+        password: '*'
+        group: alice
+        groups: users
+
+    - name: user-owned file is created on nfs volume
+      command: sudo -u alice touch /mnt/alice.txt
+      args:
+        warn: no
+
+  handlers:
+    - name: remount nfs volume
+      mount:
+        path: /mnt
+        state: remounted
