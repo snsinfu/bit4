@@ -18,3 +18,22 @@ is handled as expected. So I believe this should be a configuration problem.
 ```
 
 Setting these sysctls did not solve the issue.
+
+## uid/gid wire format incompatibility?
+
+I searched FreeBSD src for "stringtouid" and found this:
+
+https://github.com/freebsd/freebsd/blob/release/12.1.0/sys/fs/nfs/nfs_commonsubs.c#L3187
+
+```c
+	/* If a string of digits and an AUTH_SYS mount, just convert it. */
+	str0 = str;
+	tuid = (uid_t)strtoul(str0, &endstr, 10);
+	if ((endstr - str0) == len) {
+		/* A numeric string. */
+		...
+```
+
+So, FreeBSD expects NFS user name (and group name similarly) to be completely
+made of uid digits, not in the form "uid@domain". Linux client might be sending
+uid/gid in the latter form.
