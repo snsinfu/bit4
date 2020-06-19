@@ -17,7 +17,7 @@
     - name: nfs volume is mounted
       mount:
         path: /mnt
-        src: "{{ nfs_server }}:/srv/share"
+        src: "{{ nfs_server }}:/"
         fstype: nfs
         opts: rw,nfsvers=4
         state: mounted

@@ -19,3 +19,13 @@ The client does not explicitly send uid nor gid in its NFSv4 message. The
 server seems to figure out uid and gid from RPC header, which always contains
 ones in numeric form. So it's the server, not the client, who determines
 uid:gid of newly created file when AUTH_SYS is used and idmap is disabled.
+
+## Source
+
+- [nfsd_create_locked](https://github.com/torvalds/linux/blob/v5.7/fs/nfsd/vfs.c#L1199)
+- [nfsd_create_setattr](https://github.com/torvalds/linux/blob/v5.7/fs/nfsd/vfs.c#L1162)
+- [nfsd_setattr](https://github.com/torvalds/linux/blob/v5.7/fs/nfsd/vfs.c#L366)
+
+Linux NFS server implementation is hard to read (compared to FreeBSD's one).
+I give up at this time. Anyways Linux NFS server creates new file with client
+user's uid:gid when sec=sys.
