@@ -1,0 +1,64 @@
+- hosts: n-client
+  become: yes
+
+  tasks:
+    - name: nfs client uses numeric uid
+      sysctl:
+        name: vfs.nfs.enable_uidtostring
+        value: "1"
+        state: present
+      notify: remount nfs
+
+    - name: nfs volume is mounted
+      mount:
+        path: /mnt
+        src: "{{ nfs_server }}:/"
+        fstype: nfs
+        opts: rw,nfsv4
+        state: mounted
+
+    - name: client-only group is present
+      group:
+        name: alice
+        gid: 4512
+
+    - name: client-only user is present
+      user:
+        name: alice
+        uid: 4613
+        password: '*'
+        group: alice
+
+    # These impersonated file operations cannot be run with Ansible modules.
+
+    - name: user-owned file is created on nfs volume
+      command: sudo -u alice touch /mnt/alice.txt
+      args:
+        warn: no
+
+    - name: user-owned directory is created on nfs volume
+      command: sudo -u alice mkdir /mnt/alice
+      args:
+        warn: no
+
+    # For some reason gid needs to be set explicitly. Maybe a configuration
+    # issue related to the sticky bit set to the shared directory?
+    - name: directory owner is corrected
+      command: sudo -u alice chown alice:alice /mnt/alice
+      args:
+        warn: no
+
+    # I think the noted issue above is related to sticky bit because a file
+    # created in the gid-corrected directory has expected uid:gid. SSH into
+    # the server box and see the owner of this file. It will be set to
+    # 4613:4512 as expected, while alice.txt above is owned by 4613:0.
+    - name: user-owned file is created in the directory
+      command: sudo -u alice touch /mnt/alice/test.txt
+      args:
+        warn: no
+
+  handlers:
+    - name: remount nfs
+      mount:
+        path: /mnt
+        state: remounted
