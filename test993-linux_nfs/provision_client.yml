@@ -10,7 +10,7 @@
     - name: nfsv4 idmapping is disabled
       copy:
         content: |
-          options nfs nfs4_disable_idmapping=N
+          options nfs nfs4_disable_idmapping=Y
         dest: /etc/modprobe.d/nfs.conf
       notify: restart nfs client
 
@@ -42,6 +42,6 @@
 
   handlers:
     - name: restart nfs client
-      service:
-        name: nfs-client
-        state: restarted
+      mount:
+        path: /mnt
+        state: remounted

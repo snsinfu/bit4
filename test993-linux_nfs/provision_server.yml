@@ -23,7 +23,8 @@
     - name: nfs exports is configured
       copy:
         content: |
-          /srv/share {{ network }}(fsid=0,no_subtree_check,rw)
+          /          {{ network }}(rw,fsid=0)
+          /srv/share {{ network }}(rw,no_subtree_check)
         dest: /etc/exports
       vars:
         network: "{{ nfs_server | ipsubnet(24, 0) }}"
