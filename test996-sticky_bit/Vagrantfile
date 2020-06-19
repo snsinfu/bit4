@@ -1,0 +1,29 @@
+VM_CPUS = 1
+VM_MEMORY = 512
+FREEBSD_BOX = "bento/freebsd-12.1"
+DEBIAN_BOX = "debian/buster64"
+
+Vagrant.configure("2") do |config|
+  config.vm.provider :virtualbox do |v|
+    v.cpus = VM_CPUS
+    v.memory = VM_MEMORY
+  end
+
+  config.vm.define "freebsd" do |freebsd|
+    freebsd.vm.box = FREEBSD_BOX
+    freebsd.vm.provision :shell, inline: <<-END
+      pkg update -q
+      pkg install -qy python3
+    END
+    freebsd.vm.provision :ansible do |ansible|
+      ansible.playbook = "test.yml"
+    end
+  end
+
+  config.vm.define "debian" do |debian|
+    debian.vm.box = DEBIAN_BOX
+    debian.vm.provision :ansible do |ansible|
+      ansible.playbook = "test.yml"
+    end
+  end
+end

@@ -1,0 +1,45 @@
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: shared directory exists
+      file:
+        path: /share
+        mode: 01777
+        state: directory
+
+    - name: test group exists
+      group:
+        name: alice
+        gid: 4512
+
+    - name: test user exists
+      user:
+        name: alice
+        uid: 4613
+        password: '*'
+        group: alice
+
+    - name: test file is created
+      command: sudo -u alice touch /share/alice.txt
+      args:
+        warn: no
+
+    - name: retrieve test file information
+      stat:
+        path: /share/alice.txt
+      register: stat
+
+    - name: test file owner is 4613:0
+      assert:
+        that:
+          - stat.stat.uid == 4613
+          - stat.stat.gid == 0      # True on FreeBSD
+      ignore_errors: yes
+
+    - name: test file owner is 4613:4512
+      assert:
+        that:
+          - stat.stat.uid == 4613
+          - stat.stat.gid == 4512   # True on Debian
+      ignore_errors: yes
