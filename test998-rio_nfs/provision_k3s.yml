@@ -18,7 +18,15 @@
       environment:
         INSTALL_K3S_VERSION: "{{ k3s_version }}"
         INSTALL_K3S_EXEC: "server --tls-san {{ k3s_address }} --no-deploy traefik"
+        # Disable traefik if you use Rio v0.7. This may change in later versions.
+        # Rio have changed ingress/gateway design in almost every minor release.
+        # https://github.com/rancher/rio/blob/v0.7.1/docs/install.md#k3s
 
+    # Give this "superuser" config to kubectl --kubeconfig option or KUBECONFIG
+    # environment variable. Recent beta releases of Rio support RBAC, but I'm
+    # not familiar with these things and also the support is very early and
+    # subject to change. I'll learn this later (maybe when v0.8 is released).
+    # https://github.com/rancher/rio/blob/v0.7.1/docs/rbac.md
     - name: k3s remote access config is generated
       shell: |
         sed '/server:/ s/127.0.0.1/{{ k3s_address }}/' /etc/rancher/k3s/k3s.yaml > k3s-remote.yaml

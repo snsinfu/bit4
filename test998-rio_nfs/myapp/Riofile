@@ -1,21 +1,40 @@
 services:
   myapp:
+    # From reading docs I believe nothing needs to be specified if image is
+    # built from local Dockerfile. However, Rio wants non-empty "image" or
+    # "build" to be specified. So just set build context to the default.
     build:
       context: .
     ports:
       - "80:8000/http"
     scale: 1
+
+    # Set uid:gid of the app process for testing if NFS permission is properly
+    # configured (by the init container).
     runAsUser: 2000
     runAsGroup: 2000
+
     volumes:
+      # Use existing PVC created with volume.yaml. It's a dedicated NFS
+      # filesystem hosted on a FreeBSD machine. The app uses this volume to
+      # store its state as a file.
       - name: myapp
         path: /srv/data
         persistent: yes
+
     containers:
+      # The NFS filesystem is initially owned by 0:0 (because the FreeBSD host
+      # does not know which uid:gid is used by app). So, before running the app
+      # container, run init-container that chowns the NFS filesystem. This way
+      # the choice of uid and gid is centralized to this Riofile (single source
+      # of truth). The uid and gid should be templated using Rio's question
+      # mechanism but I hard-code the IDs at this time.
       - name: myapp-init
         init: yes
         image: busybox
         volumes:
+          # It's a different container, so the mountpoint does not need to be
+          # the same as that in the app container. Just use /mnt.
           - name: myapp
             path: /mnt
             persistent: yes
