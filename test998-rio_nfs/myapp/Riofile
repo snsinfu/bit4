@@ -1,0 +1,22 @@
+services:
+  myapp:
+    build:
+      context: .
+    ports:
+      - "80:8000/http"
+    scale: 1
+    runAsUser: 2000
+    runAsGroup: 2000
+    volumes:
+      - name: myapp
+        path: /srv/data
+        persistent: yes
+    containers:
+      - name: myapp-init
+        init: yes
+        image: busybox
+        volumes:
+          - name: myapp
+            path: /mnt
+            persistent: yes
+        command: ["chown", "2000:2000", "/mnt"]
